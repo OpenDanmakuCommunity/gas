@@ -1,0 +1,75 @@
+{
+    "objects": {
+        "ExampleTextObject": {
+            "type": "Text",
+            "content": "This is some sample text",
+            "font": {
+                "size": 12,
+                "family": "SimHei",
+                "decoration": 0,
+            },
+            "position": {
+                "x": 0,
+                "y": 0,
+                "anchor": [0, 0],
+                "axis": 0
+            }
+        },
+        "ExampleButtonObject": {
+            "type": "Button",
+            "content": "This is some sample button text",
+            
+        },
+        "ExampleSpriteObject": {
+            "type": "SVGSprite",
+        },
+        "ExampleFrameObject": {
+            "type": "Frame",
+            "size": {
+                "width": 100,
+                "height": 100,
+            }
+        },
+    },
+    "layers": [
+        {
+            "name": "default",
+            "components": ["ExampleTextObject", "ExampleSpriteObject", "ExampleFrameObject"]
+        },
+        {
+            "name": "Extra Layer 1",
+            "components": [],
+            "mixing": "default"
+        }
+    ],
+    "animation": {
+        "groups": {
+            "group1": ["ExampleFrameObject", "ExampleSprite"]
+        },
+        "anchors": [
+            {
+                "time": 1000,
+                "key": {
+                    "group1": {
+                        "position": {
+                            "x": 200,
+                            "y": 300
+                        }
+                    }
+                },
+                "interpolation": "linear"
+            }
+        ]
+    },
+    "metadata": {
+        "objects": {},
+        "layers": {
+            "orphans": "hide",
+            "defaultMixing": "none"
+        },
+        "animation": {
+            "duration": 6000,
+            "legacy": false
+        }
+    }
+}
