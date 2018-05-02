@@ -6,6 +6,7 @@
 本项目包含如下几个部分：
 - [文档](docs/)
 - [参考实现](src/)
+- [IDE](ide/) ([在线](https://opendanmakucommunity.github.io/gas/ide/))
 
 ## 许可
 所有本库内文档均按照 署名-相同方式共享 4.0 国际 许可协议提供
