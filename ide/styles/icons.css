@@ -1,0 +1,19 @@
+.tool-icon.cursor {
+  background-image: url('icons/cursor.png');
+}
+
+.tool-icon.textbox {
+  background-image: url('icons/textbox.png');
+}
+
+.tool-icon.sprite {
+  background-image: url('icons/sprite.png');
+}
+
+.tool-icon.clicktarget {
+  background-image: url('icons/clicktarget.png');
+}
+
+.tool-icon.frame {
+  background-image: url('icons/frame.png');
+}

@@ -1,0 +1,190 @@
+html {
+  background-color: #262626;
+}
+
+body {
+  color: #636363;
+  font-family: Roboto, "Helvetica Neue Light" , "Helvetica Neue", Helvetica, Arial, "Lucida Grande", "open-sans", sans-serif;
+}
+
+h1, h2, h3, h4, h5 {
+  margin: 0;
+  padding: 0;
+}
+p {
+  margin: 0;
+  padding: 10px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
+    background: #262626; 
+}
+::-webkit-scrollbar-thumb {
+    background: #72DEC9; 
+}
+
+/** Layout **/
+.container {
+  border: 1px #636363 dotted;
+  position: absolute;
+  overflow: hidden;
+}
+
+#left, #center, #right {
+  position:fixed;
+  top: 1px;
+  bottom: 1px;
+}
+
+#left {
+  left: 1px;
+  width: 199px;
+}
+#center {
+  left: 201px;
+  right: 401px;
+}
+#right {
+  right: 1px;
+  width: 399px;
+}
+
+#timeline {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20%;
+  background: #323232;
+  position: absolute;
+}
+
+#work-area {
+  top: 20%;
+  left: 0;
+  right: 0;
+  bottom: 121px;
+  position: absolute;
+  overflow: auto;
+}
+
+#canvas {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  position:absolute;
+}
+
+#messages {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  position: absolute;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/** General **/
+.button {
+  cursor: pointer;
+  border: 1px #323232 solid; 
+}
+.button:hover {
+  background-color: #636363;
+  color: #323232;
+}
+.button.selected {
+  color: #72DEC9;
+  border: 1px #72DEC9 solid;
+}
+.checkerboard {
+  background-image: url('checkerboard.png');
+  background-repeat: repeat;
+}
+
+/** Mini-window **/
+.mini-window {
+  min-height: 200px;
+  overflow: auto;
+} 
+.mini-window > h1:first-child {
+  font-size: 1em;
+  background-color: #363636;
+  color: #72DEC9;
+  padding: 10px;
+  cursor: pointer;
+}
+
+/** Timeline Related **/
+#timeline {
+  overflow: auto;
+}
+
+#timeline .row {
+  height: 36px;
+  min-width: 200%;
+  border-top: 1px #636363 solid;
+  position: relative;
+  overflow: hidden;
+}
+#timeline .row > .track {
+  position: absolute;
+  top:0;
+  left: 200px;
+  bottom: 0;
+  right: 0;
+  background-color: #A6A5A1;
+  cursor: pointer;
+}
+#timeline .row > .row-label {
+  position: absolute;
+  top:0;
+  left:0;
+  bottom: 0;
+  width: 200px;
+  background-color:#262626;
+  cursor: pointer;
+}
+#timeline .row > .row-label p {
+  padding: 8px;
+}
+#timeline .row:hover > .row-label {
+  background-color:#363636;
+}
+#timeline .row.selected > .track{
+  background-color: #F5F2DC;
+}
+#timeline .row.selected > .row-label {
+  color: #72DEC9;
+}
+
+/** Toolbox **/
+.tool-icon {
+  width: 64px;
+  height: 64px;
+  float: left;
+  background-repeat: no-repeat;
+  background-position: center; 
+}
+
+.tool-icon-sep {
+  width: 100%;
+  height: 4px;
+  clear:both;
+}
+
+/** Messages Related **/
+#messages p {
+  padding: 5px 10px 5px 10px;
+  cursor: pointer;
+}
+#messages p:hover {
+  color: #72DEC9;
+  background-color: #363636;
+}

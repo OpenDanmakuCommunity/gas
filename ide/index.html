@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" value="IE=9">
+	<title>Integrated Development Environment Application For Generic Animation Script</title>
+
+	<link rel="stylesheet" href="styles/default.css" />
+	<link rel="stylesheet" href="styles/icons.css" />
+	<!-- GAS -->
+
+	<!-- Base -->
+	<script src="scripts/pettan.js"></script>
+	<script src="scripts/repr.js"></script>
+	<script src="scripts/global.js"></script>
+	<script src="scripts/ide.js"></script>
+</head>
+<body>
+  <div id="left" class="container">
+		<div id="toolbox" class="mini-window" style="height: 600px;">
+			<h1>Toolbox</h1>
+			<div id='tool-select' class="tool-icon cursor button"></div>
+			<div class="tool-icon-sep"></div>
+			<div id='tool-text' class="tool-icon textbox button"></div>
+			<div id='tool-sprite' class="tool-icon sprite button"></div>
+			<div id='tool-button' class="tool-icon clicktarget button"></div>
+			<div class="tool-icon-sep"></div>
+			<div id='tool-frame' class="tool-icon frame button"></div>
+		</div>
+		<div id="Export" class="mini-window">
+			<h1>Export</h1>
+			<div class="button"><p>Generic (GAS-S)</p></div>
+			<div class="button"><p>Mode7</p></div>
+			<div class="button"><p>Bilibili (BAS)</p></div>
+		</div>
+  </div>
+  <div id="center" class="container">
+    <div id="timeline" class="container">
+			<div class="row selected">
+				<div class="row-label"><p>Object 1</p></div>
+				<div class="track"></div>
+			</div>
+			<div class="row">
+				<div class="row-label"><p>Object 2</p></div>
+				<div class="track"></div>
+			</div>
+			<div class="row">
+				<div class="row-label"><p>Object 3</p></div>
+				<div class="track"></div>
+			</div>
+    </div>
+    <div id="work-area">
+				<div id="canvas" class="checkerboard" style="width: 640px; height: 480px;">
+				</div>
+    </div>
+		<div id="messages" class="container">
+    </div>
+  </div>
+  <div id="right" class="container">
+		<div id="library" class="mini-window">
+			<h1>Library</h1>
+		</div>
+		<div id="layers" class="mini-window">
+			<h1>Layers</h1>
+		</div>
+		<div id="layers" class="mini-window">
+			<h1>Properties</h1>
+		</div>
+  </div>
+</body>
+</html>

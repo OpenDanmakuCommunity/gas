@@ -1,0 +1,28 @@
+{
+  "name": "generic-animation-script",
+  "version": "0.1.0",
+  "description": "Generic animation language for Danmaku comments",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenDanmakuCommunity/gas.git"
+  },
+  "keywords": [
+    "danmaku",
+    "comment",
+    "video",
+    "animation",
+    "language"
+  ],
+  "author": "OpenDanmakuCommunity",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OpenDanmakuCommunity/gas/issues"
+  },
+  "homepage": "https://github.com/OpenDanmakuCommunity/gas#readme"
+}
