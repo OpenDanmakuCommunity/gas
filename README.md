@@ -7,6 +7,7 @@ free. Because the world is more than just Bilibili.
 The project contains the following main parts:
 - [Documentation](docs/)
 - [Reference Implementations](src/)
+- [IDE](ide/) ([Live](https://opendanmakucommunity.github.io/gas/ide/))
 
 ## License
 All documentation in this project is licensed under the 
