@@ -34,6 +34,12 @@ var _Create = function (type, props, children, callback) {
 	return elem;
 };
 
+var _CreateP = function (text, props) {
+	return _Create('p', props, [
+		_Create('text', text)
+	]);
+};
+
 var _ToggleClass = function (elem, className, enable) {
   var classes = elem.className.split(' ');
   if ((classes.indexOf(className) >= 0) !== enable) {

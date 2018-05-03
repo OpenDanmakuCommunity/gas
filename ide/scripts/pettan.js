@@ -10,7 +10,7 @@ var Pettan = (function () {
       self.emit(eventName, {
         'type': 'NativeEvent',
         'event': e,
-        'object': self
+        'object': this
       });
     });
   };

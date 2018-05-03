@@ -1,0 +1,39 @@
+/** Stage Related **/
+#canvas > * {
+  margin: 1px;
+  user-select: none;
+}
+#canvas .text {
+  color: #fff;
+  font-family: SimHei, SimSun, Heiti, "MS Mincho", "Meiryo", "Microsoft YaHei", monospace;
+  font-size: 25px;
+  letter-spacing: 0;
+  line-height: 100%;
+  padding: 3px 0 0 0;
+  position: absolute;
+  text-decoration: none;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  text-size-adjust: none;
+  transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+  transform-origin: 0% 0%;
+  white-space: pre;
+  word-break: keep-all;
+}
+
+#canvas .frame {
+  
+}
+
+#canvas .button {
+  
+  
+}
+
+#canvas .sprite {
+  
+}
+
+#canvas .item-focus {
+  margin: 0;
+  border: 1px #72DEC9 solid;
+}
