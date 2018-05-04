@@ -131,7 +131,7 @@ p {
   height: 18px;
   background-image: url(ruler.png);
   background-repeat: repeat-x;
-  background-position: right top;
+  background-position: left top;
 }
 
 #tracks { }
@@ -144,6 +144,8 @@ p {
   position: absolute;
   background-color: #FFAF53;
   overflow: visible;
+  user-drag: none; 
+  user-select: none; 
 }
 #slider-value {
   background-color: #FFAF53;

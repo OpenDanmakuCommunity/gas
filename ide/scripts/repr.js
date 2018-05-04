@@ -24,7 +24,7 @@ var Repr = {
     },
     'metadata': {
       'animation': {
-        'duration': 10000,
+        'duration': 12000,
       }
     }
   }
@@ -117,6 +117,9 @@ var ReprTools = new function() {
   this.timeToPixels = function (time) {
     return Math.floor(time / 10);
   };
+  this.pixelsToTime = function (pixel) {
+    return Math.floor(pixel * 10);
+  }
   this.duration = function () {
     return Repr.workspace.metadata.animation.duration;
   };

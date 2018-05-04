@@ -106,6 +106,22 @@
     P.listen('playback.stop', function (e) {
       return P.emit('timer.stop').then(P.emit('timer.seek', 0));
     })
+    
+    // Bind to ruler position
+    P.bind($('ruler'), 'mousedown', 'playback.seek');
+    P.bind($('ruler'), 'mousemove', 'playback.scrub');
+    P.listen('playback.seek', function (e) {
+      if (e.event.button !== 0) {
+        return e;
+      }
+      return P.emit('timer.seek', ReprTools.pixelsToTime(e.event.offsetX));
+    });
+    P.listen('playback.scrub', function (e) {
+      if (e.event.buttons !== 1) {
+        return e;
+      }
+      return P.emit('timer.seek', ReprTools.pixelsToTime(e.event.offsetX));
+    });
 
     // Bind to the work area 
     P.bind($('work-area'), 'mousedown', 'work-area.down');
