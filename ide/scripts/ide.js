@@ -8,6 +8,7 @@
   var renderQueue = [];
   var resettables = [];
   var P = new Pettan();
+  var T = new Timer();
 
   /** Helpers **/
   function trace(message) {
@@ -90,6 +91,22 @@
       return {'from': Repr.uiState.selectedTool, 
         'to': Repr.uiState.selectedTool};
     });
+    
+    // Bind to playback buttons
+    P.bind($('playback-play-pause'), 'click', 'playback.toggle');
+    P.listen('playback.toggle', function (e) {
+      if (T.isRunning) {
+        return P.emit('timer.stop').then(Promise.resolve(e));
+      } else {
+        return P.emit('timer.start').then(Promise.resolve(e));
+      }
+      return e;
+    });
+    P.bind($('playback-stop'), 'click', 'playback.stop');
+    P.listen('playback.stop', function (e) {
+      return P.emit('timer.stop').then(P.emit('timer.seek', 0));
+    })
+
     // Bind to the work area 
     P.bind($('work-area'), 'mousedown', 'work-area.down');
     P.bind($('work-area'), 'mouseup', 'work-area.up');
@@ -104,15 +121,8 @@
           // Clicked on existing item
           var ideName = e.event.target.getAttribute('ide-object-name');
           if (e.event.ctrlKey) {
-            var idx = Repr.uiState.selectedObjects.indexOf(ideName);
-            var oldObjs = Repr.uiState.selectedObjects.slice(0);
-            if (idx < 0) {
-              oldObjs.push(ideName);
-              return P.emit('objects.select', oldObjs);
-            } else {
-              oldObjs.splice(idx, 1);
-              return P.emit('objects.select', oldObjs);
-            }
+            var newSelection = ReprTools.multiSelect(ideName, 'toggle');
+            return P.emit('objects.select', newSelection);
           } else {
             return P.emit('objects.select', ideName);
           }
@@ -127,6 +137,15 @@
         if (e.event.target !== $('canvas') &&
           e.event.target !== $('work-area')) {
           // Clicked on existing item
+          var objName = e.event.target.getAttribute('ide-object-name');
+          console.log(objName);
+
+          if (ReprTools.objectExists(objName)) {
+            if (ReprTools.typeAsTool(ReprTools.getObjectType(objName), 
+              Repr.uiState.selectedTool)) {
+              return P.emit('objects.select', objName);
+            }
+          }
           return e;
         }
         var x = e.event.offsetX - 
@@ -137,7 +156,7 @@
           case 'text':
             P.emit('objects.add', {
               'type': 'Text',
-              'name': 'Text-' + (Repr.uiState.lastIndex ++),
+              'name': ReprTools.getUniqueName('Text'),
               'position': {
                 'x': x,
                 'y': y,
@@ -159,17 +178,40 @@
     // Bind to the object creation
     P.listen('objects.add', function (spec) {
       // Create the objects
-      if (!'name' in spec || typeof spec.name !== 'string') {
-        return Promise.reject(new Error('Spec did not have a name.'));
-      }
-      if (name in Repr.workspace.objects) {
-        return Promise.reject(new Error('Spec named object already exists'));
-      }
-      Repr.workspace.objects[spec.name] = GFactory.createFromSpec(spec);
-      $('canvas').appendChild(Repr.workspace.objects[spec.name].DOM);
-      trace('Created [' + spec.type + '] object "' + spec.name + '"');
+      var objInst = GFactory.createFromSpec(spec);
+      ReprTools.addObject(spec.name, objInst);
+
+      $('canvas').appendChild(objInst.DOM);
+      var label = _Create('div',{
+          'className': 'row-label',
+        }, [_CreateP(objInst.name)]);
+      var track = _Create('div',{
+          'className': 'track',
+        });
+      var objRow = _Create('div', {
+          'className': 'row',
+          'ide-object-name': objInst.name,
+          'style': {
+            'width': (200 + ReprTools.timeToPixels(ReprTools.duration())) + 'px'
+          }
+        }, [
+          label,
+          track
+      ]);
+      $('tracks').appendChild(objRow);
+
+      ReprTools.bindTrack(objInst.name, {
+        'row': objRow,
+        'label': label,
+        'labelText': label.firstChild,
+        'track': track,
+      });
+      P.bind(label, 'click', 'track.' + objInst.name + '.click');
+
+      trace('Created [' + objInst.type + '] object "' + objInst.name + '"');
+
       P.emit('objects.change', {
-        'name': spec.name,
+        'name': objInst.name,
         'action': 'add'
       });
       return spec;
@@ -179,40 +221,29 @@
     }); 
     P.listen('objects.change', function (change) {
       if (change.action === 'add') {
-        var objTrack = _Create('div', {
-            'className': 'row',
-          }, [
-            _Create('div',{
-                'className': 'row-label',
-              }, [_CreateP(change.name)]),
-            _Create('div',{
-                'className': 'track',
-              })
-        ]);
-        $('timeline').appendChild(objTrack);
         P.emit('objects.select', change.name);
       } else if (change.action === 'remove') {
         
+      } else if (change.action === 'rename') {
+        ReprTools.renameObject(change.oldName, change.newName);
+        // Rebind all the listeners
+        P.rename('track.' + change.oldName + '.click',
+          'track.' + change.newName + '.click');
       } else if (change.action === 'update'){
         
       }
       return change;
     });
-    P.listen('objects.select', function (objsname) {
-      var objects = Array.isArray(objsname) ? objsname : [objsname];
-      objects = objects.filter(
-        function (o) { return o in Repr.workspace.objects});
-
-      for (var i = 0; i < Repr.uiState.selectedObjects.length; i++) { 
-        var objname = Repr.uiState.selectedObjects[i];
-        Repr.workspace.objects[objname].setFocus(false);
-      }
-      for (var j = 0; j < objects.length; j++){
-        var objname = objects[j];
-        Repr.workspace.objects[objname].setFocus(true);
-      }
-      Repr.uiState.selectedObjects = objects;
-      return objsname;
+    P.listen('objects.select', function (objectNames) {
+      ReprTools.setSelected(objectNames);
+      return objectNames;
+    });
+    
+    // Deal with the slider
+    P.listen('slider.update', function (time) {
+      $('slider').style.left = (200 + ReprTools.timeToPixels(time)) + 'px';
+      $('slider-value').innerText = (time / 1000).toFixed(3);
+      return time;
     });
 
     // Bind some resets
@@ -223,6 +254,30 @@
       }
       return Promise.all(reset);
     });
+    
+    // Bind the timer event
+    P.listen('timer.start', function () {
+      T.start();
+    });
+    P.listen('timer.stop', function () {
+      T.stop();
+    });
+    P.listen('timer.seek', function (time) {
+      T.set(time);
+      return P.emit('timer.time', time);
+    });
+    P.listen('timer.time', function (time) {
+      var updates = [];
+      updates.push(P.emit('slider.update', time));
+      if (time > ReprTools.duration()) {
+        updates.push(P.emit('timer.stop').then(P.emit('timer.seek', ReprTools.duration())));
+      }
+      return Promise.all(updates);
+    });
+    T.broadcast(10, function (time) {
+      P.emit('timer.time', time);
+    });
+    
     // After every binding is done, we emit a render event
     P.listen('render', function () {
       var actions = [];
@@ -237,6 +292,8 @@
     });
 
     P.emit('render').then(function () {
+      return;//return P.emit('timer.start');
+    }).then(function () {
       trace('Generic Animation Comment IDE -- Initialization Complete');
     }).catch(function (e) {
       console.log(e);

@@ -31,5 +31,21 @@ var Pettan = (function () {
     }
     this.bindings[eventName].push(handler);
   };
+
+  // Drop all bindings for event
+  Pettan.prototype.drop = function (eventName) {
+    this.bindings[eventName] = [];
+  }
+
+  Pettan.prototype.rename = function (eventOldName, eventNewName) {
+    if (eventNewName in this.bindings &&
+      this.bindings[eventNewName].length !== 0) {
+
+      throw new Error('Cannot rename to ' + eventNewName + '. ' + 
+        'A non-empty listener group with the same name already exists.');
+    }
+    this.bindings[eventNewName] = this.bindings[eventOldName];
+    delete this.bindings[eventOldName];
+  }
   return Pettan;
 })();
