@@ -25,12 +25,40 @@
 }
 
 #canvas .button {
-  
-  
+  margin: 0;
+  color: #fff;
+  font-family: SimHei, SimSun, Heiti, "MS Mincho", "Meiryo", "Microsoft YaHei", monospace;
+  font-size: 25px;
+  letter-spacing: 0;
+  line-height: 100%;
+  padding: 3px 0 0 0;
+  position: absolute;
+  text-decoration: none;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  text-size-adjust: none;
+  text-align: center;
+  white-space: pre;
+  word-break: keep-all;
+  background-color: #EFAB0A;
+}
+#canvas .button:hover {
+  background-color: #82EED9;
+}
+#canvas .button.item-focus:hover {
+  background-color: #EFAB0A;
 }
 
 #canvas .sprite {
-  
+  margin: 0;
+  position: absolute;
+  border: 1px #F4652D solid; 
+}
+#canvas .sprite.no-image {
+  background-color: #EFAB0A;
+  opacity: 0.8;
+}
+#canvas .sprite.no-image.item-focus {
+  background-color: #82EED9;
 }
 
 #canvas .item-focus {

@@ -12,37 +12,41 @@
 
 	<!-- Base -->
 	<script src="scripts/pettan.js"></script>
-	<script src="scripts/repr.js"></script>
 	<script src="scripts/global.js"></script>
 	<script src="scripts/timer.js"></script>
+
+	<script src="scripts/repr.js"></script>
+	<script src="scripts/repr.objects.js"></script>
+
+	<script src="scripts/ide.editor.js"></script>
 	<script src="scripts/ide.js"></script>
 </head>
 <body>
-  <div id="left" class="container">
+  <div id="left" class="container" draggable="false">
 		<div id="toolbox" class="mini-window" style="height: 500px;">
 			<h1>Toolbox</h1>
-			<div id='tool-select' class="tool-icon cursor button"></div>
+			<div id='tool-select' class="tool-icon cursor button" tabindex="0" role="button"></div>
 			<div class="tool-icon-sep"></div>
-			<div id='tool-text' class="tool-icon textbox button"></div>
-			<div id='tool-sprite' class="tool-icon sprite button"></div>
-			<div id='tool-button' class="tool-icon clicktarget button"></div>
+			<div id='tool-text' class="tool-icon textbox button" tabindex="0" role="button"></div>
+			<div id='tool-sprite' class="tool-icon sprite button" tabindex="0" role="button"></div>
+			<div id='tool-button' class="tool-icon clicktarget button" tabindex="0" role="button"></div>
 			<div class="tool-icon-sep"></div>
-			<div id='tool-frame' class="tool-icon frame button"></div>
+			<div id='tool-frame' class="tool-icon frame button" tabindex="0" role="button"></div>
 		</div>
 		<div id="toolbox" class="mini-window" style="height: 100px;">
 			<h1>Playback</h1>
-			<div id='playback-play-pause' class="tool-icon play button"></div>
-			<div id='playback-stop' class="tool-icon stop button"></div>
+			<div id='playback-play-pause' class="tool-icon play button" tabindex="1" role="button"></div>
+			<div id='playback-stop' class="tool-icon stop button" tabindex="1" role="button"></div>
 		</div>
 		<div id="Export" class="mini-window">
 			<h1>Export</h1>
-			<div class="button"><p>Generic (GAS-S)</p></div>
-			<div class="button"><p>Mode7</p></div>
-			<div class="button"><p>Bilibili (BAS)</p></div>
+			<div class="button" tabindex="2" role="button"><p>Generic (GAS-S)</p></div>
+			<div class="button" tabindex="2" role="button"><p>Mode7</p></div>
+			<div class="button" tabindex="2" role="button"><p>Bilibili (BAS)</p></div>
 		</div>
   </div>
-  <div id="center" class="container">
-    <div id="timeline" class="container">
+  <div id="center" class="container" draggable="false">
+    <div id="timeline" class="container" draggable="false">
 				<div class="inner">
 					<div id="ruler"></div>
 					<div id="tracks"></div>
@@ -53,25 +57,67 @@
 					</div>
 				</div>
     </div>
-		<div id="editor">
-			<div id="editor-tools"></div>
-	    <div id="work-area">
-					<div id="canvas" class="checkerboard" style="width: 640px; height: 480px;">
+		<div id="editor" draggable="false">
+			<div id="editor-tools" draggable="false">
+				<div id="editor-bg-black" class="micro-button button pull-left">B</div>
+				<div id="editor-bg-white" class="micro-button button pull-left">W</div>
+				<div id="editor-bg-checkered" class="micro-button button pull-left selected">C</div>
+				<div class="input-area pull-right">
+					W:
+					<input id="editor-config-width" type="number" value="640" min="1" max="2048"/>
+					H: 
+					<input id="editor-config-height" type="number" value="480" min="1" max="2048"/>
+				</div>
+			</div>
+	    <div id="work-area" draggable="false">
+					<div id="canvas" draggable="false" class="checkerboard" style="width: 640px; height: 480px;">
 					</div>
 	    </div>
 		</div>
-		<div id="messages" class="container">
-    </div>
+		<div id="messages" class="container" draggable="false"></div>
   </div>
-  <div id="right" class="container">
+  <div id="right" class="container" draggable="false">
 		<div id="library" class="mini-window">
 			<h1>Library</h1>
+			<div id="library-inner"></div>
+		</div>
+		<div id="properties" class="mini-window" style="min-height: 600px;">
+			<h1>Properties</h1>
+			<div id="properties-inner">
+				<div class="input-group">
+					<label for="property-x">x</label>
+					<input type="number" id="property-x" min="0" max="2048"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-y">y</label>
+					<input type="number" id="property-y" min="0" max="2048"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-width">width</label>
+					<input type="number" id="property-width" min="0" max="2048"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-height">height</label>
+					<input type="number" id="property-height" min="0" max="2048"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-content">content</label>
+					<input type="text" id="property-content" value=""/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="collapsable">
+					<div class="head"></div>
+					<div class="body"></div>
+				</div>
+			</div>
 		</div>
 		<div id="layers" class="mini-window">
 			<h1>Layers</h1>
-		</div>
-		<div id="layers" class="mini-window">
-			<h1>Properties</h1>
+			<div id="layers-inner"></div>
 		</div>
   </div>
 </body>

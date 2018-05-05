@@ -5,7 +5,6 @@ var Repr = {
     'config': {
       'historyMax': 48,
     },
-    'selectedTool': 'select',
     'selectedObjects': [],
     'selectedLayer': '',
     'timeline': {
@@ -81,6 +80,16 @@ var ReprTools = new function() {
       throw new Error('Unrecognized operation ' + operation);
     }
   };
+  this.isSelected = function (items) {
+    if (!Array.isArray(items)) {
+      return Repr.uiState.selectedObjects.indexOf(items) >= 0;
+    } else {
+      // Checking a set
+      return items.every((function (item) {
+        return this.isSelected(item);
+      }).bind(this));
+    }
+  };
   this.setSelected = function (items) {
     if (!Array.isArray(items)) {
       if (typeof items === 'string') {
@@ -111,6 +120,18 @@ var ReprTools = new function() {
     }
     Repr.uiState.selectedObjects = items.sort();
     return true;
+  };
+  this.callOnSelection = function (methodName) {
+    var args = [];
+    for (var i = 1; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+    Repr.uiState.selectedObjects.forEach((function (objName) {
+      var obj = this.getObject(objName);
+      if (methodName in obj) {
+        obj[methodName].apply(obj, args);
+      }
+    }).bind(this));
   };
   
   /** Timeline Related **/
@@ -190,7 +211,7 @@ var ReprTools = new function() {
     }
     // OK we're good to go
     var objRef = this.getObject(oldName);
-    objRef.name = newName;
+    objRef.rename(newName);
     delete Repr.workspace.objects[oldName];
     Repr.workspace.objects[newName] = objRef;
     // Now scan the workspace and figure out if anything references the old name
@@ -223,82 +244,3 @@ var ReprTools = new function() {
     return true;
   };
 }
-
-var GText = (function () {
-  var GText = function (spec) {
-    this.DOM = null;
-    this.type = 'Text';
-    this.name = spec.name;
-    this.spec = spec;
-
-    this.load();
-  };
-  
-  GText.prototype.getProp = function (propertyName, def) {
-    var keys = propertyName.split('.');
-    var curSpec = this.spec;
-    for (var i = 0; i < keys.length; i++) {
-      if (keys[i] in curSpec) {
-        curSpec = curSpec[keys[i]];
-      } else {
-        return def;
-      }
-    }
-    return curSpec;
-  };
-  
-  GText.prototype.load = function () {
-    if (this.DOM === null) {
-      this.DOM = _Create('div', {
-        'className': 'text',
-        'ide-object-name': this.name
-      }, [
-        _Create('text', this.getProp('text', '(Example)'))
-      ]);
-      this.DOM.style.position = 'absolute';
-      this.DOM.style.left = this.getProp('position.x', 0) + 'px';
-      this.DOM.style.top = this.getProp('position.y', 0) + 'px';
-    }
-  };
-
-  GText.prototype.setFocus = function (hasFocus) {
-    _ToggleClass(this.DOM, 'item-focus', hasFocus);
-  };
-
-  GText.prototype.stageItem = function () {
-    return this.DOM;
-  }
-  return GText;
-})();
-
-var GSprite = (function () {
-  var GSprite = function (spec) {
-    this.P = pettan;
-  };
-  return GSprite;
-})();
-
-var GButton = (function () {
-  var GButton = function (spec) {
-    this.P = pettan;
-  };
-  return GButton;
-})();
-
-// Singleton factory
-var GFactory = new function () {
-  this.createFromSpec = function (spec) {
-    switch (spec.type) {
-      case 'Text':
-      case 'RichText':
-        return new GText(spec);
-      case 'Button':
-        return new GButton(spec);
-      case 'Sprite':
-        return new GSprite(spec);
-      default:
-        throw new Error('Spec had type ' + spec.type + ' but it was not recognized.');
-    }
-  };
-};
-

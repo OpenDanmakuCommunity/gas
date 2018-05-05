@@ -15,6 +15,31 @@ p {
   margin: 0;
   padding: 10px;
 }
+input[type="text"], input[type="number"], textarea {
+  border: none;
+  padding: 0;
+  margin: 0;
+  background-color: #424242;
+  color: #838383;
+  highlight: none;
+}
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+  outline: none;
+  color: #72DEC9;
+}
+input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
+  color: #ED5276;
+}
+
+.pull-left {
+  float: left;
+}
+.pull-right {
+  float: right;
+}
+.clearfix {
+  clear: both;
+}
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -65,13 +90,13 @@ p {
   top: 0;
   left: 0;
   right: 0;
-  height: 188px;
+  height: 198px;
   background: #323232;
   position: absolute;
 }
 
 #editor {
-  top: 190px;
+  top: 200px;
   left: 0;
   right: 0;
   bottom: 121px;
@@ -102,6 +127,11 @@ p {
   color: #72DEC9;
   border: 1px #72DEC9 solid;
 }
+.button:focus {
+  border: 1px #72DEC9 dashed;
+  outline: none;
+}
+
 .checkerboard {
   background-image: url('checkerboard.png');
   background-repeat: repeat;
@@ -174,32 +204,39 @@ p {
   position: relative;
   overflow: hidden;
 }
+#timeline .row > .row-label {
+  position: absolute;
+  top:0;
+  left:0;
+  bottom: 0;
+  width: 198px;
+  margin: 1px;
+  background-color:#262626;
+  cursor: pointer;
+  user-select: none;
+}
+#timeline .row > .row-label:focus {
+  margin: 0;
+  border: 1px #72DEC9 dashed;
+  outline: none;
+}
+#timeline .row > .row-label p {
+  padding: 8px;
+}
 #timeline .row > .track {
   position: absolute;
   top:0;
   left: 200px;
   bottom: 0;
   right: 0;
-  background-color: #A6A5A1;
+  background-color: #333A42;
   cursor: pointer;
-}
-#timeline .row > .row-label {
-  position: absolute;
-  top:0;
-  left:0;
-  bottom: 0;
-  width: 200px;
-  background-color:#262626;
-  cursor: pointer;
-}
-#timeline .row > .row-label p {
-  padding: 8px;
 }
 #timeline .row:hover > .row-label {
-  background-color:#363636;
+  background-color: #363636;
 }
 #timeline .row.selected > .track{
-  background-color: #F5F2DC;
+  background-color: #485058;
 }
 #timeline .row.selected > .row-label {
   color: #72DEC9;
@@ -213,14 +250,19 @@ p {
   bottom: 0;
   position: absolute;
   overflow: auto;
+  user-select: none;
 }
 #editor-tools {
   top: 0;
   left: 0;
   right: 0;
-  height: 20px;
+  height: 16px;
   background-color: #323232;
+  padding: 2px;
+  font-size: 10px;
+  line-height: 14px;
 }
+
 #canvas {
   left: 0;
   right: 0;
@@ -228,6 +270,35 @@ p {
   bottom: 0;
   margin: auto;
   position: absolute;
+  user-select: none;
+}
+
+#editor-tools .micro-button {
+  width: 14px;
+  height: 14px;
+  border: 1px #636363 dotted;
+  text-align: center;
+}
+#editor-tools .micro-button.selected {
+  color: #72DEC9;
+}
+
+#editor-tools .input-area {
+  padding: 0 5px 0 5px;
+  user-select: none;
+}
+
+#editor-tools .input-area input[type="number"] {
+  height: 14px;
+  width: 40px;
+  border: none;
+  padding: 0 2px 0 2px;
+  margin: 0;
+}
+
+#work-area .selection {
+  position: absolute;
+  border: 1px #72DEC9 dashed;
 }
 
 /** Toolbox **/
@@ -255,4 +326,40 @@ p {
 #messages p:hover {
   color: #72DEC9;
   background-color: #363636;
+}
+
+/** Left box **/
+
+
+/** Properties Related **/
+.input-group {
+  position: relative;
+  padding: 10px;
+  border-bottom: 1px #636363 dotted;
+}
+.input-group:hover {
+  background-color: #424242;
+  color: #72DEC9;
+}
+.input-group:hover > label {
+  border-right: 1px #fff dotted;
+}
+.input-group:hover > input {
+  background-color: #363636;
+}
+.input-group > label {
+  display: block;
+  width: 30%;
+  font-size: 1.1em;
+  float: left;
+  border-right: 1px #636363 dotted;
+  margin-right: 5%;
+  user-select: none;
+}
+.input-group > input[type="text"], 
+.input-group > input[type="number"], 
+.input-group > textarea {
+  width: 64%;
+  font-size: 1.1em;
+  float: left;
 }

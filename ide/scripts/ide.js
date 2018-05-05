@@ -5,63 +5,23 @@
   }
 
   /** Environment Variables **/
-  var renderQueue = [];
-  var resettables = [];
+  var RESET_COMPONENTS = ['reset.editor'];
+  var RENDER_COMPONENTS = ['render.editor'];
   var P = new Pettan();
   var T = new Timer();
 
   /** Helpers **/
   function trace(message) {
-    P.emit('trace', message);
-  }
-  function queueRender (action, value) {
-    renderQueue.push({
-      'action': action,
-      'value': value
-    });
-  }
-  
-  /** Binding Helpers **/
-  function bindToolButtons (tools) {
-    for (var i = 0; i < tools.length; i++) {
-      var toolName = tools[i];
-      var id = 'tool.' + toolName + '.click';
-      P.bind($('tool-' + toolName), 'click', id);
-      P.listen(id, (function (toolName) {
-        return function () {
-          return P.emit('tool.change', {
-            'from': Repr.uiState.selectedTool,
-            'to': toolName
-          }).then(function (e) {
-            Repr.uiState.selectedTool = toolName;
-            trace('Change to tool ' + toolName);
-            return e;
-          });
-        }
-      })(toolName));
-    }
-    // Add binding for changing class
-    P.listen('tool.change', function (tool) {
-      var toolFrom = $('tool-' + tool.from);
-      var toolTo = $('tool-' + tool.to);
-      _ToggleClass(toolFrom, 'selected', false);
-      _ToggleClass(toolTo, 'selected', true);
-      return Promise.resolve(tool);
-    });
-    P.listen('reset.tool', function () {
-      for (var i = 0; i < tools.length; i++) {
-        _ToggleClass($('tool-' + tools[i]), 'selected', false);
-      }
-      return Promise.resolve();
-    });
-    resettables.push('tool');
+    return P.emit('trace', message);
   }
 
   /** Initialize Reactive Environment **/
   window.addEventListener('load', function () {
     // Bind logging actions
     P.listen('trace', function (message) {
-      var hist = _CreateP(message);
+      var hist = _CreateP(message, {
+        'draggable': 'false'
+      });
 
       hist.addEventListener('dblclick', (function (srepr) {
         return function () {
@@ -85,13 +45,10 @@
       return Promise.resolve(message);
     });
 
-    // Bind to the tooltip buttons
-    bindToolButtons(['select', 'text', 'sprite', 'button', 'frame']);
-    queueRender('tool.change', function () { 
-      return {'from': Repr.uiState.selectedTool, 
-        'to': Repr.uiState.selectedTool};
-    });
-    
+    // Create and bind to the Editor
+    var editor = new Editor($('work-area'), $('canvas'));
+    editor.bind(P);
+
     // Bind to playback buttons
     P.bind($('playback-play-pause'), 'click', 'playback.toggle');
     P.listen('playback.toggle', function (e) {
@@ -123,74 +80,6 @@
       return P.emit('timer.seek', ReprTools.pixelsToTime(e.event.offsetX));
     });
 
-    // Bind to the work area 
-    P.bind($('work-area'), 'mousedown', 'work-area.down');
-    P.bind($('work-area'), 'mouseup', 'work-area.up');
-    P.listen('work-area.down', function (e) {
-      if (e.event.button !== 0) {
-        return e;
-      }
-      if (Repr.uiState.selectedTool === 'select') {
-        // Select items
-        if (e.event.target !== $('canvas') &&
-          e.event.target !== $('work-area')) {
-          // Clicked on existing item
-          var ideName = e.event.target.getAttribute('ide-object-name');
-          if (e.event.ctrlKey) {
-            var newSelection = ReprTools.multiSelect(ideName, 'toggle');
-            return P.emit('objects.select', newSelection);
-          } else {
-            return P.emit('objects.select', ideName);
-          }
-        } else {
-          if (!e.event.ctrlKey) {
-            return P.emit('objects.select', []);
-          }
-        }
-        return e;
-      } else {
-        // Create items
-        if (e.event.target !== $('canvas') &&
-          e.event.target !== $('work-area')) {
-          // Clicked on existing item
-          var objName = e.event.target.getAttribute('ide-object-name');
-          console.log(objName);
-
-          if (ReprTools.objectExists(objName)) {
-            if (ReprTools.typeAsTool(ReprTools.getObjectType(objName), 
-              Repr.uiState.selectedTool)) {
-              return P.emit('objects.select', objName);
-            }
-          }
-          return e;
-        }
-        var x = e.event.offsetX - 
-          (e.event.target === $('canvas') ? 0 : $('canvas').offsetLeft);
-        var y = e.event.offsetY - 
-          (e.event.target === $('canvas') ? 0 : $('canvas').offsetTop);
-        switch (Repr.uiState.selectedTool) {
-          case 'text':
-            P.emit('objects.add', {
-              'type': 'Text',
-              'name': ReprTools.getUniqueName('Text'),
-              'position': {
-                'x': x,
-                'y': y,
-              }
-            }).catch(function (e) {
-              alert(e);
-            });
-            return;
-          case 'sprite':
-          case 'button':
-          case 'frame':
-          default:
-            return e;
-        }
-      }
-      return e;
-    });
-    
     // Bind to the object creation
     P.listen('objects.add', function (spec) {
       // Create the objects
@@ -200,6 +89,7 @@
       $('canvas').appendChild(objInst.DOM);
       var label = _Create('div',{
           'className': 'row-label',
+          'tabindex': 3,
         }, [_CreateP(objInst.name)]);
       var track = _Create('div',{
           'className': 'track',
@@ -214,7 +104,7 @@
           label,
           track
       ]);
-      $('tracks').appendChild(objRow);
+      $('tracks').insertBefore(objRow, $('tracks').firstChild);
 
       ReprTools.bindTrack(objInst.name, {
         'row': objRow,
@@ -222,7 +112,17 @@
         'labelText': label.firstChild,
         'track': track,
       });
-      P.bind(label, 'click', 'track.' + objInst.name + '.click');
+      P.bind(label, 'mousedown', 'track.' + objInst.name + '.click');
+      P.listen('track.' + objInst.name + '.click', function (e) {
+        if (e.event.ctrlKey) {
+          return P.emit('objects.select', 
+            ReprTools.multiSelect(objInst.name, 'toggle')).then(
+              Promise.resolve(e));
+        } else {
+          return P.emit('objects.select', objInst.name).then(
+            Promise.resolve(e));
+        }
+      });
 
       trace('Created [' + objInst.type + '] object "' + objInst.name + '"');
 
@@ -254,7 +154,7 @@
       ReprTools.setSelected(objectNames);
       return objectNames;
     });
-    
+
     // Deal with the slider
     P.listen('slider.update', function (time) {
       $('slider').style.left = (200 + ReprTools.timeToPixels(time)) + 'px';
@@ -262,15 +162,6 @@
       return time;
     });
 
-    // Bind some resets
-    P.listen('reset', function () {
-      var reset = [];
-      for (var i = 0; i < resettables.length; i++) {
-        reset.push(P.emit('reset.' + resettables[i]));
-      }
-      return Promise.all(reset);
-    });
-    
     // Bind the timer event
     P.listen('timer.start', function () {
       T.start();
@@ -294,27 +185,20 @@
       P.emit('timer.time', time);
     });
     
-    // After every binding is done, we emit a render event
+    // Bind the listener for global render and reset
+    P.listen('reset', function () {
+      return Promise.all(RESET_COMPONENTS);
+    });
     P.listen('render', function () {
-      var actions = [];
-      for (var i = 0; i < renderQueue.length; i++) {
-        if (typeof renderQueue[i].value === 'function') {
-          actions.push(P.emit(renderQueue[i].action, renderQueue[i].value()));
-        } else {
-          actions.push(P.emit(renderQueue[i].action, renderQueue[i].value));
-        }
-      }
-      return Promise.all(actions);
+      return Promise.all(RENDER_COMPONENTS);
     });
 
     P.emit('render').then(function () {
-      return;//return P.emit('timer.start');
-    }).then(function () {
       trace('Generic Animation Comment IDE -- Initialization Complete');
     }).catch(function (e) {
-      console.log(e);
+      trace(e);
     });
-    
-    window.pt = P;
+
+    window.pet = P;
   });
 })();
