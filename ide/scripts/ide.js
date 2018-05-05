@@ -8,7 +8,6 @@
   var RESET_COMPONENTS = ['reset.editor'];
   var RENDER_COMPONENTS = ['render.editor'];
   var P = new Pettan();
-  var T = new Timer();
 
   /** Helpers **/
   function trace(message) {
@@ -42,51 +41,37 @@
       while ($('messages').childElementCount > Repr.uiState.config.historyMax) {
         $('messages').removeChild($('messages').lastChild);
       };
-      return Promise.resolve(message);
+      return message;
     });
 
-    // Create and bind to the Editor
+    // Create and bind to Editor
     var editor = new Editor($('work-area'), $('canvas'));
     editor.bind(P);
 
-    // Bind to playback buttons
-    P.bind($('playback-play-pause'), 'click', 'playback.toggle');
-    P.listen('playback.toggle', function (e) {
-      if (T.isRunning) {
-        return P.emit('timer.stop').then(Promise.resolve(e));
-      } else {
-        return P.emit('timer.start').then(Promise.resolve(e));
-      }
-      return e;
-    });
-    P.bind($('playback-stop'), 'click', 'playback.stop');
-    P.listen('playback.stop', function (e) {
-      return P.emit('timer.stop').then(P.emit('timer.seek', 0));
-    })
-    
-    // Bind to ruler position
-    P.bind($('ruler'), 'mousedown', 'playback.seek');
-    P.bind($('ruler'), 'mousemove', 'playback.scrub');
-    P.listen('playback.seek', function (e) {
-      if (e.event.button !== 0) {
-        return e;
-      }
-      return P.emit('timer.seek', ReprTools.pixelsToTime(e.event.offsetX));
-    });
-    P.listen('playback.scrub', function (e) {
-      if (e.event.buttons !== 1) {
-        return e;
-      }
-      return P.emit('timer.seek', ReprTools.pixelsToTime(e.event.offsetX));
-    });
+    // Create and bind to Playback controls
+    var playback = new Playback({
+        'playBtn': $('playback-play-pause'),
+        'stopBtn': $('playback-stop'),
+        'recBtn': $('playback-rec')
+      }, {
+        'ruler': $('ruler'),
+        'slider': $('slider'),
+        'sliderValue': $('slider-value')
+      });
+    playback.bind(P);
+
+    // Create and bind to the Assets Library
+    var assetsLibrary = new AssetsLibrary($('library-import'),
+      $('library-inner'));
+    assetsLibrary.bind(P);
 
     // Bind to the object creation
     P.listen('objects.add', function (spec) {
       // Create the objects
       var objInst = GFactory.createFromSpec(spec);
       ReprTools.addObject(spec.name, objInst);
-
       $('canvas').appendChild(objInst.DOM);
+
       var label = _Create('div',{
           'className': 'row-label',
           'tabindex': 3,
@@ -98,7 +83,7 @@
           'className': 'row',
           'ide-object-name': objInst.name,
           'style': {
-            'width': (200 + ReprTools.timeToPixels(ReprTools.duration())) + 'px'
+            'width': playback.offsetTimeToPixels(playback.getDuration()) + 'px'
           }
         }, [
           label,
@@ -115,7 +100,7 @@
       P.bind(label, 'mousedown', 'track.' + objInst.name + '.click');
       P.listen('track.' + objInst.name + '.click', function (e) {
         if (e.event.ctrlKey) {
-          return P.emit('objects.select', 
+          return P.emit('objects.select',
             ReprTools.multiSelect(objInst.name, 'toggle')).then(
               Promise.resolve(e));
         } else {
@@ -132,21 +117,27 @@
       });
       return spec;
     });
-    P.listen('objects.remove', function (name) {
-      return name;
-    }); 
     P.listen('objects.change', function (change) {
       if (change.action === 'add') {
-        P.emit('objects.select', change.name);
+        return P.emit('objects.select', change.name).then(
+          Promise.resolve(change));
       } else if (change.action === 'remove') {
-        
+        // Remove object
+        $('canvas').removeChild(ReprTools.getObject(change.name));
+        // Drop all the listeners
+        P.drop('track.' + change.name + '.click');
+        // Clear records in Repr
+        ReprTools.removeObject(change.name);
+        // Remove from selection if selected
+        return P.emit('objects.select',
+          ReprTools.multiSelect(change.name, 'remove'));
       } else if (change.action === 'rename') {
         ReprTools.renameObject(change.oldName, change.newName);
         // Rebind all the listeners
-        P.rename('track.' + change.oldName + '.click',
-          'track.' + change.newName + '.click');
+        return P.rename('track.' + change.oldName + '.click',
+          'track.' + change.newName + '.click').then(Promise.resolve(change));
       } else if (change.action === 'update'){
-        
+        // Update some value
       }
       return change;
     });
@@ -155,36 +146,6 @@
       return objectNames;
     });
 
-    // Deal with the slider
-    P.listen('slider.update', function (time) {
-      $('slider').style.left = (200 + ReprTools.timeToPixels(time)) + 'px';
-      $('slider-value').innerText = (time / 1000).toFixed(3);
-      return time;
-    });
-
-    // Bind the timer event
-    P.listen('timer.start', function () {
-      T.start();
-    });
-    P.listen('timer.stop', function () {
-      T.stop();
-    });
-    P.listen('timer.seek', function (time) {
-      T.set(time);
-      return P.emit('timer.time', time);
-    });
-    P.listen('timer.time', function (time) {
-      var updates = [];
-      updates.push(P.emit('slider.update', time));
-      if (time > ReprTools.duration()) {
-        updates.push(P.emit('timer.stop').then(P.emit('timer.seek', ReprTools.duration())));
-      }
-      return Promise.all(updates);
-    });
-    T.broadcast(10, function (time) {
-      P.emit('timer.time', time);
-    });
-    
     // Bind the listener for global render and reset
     P.listen('reset', function () {
       return Promise.all(RESET_COMPONENTS);

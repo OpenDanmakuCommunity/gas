@@ -17,3 +17,15 @@
 .tool-icon.frame {
   background-image: url('icons/frame.png');
 }
+
+.tool-icon.play {
+  background-image: url('icons/play-pause.png');
+}
+
+.tool-icon.stop {
+  background-image: url('icons/stop.png');
+}
+
+.tool-icon.rec {
+  background-image: url('icons/rec.png');
+}

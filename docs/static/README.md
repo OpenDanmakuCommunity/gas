@@ -2,7 +2,7 @@
 GAS静态语法（之后称作GAS-S）为“定义型”语法，也就是说整个弹幕的生存周期的动作都是被预先定义
 的“无状态”动画。**给出静态语法的对象定义和目前生存时间可以唯一的渲染出屏幕状态。**
 
-大部分高级弹幕都可以通过 GAS 静态语法进行表述，包括很多本身不需要状态的 BiliScript 
+大部分高级弹幕都可以通过 GAS 静态语法进行表述，包括很多本身不需要状态的 BiliScript
 （原版 Bilibili 代码弹幕语法）都可以通过运行编译到固定的静态定义。新的 BAS 语法也可以编译
 成无损的 GAS 定义。
 
@@ -33,7 +33,7 @@ value为对象的定义。
     - `RichText`
 - SpriteObject 小图像对象
     - `SVGSprite`
-    - `Bitmap`
+    - `BinarySprite`
     - `AnimatedSprite`
 - FrameObject 子舞台对象
     - `Frame`
@@ -70,4 +70,3 @@ Animation区可以为空，那样表示整个 GAS-S弹幕是静态弹幕
 
 ### `metadata`
 其余信息
-

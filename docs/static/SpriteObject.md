@@ -1,6 +1,6 @@
 # Sprite 绘图对象
 
-## 基础参数 
+## 基础参数
 
 ### `type = [ "SVGSprite" | "Bitmap" | "AnimatedSprite" ]` 类型
 
@@ -46,11 +46,11 @@ Example:
 }
 ````
 
-## Bitmap
+## BinarySprite
 Example:
 ````
 {
-    "type": "Bitmap",
+    "type": "BinarySprite",
     "content": {
         "type": "image/png",
         "data": "...",

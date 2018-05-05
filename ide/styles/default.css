@@ -46,10 +46,10 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   height: 10px;
 }
 ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
-    background: #262626; 
+    background: #262626;
 }
 ::-webkit-scrollbar-thumb {
-    background: #72DEC9; 
+    background: #72DEC9;
 }
 
 /** Layout **/
@@ -116,7 +116,7 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
 /** General **/
 .button {
   cursor: pointer;
-  border: 1px #323232 solid; 
+  border: 1px #323232 solid;
   user-select: none;
 }
 .button:hover {
@@ -140,15 +140,29 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
 /** Mini-window **/
 .mini-window {
   min-height: 200px;
-  overflow: auto;
-} 
+  overflow: hidden;
+  position: relative;
+}
 .mini-window > h1:first-child {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   font-size: 1em;
   background-color: #363636;
   color: #72DEC9;
   padding: 10px;
+  height: 18px;
   cursor: pointer;
   user-select: none;
+}
+.mini-window .body {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
 }
 
 /** Timeline Related **/
@@ -174,8 +188,8 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   position: absolute;
   background-color: #FFAF53;
   overflow: visible;
-  user-drag: none; 
-  user-select: none; 
+  user-drag: none;
+  user-select: none;
 }
 #slider-value {
   background-color: #FFAF53;
@@ -328,26 +342,38 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   background-color: #363636;
 }
 
-/** Left box **/
-
-
-/** Properties Related **/
-.input-group {
+/** Left Sidebar Related **/
+.input-group,
+.image-group {
   position: relative;
   padding: 10px;
   border-bottom: 1px #636363 dotted;
 }
-.input-group:hover {
+.fixed-group {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 22px;
+  padding: 10px;
+  border-bottom: 1px #636363 dotted;
+}
+.input-group:hover,
+.image-group:hover,
+.fixed-group:hover {
   background-color: #424242;
   color: #72DEC9;
 }
-.input-group:hover > label {
+.input-group:hover > label,
+.fixed-group:hover > label,
+.image-group:hover > .image {
   border-right: 1px #fff dotted;
 }
 .input-group:hover > input {
   background-color: #363636;
 }
-.input-group > label {
+.input-group > label,
+.fixed-group > label {
   display: block;
   width: 30%;
   font-size: 1.1em;
@@ -356,10 +382,64 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   margin-right: 5%;
   user-select: none;
 }
-.input-group > input[type="text"], 
-.input-group > input[type="number"], 
-.input-group > textarea {
+.input-group > input[type="text"],
+.input-group > input[type="number"] {
+  font-size: 1.1em;
+}
+.input-group > input,
+.input-group > textarea,
+.fixed-group > input {
   width: 64%;
+  float: left;
+}
+
+/** Library Related **/
+#library-inner {
+  position: absolute;
+  top: 43px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+}
+.image-group > .image {
+  display: block;
+  width: 20%;
   font-size: 1.1em;
   float: left;
+  border-right: 1px #636363 dotted;
+  margin-right: 5%;
+  user-select: none;
+}
+.image-group > .image .thumbnail {
+  width: 64px;
+  height: 64px;
+  border: 1px #636363 solid;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+.image-group > .description {
+  width: 74%;
+  float: left;
+  max-height: 64px;
+  overflow: auto;
+  user-select: none;
+  word-break: break-all;
+}
+
+.image-group:hover > .image {
+  width: 30%;
+}
+.image-group:hover > .description {
+  width: 64%;
+}
+.image-group:hover > .image .thumbnail {
+  width: 88px;
+  height: 88px;
+  border: 1px #72DEC9 solid;
+}
+.image-group:hover > .description {
+  max-height: 88px;
+  overflow: auto;
 }

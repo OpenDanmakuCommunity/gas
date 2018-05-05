@@ -6,10 +6,7 @@ var Repr = {
       'historyMax': 48,
     },
     'selectedObjects': [],
-    'selectedLayer': '',
-    'timeline': {
-      'playhead': 0
-    }
+    'selectedLayer': 'default'
   },
   'bindings': {
     'tracks': {}
@@ -50,7 +47,7 @@ var ReprTools = new function() {
     }
     return false;
   };
-  
+
   /** UI Related **/
   this.multiSelect = function (itemName, operation) {
     var selection = Repr.uiState.selectedObjects.slice(0);
@@ -102,7 +99,7 @@ var ReprTools = new function() {
       return this.objectExists(item);
     }).bind(this));
     // Set objects and tracks focus
-    for (var i = 0; i < Repr.uiState.selectedObjects.length; i++) { 
+    for (var i = 0; i < Repr.uiState.selectedObjects.length; i++) {
       this.getObject(Repr.uiState.selectedObjects[i]).setFocus(false);
       var row = this.getTrack(Repr.uiState.selectedObjects[i]).row;
       _ToggleClass(row, 'selected', false);
@@ -133,18 +130,16 @@ var ReprTools = new function() {
       }
     }).bind(this));
   };
-  
-  /** Timeline Related **/
-  this.timeToPixels = function (time) {
-    return Math.floor(time / 10);
-  };
-  this.pixelsToTime = function (pixel) {
-    return Math.floor(pixel * 10);
-  }
+
+  /** Timeline and animation related **/
   this.duration = function () {
     return Repr.workspace.metadata.animation.duration;
   };
-  
+  this.getKeyFrames = function (objName) {
+    // Figure out the key frame for an object
+    return;
+  };
+
   /** Workspace related **/
   this.getUniqueName = function (prefix) {
     if (typeof prefix !== 'string' || prefix === null || prefix === '') {
@@ -202,6 +197,23 @@ var ReprTools = new function() {
     Repr.workspace.objects[name] = object;
     var layerRef = Repr.workspace.layers[layer];
     layerRef.components.push(name);
+  };
+  this.removeObject = function (name) {
+    if (!this.objectExists(name)) {
+      return false;
+    }
+    // Delete object from objects and tracks
+    delete Repr.workspace.objects[name];
+    delete Repr.bindings.tracks[name];
+    // Delete reference from layers
+    var _fnFilter = function (objName) {
+      return objName !== name;
+    };
+    for (var layer in Repr.workspace.layers) {
+      Repr.workspace.layers[layer].components =
+        Repr.workspace.layers[layer].components.filter(_fnFilter);
+    }
+    return true;
   };
   this.renameObject = function (oldName, newName) {
     // First make sure no conflicts are possible

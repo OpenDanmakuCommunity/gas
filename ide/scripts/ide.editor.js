@@ -27,7 +27,7 @@ var Editor = (function () {
       return obj.slice(0).map(function (item) {
         return _deepCopy(item);
       });
-    } 
+    }
     if (typeof obj === 'number' || typeof obj === 'string' ||
       typeof obj === 'boolean' || obj === null) {
       return obj;
@@ -86,7 +86,7 @@ var Editor = (function () {
       case 'select':
         if (e.event.target !== this._canvas &&
           e.event.target !== this._workArea) {
-  
+
           var ideName = e.event.target.getAttribute('ide-object-name');
           if (e.event.ctrlKey) {
             var newSelection = ReprTools.multiSelect(ideName, 'toggle');
@@ -133,8 +133,8 @@ var Editor = (function () {
           e.event.target !== this._workArea) {
           // Clicking on existing item
           var objName = e.event.target.getAttribute('ide-object-name');
-          if (ReprTools.objectExists(objName) && 
-            ReprTools.typeAsTool(ReprTools.getObjectType(objName), 
+          if (ReprTools.objectExists(objName) &&
+            ReprTools.typeAsTool(ReprTools.getObjectType(objName),
               this.selectedTool)) {
             // Same type as current tool, enter move mode
 
@@ -143,7 +143,7 @@ var Editor = (function () {
           }
           return e;
         }
-        var position = this._canvasPosition(e.event.offsetX, 
+        var position = this._canvasPosition(e.event.offsetX,
           e.event.offsetY, e.event.target);
         var objectBase = _deepCopy(DEFAULTS[this.selectedTool]);
         objectBase.name = ReprTools.getUniqueName(objectBase.type);
@@ -172,7 +172,7 @@ var Editor = (function () {
     // Reset moving and draggind flags
     this._movingStart = null;
     this._draggingStart = null;
-    
+
     if (this._selectBox !== null) {
       if (this._selectBox.DOM !== null) {
         this._workArea.removeChild(this._selectBox.DOM);
@@ -227,7 +227,7 @@ var Editor = (function () {
         ReprTools.callOnSelection('resize', width, height);
       }
     } else {
-      // Non-selection tool. 
+      // Non-selection tool.
       if (this._draggingStart !== null) {
         var width = currentPosition.x - this._draggingStart.x;
         var height = currentPosition.y - this._draggingStart.y;
@@ -235,7 +235,7 @@ var Editor = (function () {
       }
     }
   };
-  
+
   Editor.prototype._bindToolButtons = function (P) {
     for (var i = 0; i < this.tools.length; i++) {
       var toolName = this.tools[i];
@@ -299,13 +299,13 @@ var Editor = (function () {
     this._isBound = true;
     return this.render(P);
   };
-  
+
   Editor.prototype.render = function (P) {
     return P.emit('tool.change', {
-      'from': this.selectedTool, 
+      'from': this.selectedTool,
       'to': this.selectedTool
     });
   };
-  
+
   return Editor;
 })();

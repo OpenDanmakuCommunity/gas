@@ -21,7 +21,7 @@
 }
 
 #canvas .frame {
-  
+
 }
 
 #canvas .button {
@@ -51,10 +51,13 @@
 #canvas .sprite {
   margin: 0;
   position: absolute;
-  border: 1px #F4652D solid; 
+  border: 1px #F4652D solid;
 }
 #canvas .sprite.no-image {
   background-color: #EFAB0A;
+  background-image: url(unknown-object.png);
+  background-repeat: no-repeat;
+  background-position: center;
   opacity: 0.8;
 }
 #canvas .sprite.no-image.item-focus {
