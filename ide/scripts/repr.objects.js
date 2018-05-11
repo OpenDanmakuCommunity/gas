@@ -2,7 +2,7 @@ var PropManager = (function () {
   var PropManager = function (spec) {
     this.spec = spec;
   };
-
+  
   PropManager.prototype.getProp = function (propertyName, def) {
     var keys = propertyName.split('.');
     var curSpec = this.spec;
@@ -15,7 +15,7 @@ var PropManager = (function () {
     }
     return curSpec;
   };
-
+  
   PropManager.prototype.setProp = function (propertyName, newValue) {
     var keys = propertyName.split('.');
     var curSpec = this.spec;
@@ -33,7 +33,7 @@ var PropManager = (function () {
       }
     }
   };
-
+  
   return PropManager;
 })();
 
@@ -98,7 +98,7 @@ var GSprite = (function () {
     this.load();
   };
 
-  GText.prototype.rename = function (newName) {
+  GSprite.prototype.rename = function (newName) {
     this.name = newName;
     this.spec.name = newName;
     if (this.DOM !== null) {
@@ -178,7 +178,7 @@ var GButton = (function () {
     this.DOM.style.left = this._pm.getProp('position.x', 0) + 'px';
     this.DOM.style.top = this._pm.getProp('position.y', 0) + 'px';
   };
-
+  
   GButton.prototype.resize = function (width, height) {
     this._pm.setProp('size.width', Math.max(1, width));
     this._pm.setProp('size.height', Math.max(1, height));
