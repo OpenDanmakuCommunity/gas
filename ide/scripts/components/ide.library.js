@@ -49,6 +49,19 @@ var AssetsLibrary = (function () {
     return promises;
   };
 
+  // Modify the list items (DOM)
+  AssetsLibrary.prototype._setAssetListItem = function(assetName, dom) {
+    this._assetListItems[assetName] = dom;
+  };
+
+  AssetsLibrary.prototype._getAssetListItem = function(assetName) {
+    return this._assetListItems[assetName];
+  };
+
+  AssetsLibrary.prototype._clearAssetListItem = function(assetName) {
+    delete this._assetListItems[assetName];
+  };
+
   AssetsLibrary.prototype.hasAsset = function (assetName) {
     return assetName in this._assets;
   };
@@ -60,6 +73,7 @@ var AssetsLibrary = (function () {
       asset.data;
   };
 
+  // Modeify the asset representations
   AssetsLibrary.prototype.getAssetSummary = function (assetName) {
     var asset = this._assets[assetName];
     return {
@@ -82,11 +96,10 @@ var AssetsLibrary = (function () {
     if (assetName in this._assets) {
       throw new Error('Asset with ' + assetName + ' already exists!');
     }
-    console.log(assetData);
     this._assets[assetName] = assetData;
   };
 
-
+  // Bind stuff
   AssetsLibrary.prototype.bind = function (P) {
     P.bind(this._filePicker, 'change', 'library.filepicker.pick');
     P.listen('library.filepicker.pick', (function (e) {
@@ -95,9 +108,10 @@ var AssetsLibrary = (function () {
           var promises = [];
           for (var i = 0, f; f = files[i]; i++) {
             var name = this._autoName(f.file.name);
-            this.addAsset(name,
-              this._extractDataURI(f.data));
-            promises.push(P.emit('library.add', name));
+            promises.push(P.emit('library.add', {
+              'name': name,
+              'data': this._extractDataURI(f.data)
+            }));
           }
           return Promise.all(promises);
         }).bind(this)).catch(function (err) {
@@ -105,7 +119,19 @@ var AssetsLibrary = (function () {
         }).then(Promise.resolve(e));
     }).bind(this));
 
-    P.listen('library.add', (function (assetName) {
+    // Bind to the event to add the asset
+    P.listen('library.add', (function (asset) {
+      this.addAsset(asset.name, asset.data);
+      return P.emit('library.added', asset.name).then(Promise.resolve(asset));
+    }).bind(this));
+
+    P.listen('library.remove', (function (name) {
+      this.removeAsset(name);
+      return P.emit('library.removed', name).then(Promise.resolve(name));
+    }).bind(this));
+
+    // Bind to add event to update the ui
+    P.listen('library.added', (function (assetName) {
       var URI = this.getAssetAsUri(assetName);
       var summary = this.getAssetSummary(assetName);
       var thumbnailImage = _Create('div', {
@@ -134,6 +160,13 @@ var AssetsLibrary = (function () {
         }),
       ]);
       this._libraryInner.insertBefore(item, this._libraryInner.firstChild);
+      this._setAssetListItem(assetName, item);
+      return assetName;
+    }).bind(this));
+
+    P.listen('libray.removed', (function (assetName) {
+      this._libraryLinner.removeChild(this._getAssetListItem(assetName));
+      this._clearAssetListItem(assetName);
       return assetName;
     }).bind(this));
   };

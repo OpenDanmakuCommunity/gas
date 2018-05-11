@@ -13,39 +13,39 @@ var PropertyManager = (function () {
     'position.x': {
       'type': 'number',
       'min': 0,
-      'max': 2048,
       'default': 0,
     },
     'position.y': {
       'type': 'number',
       'min': 0,
-      'max': 2048,
       'default': 0,
     },
     'size.width': {
       'type': 'number',
       'min': 0,
-      'max': 2048,
       'default': null,
     },
     'size.height': {
       'type': 'number',
       'min': 0,
-      'max': 2048
       'default': null,
+    },
+    'size.scale': {
+      'type': 'number',
+      'min': 0,
+      'default': 1, 
     },
     'font.size': {
       'type': 'number',
       'min': 1,
-      'max': 2048,
       'default': 25,
     },
-    'font-decoration': {
+    'font.decoration': {
       'type':'text',
       'values': ['bold', 'italic', 'underline', 'overline', 'line-through', 'shadow', 'outline'],
       'default': [],
     },
-    'font-family': {
+    'font.family': {
       'type': 'text',
       'default': null,
     },
@@ -61,10 +61,10 @@ var PropertyManager = (function () {
       'type': 'list',
       'default': []
     }
-  }
+  };
 
-  var PropertyManager = function () {
-
+  var PropertyManager = function (propertyBox) {
+    this.propertyBox = propertyBox;
   };
 
   PropertyManager.prototype.bind = function (P) {

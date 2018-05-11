@@ -8,9 +8,6 @@ var Repr = {
     'selectedObjects': [],
     'selectedLayer': 'default'
   },
-  'bindings': {
-    'tracks': {}
-  },
   'workspace': {
     'objects': {},
     'layers': {
@@ -89,31 +86,7 @@ var ReprTools = new function() {
   };
   this.setSelected = function (items) {
     if (!Array.isArray(items)) {
-      if (typeof items === 'string') {
-        items = [items];
-      } else {
-        throw new Error('Illegal value for setting selected!');
-      }
-    }
-    items = items.filter((function (item) {
-      return this.objectExists(item);
-    }).bind(this));
-    // Set objects and tracks focus
-    for (var i = 0; i < Repr.uiState.selectedObjects.length; i++) {
-      this.getObject(Repr.uiState.selectedObjects[i]).setFocus(false);
-      var row = this.getTrack(Repr.uiState.selectedObjects[i]).row;
-      _ToggleClass(row, 'selected', false);
-      try {
-        row.scrollIntoView();
-      } catch (e) {}
-    }
-    for (var j = 0; j < items.length; j++){
-      this.getObject(items[j]).setFocus(true);
-      var row = this.getTrack(items[j]).row;
-      _ToggleClass(row, 'selected', true);
-      try {
-        row.scrollIntoView();
-      } catch (e) {}
+      throw new Error('Expected selection to be an array');
     }
     Repr.uiState.selectedObjects = items.sort();
     return true;
@@ -129,6 +102,9 @@ var ReprTools = new function() {
         obj[methodName].apply(obj, args);
       }
     }).bind(this));
+  };
+  this.selected = function () {
+    return Repr.uiState.selectedObjects.slice(0);
   };
 
   /** Timeline and animation related **/
@@ -154,15 +130,6 @@ var ReprTools = new function() {
     }
     return name;
   };
-  this.bindTrack = function (trackName, trackObj) {
-    Repr.bindings.tracks[trackName] = trackObj;
-  }
-  this.getTrack = function (trackName) {
-    if (!trackName in Repr.bindings.tracks) {
-      throw new Error('Could not find track ' + trackName);
-    }
-    return Repr.bindings.tracks[trackName];
-  }
 
   /** Objects Stuff **/
   this.objectExists = function (name) {
@@ -202,9 +169,7 @@ var ReprTools = new function() {
     if (!this.objectExists(name)) {
       return false;
     }
-    // Delete object from objects and tracks
     delete Repr.workspace.objects[name];
-    delete Repr.bindings.tracks[name];
     // Delete reference from layers
     var _fnFilter = function (objName) {
       return objName !== name;
@@ -217,9 +182,9 @@ var ReprTools = new function() {
   };
   this.renameObject = function (oldName, newName) {
     // First make sure no conflicts are possible
-    if (this.objectExists(newname)) {
-      throw new Error('Cannot rename ' + change.oldName + ' to ' +
-        change.newName + ': Naming conflict.');
+    if (this.objectExists(newName)) {
+      throw new Error('Cannot rename ' + oldName + ' to ' + newName +
+        ': Naming conflict.');
     }
     // OK we're good to go
     var objRef = this.getObject(oldName);
@@ -236,10 +201,6 @@ var ReprTools = new function() {
       Repr.workspace.layers[layer].components =
         Repr.workspace.layers[layer].components.map(_fnRemap);
     }
-    // Frames reference objects directly so nothing to do there
-    // Rename the tracks
-    Repr.bindings.tracks[newName] = Repr.bindings.tracks[oldName];
-    delete Repr.bindings.tracks[oldName];
     return true;
   }
   /** Layer Stuff **/

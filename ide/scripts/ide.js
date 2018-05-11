@@ -45,7 +45,13 @@
     });
 
     // Create and bind to Editor
-    var editor = new Editor($('work-area'), $('canvas'));
+    var editor = new Editor($('work-area'), $('canvas'), {
+      'bgBlack': $('editor-bg-black'),
+      'bgWhite': $('editor-bg-white'),
+      'bgCheckered': $('editor-bg-checkered'),
+      'width': $('editor-config-width'),
+      'height': $('editor-config-height'),
+    });
     editor.bind(P);
 
     // Create and bind to Playback controls
@@ -60,91 +66,13 @@
       });
     playback.bind(P);
 
+    var timeline = new TimelineManager($('tracks'), playback);
+    timeline.bind(P);
+
     // Create and bind to the Assets Library
     var assetsLibrary = new AssetsLibrary($('library-import'),
       $('library-inner'));
     assetsLibrary.bind(P);
-
-    // Bind to the object creation
-    P.listen('objects.add', function (spec) {
-      // Create the objects
-      var objInst = GFactory.createFromSpec(spec);
-      ReprTools.addObject(spec.name, objInst);
-      $('canvas').appendChild(objInst.DOM);
-
-      var label = _Create('div',{
-          'className': 'row-label',
-          'tabindex': 3,
-        }, [_CreateP(objInst.name)]);
-      var track = _Create('div',{
-          'className': 'track',
-        });
-      var objRow = _Create('div', {
-          'className': 'row',
-          'ide-object-name': objInst.name,
-          'style': {
-            'width': playback.offsetTimeToPixels(playback.getDuration()) + 'px'
-          }
-        }, [
-          label,
-          track
-      ]);
-      $('tracks').insertBefore(objRow, $('tracks').firstChild);
-
-      ReprTools.bindTrack(objInst.name, {
-        'row': objRow,
-        'label': label,
-        'labelText': label.firstChild,
-        'track': track,
-      });
-      P.bind(label, 'mousedown', 'track.' + objInst.name + '.click');
-      P.listen('track.' + objInst.name + '.click', function (e) {
-        if (e.event.ctrlKey) {
-          return P.emit('objects.select',
-            ReprTools.multiSelect(objInst.name, 'toggle')).then(
-              Promise.resolve(e));
-        } else {
-          return P.emit('objects.select', objInst.name).then(
-            Promise.resolve(e));
-        }
-      });
-
-      trace('Created [' + objInst.type + '] object "' + objInst.name + '"');
-
-      P.emit('objects.change', {
-        'name': objInst.name,
-        'action': 'add'
-      });
-      return spec;
-    });
-    P.listen('objects.change', function (change) {
-      if (change.action === 'add') {
-        return P.emit('objects.select', change.name).then(
-          Promise.resolve(change));
-      } else if (change.action === 'remove') {
-        // Remove object
-        $('canvas').removeChild(ReprTools.getObject(change.name));
-        // Drop all the listeners
-        P.drop('track.' + change.name + '.click');
-        // Clear records in Repr
-        ReprTools.removeObject(change.name);
-        // Remove from selection if selected
-        return P.emit('objects.select',
-          ReprTools.multiSelect(change.name, 'remove'));
-      } else if (change.action === 'rename') {
-        ReprTools.renameObject(change.oldName, change.newName);
-        // Rebind all the listeners
-        return P.rename('track.' + change.oldName + '.click',
-          'track.' + change.newName + '.click').then(Promise.resolve(change));
-      } else if (change.action === 'update'){
-        // Update some value
-      }
-      return change;
-    });
-    P.listen('objects.select', function (objectNames) {
-      ReprTools.setSelected(objectNames);
-      return objectNames;
-    });
 
     // Bind the listener for global render and reset
     P.listen('reset', function () {

@@ -67,6 +67,46 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   min-width: 100%;
 }
 
+.modal-group > .overlay {
+ background-color: #636363;
+ z-index: 9999;
+ position: fixed;
+ top: 0;
+ bottom: 0;
+ left: 0;
+ right: 0;
+ opacity: 0.8;
+}
+
+.modal-group > .modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 360px;
+  height: 240px;
+  padding: 10px;
+  margin: auto;
+  background-color: #262626;
+  z-index: 9999;
+}
+.modal-group.error > .modal {
+  border: 1px #d02626 solid;
+  color: #d02626;
+}
+.modal-group.error > .overlay {
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    45deg,
+    #d02626,
+    #d02626 10px,
+    #f0a6a6 10px,
+    #f0a6a6 20px
+  );
+}
+
+
 #left, #center, #right {
   position:fixed;
   top: 1px;
@@ -132,7 +172,7 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   outline: none;
 }
 
-.checkerboard {
+.checkerboard, #canvas.checkered {
   background-image: url('checkerboard.png');
   background-repeat: repeat;
 }
@@ -286,7 +326,12 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   position: absolute;
   user-select: none;
 }
-
+#canvas.black {
+  background-color: #000;
+}
+#canvas.white {
+  background-color: #fff;
+}
 #editor-tools .micro-button {
   width: 14px;
   height: 14px;
@@ -304,7 +349,7 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
 
 #editor-tools .input-area input[type="number"] {
   height: 14px;
-  width: 40px;
+  width: 64px;
   border: none;
   padding: 0 2px 0 2px;
   margin: 0;

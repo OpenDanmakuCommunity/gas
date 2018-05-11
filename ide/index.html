@@ -21,24 +21,37 @@
 	<script src="scripts/repr.js"></script>
 	<script src="scripts/repr.objects.js"></script>
 
-	<script src="scripts/ide.playback.js"></script>
-	<script src="scripts/ide.editor.js"></script>
-	<script src="scripts/ide.library.js"></script>
-	<script src="scripts/ide.properties.js"></script>
+	<script src="scripts/components/ide.playback.js"></script>
+	<script src="scripts/components/ide.timeline.js"></script>
+	<script src="scripts/components/ide.editor.js"></script>
+	<script src="scripts/components/ide.library.js"></script>
+	<script src="scripts/components/ide.properties.js"></script>
 	<script src="scripts/ide.js"></script>
 </head>
 <body>
+	<noscript>
+		<div id="noscript-notice" class="modal-group error">
+			<div class="overlay"></div>
+			<div class="modal">
+				<h2>Error</h2>
+				<p>
+					This IDE tool runs locally and requires JavaScript for the dynamic functionality. 
+					Please enable JavaScript or switch to a browser that supports it.
+				</p>
+			</div>
+		</div>
+	</noscript>
   <div id="left" class="container" draggable="false">
 		<div id="toolbox" class="mini-window" style="height: 500px;">
 			<h1>Toolbox</h1>
 			<div class="body">
-				<div id='tool-select' class="tool-icon cursor button" tabindex="0" role="button"></div>
+				<div id='tool-select' class="tool-icon cursor button" tabindex="0" role="button" title="Select Tool"></div>
 				<div class="tool-icon-sep"></div>
-				<div id='tool-text' class="tool-icon textbox button" tabindex="0" role="button"></div>
-				<div id='tool-sprite' class="tool-icon sprite button" tabindex="0" role="button"></div>
-				<div id='tool-button' class="tool-icon clicktarget button" tabindex="0" role="button"></div>
+				<div id='tool-text' class="tool-icon textbox button" tabindex="0" role="button" title="Text Object Tool"></div>
+				<div id='tool-sprite' class="tool-icon sprite button" tabindex="0" role="button" title="Sprite Tool"></div>
+				<div id='tool-button' class="tool-icon clicktarget button" tabindex="0" role="button" title="Button Tool"></div>
 				<div class="tool-icon-sep"></div>
-				<div id='tool-frame' class="tool-icon frame button" tabindex="0" role="button"></div>
+				<div id='tool-frame' class="tool-icon frame button" tabindex="0" role="button" title="Frame Tool"></div>
 			</div>
 		</div>
 		<div id="toolbox" class="mini-window" style="height: 100px;">
@@ -74,7 +87,7 @@
 			<div id="editor-tools" draggable="false">
 				<div id="editor-bg-black" class="micro-button button pull-left">B</div>
 				<div id="editor-bg-white" class="micro-button button pull-left">W</div>
-				<div id="editor-bg-checkered" class="micro-button button pull-left selected">C</div>
+				<div id="editor-bg-checkered" class="micro-button button pull-left">C</div>
 				<div class="input-area pull-right">
 					W:
 					<input id="editor-config-width" type="number" value="640" min="1" max="2048"/>
@@ -83,7 +96,7 @@
 				</div>
 			</div>
 	    <div id="work-area" draggable="false">
-					<div id="canvas" draggable="false" class="checkerboard" style="width: 640px; height: 480px;">
+					<div id="canvas" draggable="false" style="width: 640px; height: 480px;">
 					</div>
 	    </div>
 		</div>
@@ -107,22 +120,52 @@
 			<div id="properties-inner" class="body">
 				<div class="input-group">
 					<label for="property-x">x</label>
-					<input type="number" id="property-x" min="0" max="2048"/>
+					<input type="number" id="property-x" min="0"x-ide-propname="position.x"/>
 					<div class="clearfix"></div>
 				</div>
 				<div class="input-group">
 					<label for="property-y">y</label>
-					<input type="number" id="property-y" min="0" max="2048"/>
+					<input type="number" id="property-y" min="0" x-ide-propname="position.y"/>
 					<div class="clearfix"></div>
 				</div>
 				<div class="input-group">
 					<label for="property-width">width</label>
-					<input type="number" id="property-width" min="0" max="2048"/>
+					<input type="number" id="property-width" min="0" x-ide-propname="size.width"/>
 					<div class="clearfix"></div>
 				</div>
 				<div class="input-group">
 					<label for="property-height">height</label>
-					<input type="number" id="property-height" min="0" max="2048"/>
+					<input type="number" id="property-height" min="0" x-ide-propname="size.height"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-scale">scale</label>
+					<input type="number" id="property-scale" min="0" step="0.01" x-ide-propname="size.scale"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-rotX">rotX</label>
+					<input type="number" id="property-rotX" min="0" x-ide-propname="rotation.x"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-rotY">rotY</label>
+					<input type="number" id="property-rotY" min="0" x-ide-propname="rotation.y"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-height">rotZ</label>
+					<input type="number" id="property-height" min="0" x-ide-propname="rotation.z"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-height">rotX</label>
+					<input type="number" id="property-height" min="0" x-ide-propname="rotation.x"/>
+					<div class="clearfix"></div>
+				</div>
+				<div class="input-group">
+					<label for="property-height">rotX</label>
+					<input type="number" id="property-height" min="0" x-ide-propname="rotation.x"/>
 					<div class="clearfix"></div>
 				</div>
 				<div class="input-group">

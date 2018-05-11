@@ -41,13 +41,24 @@ var _CreateP = function (text, props) {
 };
 
 var _ToggleClass = function (elem, className, enable) {
+	if (Array.isArray(elem)) {
+		for (var i = 0; i < elem.length; i++) {
+			_ToggleClass(elem[i], className, enable);
+		}
+		return;
+	}
+
   var classes = elem.className.split(' ');
-  if ((classes.indexOf(className) >= 0) !== enable) {
+	if (Array.isArray(className)) {
+		for (var i = 0; i < className.length; i++) {
+			_ToggleClass(elem, className[i], enable);
+		}
+	} else if ((classes.indexOf(className) >= 0) !== enable) {
     if (enable) {
       classes.push(className);
     } else {
       classes.splice(classes.indexOf(className), 1);
     }
+		elem.className = classes.join(' ');
   }
-  elem.className = classes.join(' ');
 };

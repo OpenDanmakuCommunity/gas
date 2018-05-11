@@ -2,15 +2,24 @@
 var Pettan = (function () {
   var Pettan = function () {
     this.bindings = {};
+    this.nativeBindings = {};
   };
 
   Pettan.prototype.bind = function (item, nativeEventName, eventName) {
     var self = this;
+    if (!(eventName in this.nativeBindings)) {
+      this.nativeBindings[eventName] = [];
+    }
+    var currentNativeBinding = {
+      'eventName': eventName
+    };
+    this.nativeBindings[eventName].push(currentNativeBinding);
     item.addEventListener(nativeEventName, function (e) {
-      self.emit(eventName, {
+      self.emit(currentNativeBinding.eventName, {
         'type': 'NativeEvent',
         'event': e,
-        'object': this
+        'object': this,
+        'name': currentNativeBinding.eventName
       });
     });
   };
@@ -43,6 +52,20 @@ var Pettan = (function () {
 
       throw new Error('Cannot rename to ' + eventNewName + '. ' + 
         'A non-empty listener group with the same name already exists.');
+    }
+    // Find native binding
+    if (eventOldName in this.nativeBindings) {
+      if (eventNewName in this.nativeBindings &&
+        this.nativeBindings[eventNewName].length !== 0) {
+
+        throw new Error('Cannot rename native bindings for ' + eventOldName + 
+          ' to ' + eventNewName + '. Naming conflict at target.');
+      }
+      this.nativeBindings[eventOldName].forEach(function (boundObject) {
+        boundObject.eventName = eventNewName;
+      });
+      this.nativeBindings[eventNewName] = this.nativeBindings[eventOldName];
+      delete this.nativeBindings[eventOldName];
     }
     this.bindings[eventNewName] = this.bindings[eventOldName];
     delete this.bindings[eventOldName];
