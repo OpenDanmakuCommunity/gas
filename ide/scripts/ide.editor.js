@@ -41,7 +41,7 @@ var Editor = (function () {
 
   /*** START EDITOR CLASS ***/
   var Editor = function (workArea, canvas, workAreaConfigButtons) {
-    if (!ReprTools || !Repr || !_Create || !Selection) {
+    if (!ReprTools || !Repr || !_Create) {
       throw new Error('Environment not loaded correctly!');
     }
     this.tools = ['select', 'text', 'sprite', 'button', 'frame'];
@@ -159,7 +159,6 @@ var Editor = (function () {
         }
 
         return this.P.emit('objects.add', objectBase).catch(function (err) {
-            console.log(err);
             alert(err);
           }).then(Promise.resolve(e));
 
@@ -221,32 +220,23 @@ var Editor = (function () {
         // Something selected to be moved
         var deltaX = currentPosition.x - this._movingStart.x;
         var deltaY = currentPosition.y - this._movingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'move', deltaX, deltaY);
+        ReprTools.callOnSelection('move', deltaX, deltaY);
         this._movingStart = currentPosition;
       } else if (this._draggingStart !== null) {
         // Something selected to be resized
         var width = currentPosition.x - this._draggingStart.x;
         var height = currentPosition.y - this._draggingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize', width, height);
+        ReprTools.callOnSelection('resize', width, height);
       }
     } else {
       // Non-selection tool. 
       if (this._draggingStart !== null) {
         var width = currentPosition.x - this._draggingStart.x;
         var height = currentPosition.y - this._draggingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize', width, height);
+        ReprTools.callOnSelection('resize', width, height);
       }
     }
   };
-  Editor.prototype._onSelect = function (oldSelection, newSelection) {
-    oldSelection.forEach(function (selection) {
-      ReprTools.getObject(selection).setFocus(false);
-    });
-    newSelection.forEach(function (selection) {
-      ReprTools.getObject(selection).setFocus(true);
-    });
-  };
-
 
   Editor.prototype._bindConfigButtons = function (P) {
     P.bind(this._workAreaConfigButtons.bgBlack, 'click', 
@@ -356,90 +346,12 @@ var Editor = (function () {
     });
   };
 
-  Editor.prototype._bindPlayback = function (P) {
-    P.listen('timeline.update', (function (time) {
-      
-    }).bind(this));
-  };
-
-  Editor.prototype._bindObjectActions = function (P) {
-    // Listen on add object events
-    P.listen('objects.add', (function (spec) {
-      console.log('Creating object [' + spec.type + ']' + spec.name);
-      // This creates objects
-      var objInst = GFactory.createFromSpec(spec);
-      ReprTools.addObject(spec.name, objInst);
-      this._canvas.appendChild(objInst.DOM);
-
-      return P.emit('tracks.add', spec).then(P.emit('objects.added', {
-          'name': spec.name,
-          'inst': objInst
-        })).then(Promise.resolve(spec));
-    }).bind(this));
-
-    P.listen('objects.remove', (function (objName) {
-      this._canvas.removeChild(ReprTools.getObject(objName));
-      ReprTools.removeObject(objName);
-      return P.emit('objects.select',
-        Selection.multiSelect(objName, 'remove')).then(
-          Promise.resolve(objName));
-    }).bind(this));
-
-    P.listen('objects.rename', function (nameSpec) {
-      ReprTools.renameObject(nameSpec.oldName, nameSpec.newName);
-      return nameSpec;
-    });
-
-    // Listen on select object events
-    P.listen('objects.select', function (objectNames) {
-      var newSelection = objectNames;
-      if (!Array.isArray(objectNames)) {
-        if (typeof objectNames === 'string') {
-          newSelection = [objectNames]
-        } else {
-          throw new Error('Illegal value for setting selected!');
-        }
-      } else {
-        newSelection = objectNames.slice(0);
-      }
-      newSelection = newSelection.filter(function (item) {
-        return ReprTools.objectExists(item);
-      });
-      // Filter them
-      var originalSelection = Selection.get();
-
-      // Set selected items
-      Selection.set(newSelection);
-      // Emit new event
-      return P.emit('selection.change', {
-        'from': originalSelection,
-        'to': newSelection,
-      }).then(Promise.resolve(objectNames));
-    });
-    
-    // Bind post-events
-    P.listen('objects.added', (function (objData) {
-      return P.emit('trace',
-        'Created [' + objData.inst.type + '] object "' + objData.name + '"').then(
-          P.emit('objects.select', objData.name)).then(
-            Promise.resolve(objData));
-    }).bind(this));
-    P.listen('selection.change', (function (changes) {
-      this._onSelect(changes.from, changes.to);
-      return changes;
-    }).bind(this));
-  };
-
   Editor.prototype.bind = function (P) {
     if (this._isBound) {
       throw new Error('Cannot bind an editor more than once');
     }
     this.P = P;
 
-    // Bind the object actions
-    this._bindObjectActions(P);
-    // Bind the playback events
-    this._bindPlayback(P);
     // Bind the buttons and queue up the renderer
     this._bindToolButtons(P);
     // Bind the config buttons

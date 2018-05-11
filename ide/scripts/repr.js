@@ -5,7 +5,6 @@ var Repr = {
     'config': {
       'historyMax': 48,
     },
-    'selectedObjects': [],
     'selectedLayer': 'default'
   },
   'workspace': {
@@ -21,6 +20,63 @@ var Repr = {
       }
     }
   }
+};
+
+// Shared object that deals with selection
+var Selection = new function() {
+  var selection = [];
+
+  // Multi-select enabler
+  this.multiSelect = function (itemName, operation) {
+    var currentSelection = this.get();
+    if (!ReprTools.objectExists(itemName)) {
+      return currentSelection;
+    }
+    var index = currentSelection.indexOf(itemName);
+    if (operation === 'add') {
+      if (index < 0) {
+        currentSelection.push(itemName);
+        return currentSelection.sort();
+      }
+      return currentSelection;
+    } else if (operation === 'remove') {
+      if (index >= 0) {
+        currentSelection.splice(index, 1);
+        return currentSelection;
+      }
+      return currentSelection;
+    } else if (operation === 'toggle') {
+      if (index < 0) {
+        return this.multiSelect(itemName, 'add');
+      } else {
+        return this.multiSelect(itemName, 'remove');
+      }
+    } else {
+      throw new Error('Unrecognized operation ' + operation);
+    }
+  };
+
+  this.isSelected = function (items) {
+    if (!Array.isArray(items)) {
+      return selection.indexOf(items) >= 0;
+    } else {
+      // Checking a set
+      return items.every((function (item) {
+        return this.isSelected(item);
+      }).bind(this));
+    }
+  };
+
+  this.set = function (items) {
+    if (!Array.isArray(items)) {
+      throw new Error('Expected selection to be an array');
+    }
+    selection = items.sort();
+    return true;
+  };
+  this.get = function () {
+    return selection.slice(0);
+  };
 };
 
 // Tools for working with the repr
@@ -46,65 +102,17 @@ var ReprTools = new function() {
   };
 
   /** UI Related **/
-  this.multiSelect = function (itemName, operation) {
-    var selection = Repr.uiState.selectedObjects.slice(0);
-    if (!this.objectExists(itemName)) {
-      return selection;
-    }
-    var index = selection.indexOf(itemName);
-    if (operation === 'add') {
-      if (index < 0) {
-        selection.push(itemName);
-        return selection.sort();
-      }
-      return selection;
-    } else if (operation === 'remove') {
-      if (index >= 0) {
-        selection.splice(index, 1);
-        return selection;
-      }
-      return selection;
-    } else if (operation === 'toggle') {
-      if (index < 0) {
-        return this.multiSelect(itemName, 'add');
-      } else {
-        return this.multiSelect(itemName, 'remove');
-      }
-    } else {
-      throw new Error('Unrecognized operation ' + operation);
-    }
-  };
-  this.isSelected = function (items) {
-    if (!Array.isArray(items)) {
-      return Repr.uiState.selectedObjects.indexOf(items) >= 0;
-    } else {
-      // Checking a set
-      return items.every((function (item) {
-        return this.isSelected(item);
-      }).bind(this));
-    }
-  };
-  this.setSelected = function (items) {
-    if (!Array.isArray(items)) {
-      throw new Error('Expected selection to be an array');
-    }
-    Repr.uiState.selectedObjects = items.sort();
-    return true;
-  };
-  this.callOnSelection = function (methodName) {
+  this.callOnGroup = function (items, methodName) {
     var args = [];
-    for (var i = 1; i < arguments.length; i++) {
+    for (var i = 2; i < arguments.length; i++) {
       args.push(arguments[i]);
     }
-    Repr.uiState.selectedObjects.forEach((function (objName) {
+    items.forEach((function (objName) {
       var obj = this.getObject(objName);
       if (methodName in obj) {
         obj[methodName].apply(obj, args);
       }
     }).bind(this));
-  };
-  this.selected = function () {
-    return Repr.uiState.selectedObjects.slice(0);
   };
 
   /** Timeline and animation related **/
@@ -195,7 +203,8 @@ var ReprTools = new function() {
     var _fnRemap = function (objName) {
       return objName === oldName ? newName : objName;
     };
-    Repr.uiState.selectedObjects = Repr.uiState.selectedObjects.map(_fnRemap);
+    Selection.set(Selection.get().map(_fnRemap));
+
     // Update references in layers
     for (var layer in Repr.workspace.layers) {
       Repr.workspace.layers[layer].components =

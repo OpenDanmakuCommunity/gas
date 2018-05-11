@@ -71,6 +71,7 @@ var TimelineManager = (function () {
       'label': label,
       'labelText': label.firstChild,
       'track': track,
+      'pins': []
     };
 
     this._timeline.insertBefore(objRow, this._timeline.firstChild);
@@ -80,7 +81,7 @@ var TimelineManager = (function () {
     P.listen('track.' + spec.name + '.click', function (e) {
       if (e.event.ctrlKey) {
         return P.emit('objects.select',
-          ReprTools.multiSelect(binding.name, 'toggle')).then(
+          Selection.multiSelect(binding.name, 'toggle')).then(
             Promise.resolve(e));
       } else {
         return P.emit('objects.select', binding.name).then(
@@ -104,6 +105,39 @@ var TimelineManager = (function () {
     });
   };
 
+  TimelineManager.prototype._insertPin = function (name, start, end, isAnimated) {
+    if (!(name in this._tracks)) {
+      throw new Error('Could not find track ' + name);
+    }
+    if (end <= start) {
+      throw new Error('End time must be after start time');
+    }
+    var pinDom = _Create('div', {
+        'className': 'pin' + (!isAnimated ? ' static' : ''),
+        'style': {
+          'left': this._playback.timeToPixels(start) + 'px',
+          'width': this._playback.timeToPixels(end - start) + 'px'
+        }
+      }, [
+        _Create('div', {
+          'className': 'mark'
+        })
+      ])
+    var pin = {
+      'dom': pinDom,
+      'start': start,
+      'end': end
+    }
+    this._tracks[name].pins.push(pin);
+    this._tracks[name].track.appendChild(pinDom);
+  };
+  TimelineManager.prototype._removePin = function () {
+    
+  };
+  TimelineManager.prototype._firstGap = function (name, time) {
+    //
+  };
+
   TimelineManager.prototype._renameTrack = function (P, oldName, newName) {
     if (newName in this._tracks) {
       throw new Error('Naming conflict. ' + newName + ' already exists!');
@@ -113,6 +147,7 @@ var TimelineManager = (function () {
     this._renameBinding(oldName, newName);
     // Get the binding
     this._tracks[newName].labelText.innerText = newName;
+    this._tracks[newName].row.setAttribute('ide-object-name', newName);
   };
   
   TimelineManager.prototype._removeTrack = function (P, name) {
@@ -121,6 +156,14 @@ var TimelineManager = (function () {
     P.drop('track.' + name + '.dblclick');
     this._timeline.removeChild(this._tracks[name].row);
     this._removeBinding(name);
+  };
+
+  TimelineManager.prototype._bindPin = function (P) {
+    P.listen('timeline.rec', (function (timeObj) {
+      Selection.get().forEach((function (item) {
+        this._insertPin(item, 0, timeObj.time, false);
+      }).bind(this));
+    }).bind(this));
   };
 
   TimelineManager.prototype.bind = function (P) {
@@ -145,6 +188,9 @@ var TimelineManager = (function () {
       this._removeTrack(P, objName);
       return objName;
     }).bind(this));
+    
+    // Bind pin controls
+    this._bindPin(P);
   };
 
   return TimelineManager;

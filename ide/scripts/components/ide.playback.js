@@ -34,7 +34,7 @@ var Playback = (function () {
   }
 
   Playback.prototype.bindAnimation = function (P) {
-    P.listen('animation.global.time', function (time) {
+    P.listen('timeline.update', function (time) {
       // Animate all the things
       
     });
@@ -45,10 +45,12 @@ var Playback = (function () {
     P.listen('timer.start', (function () {
       T.start();
       _ToggleClass(this._playBtn, 'selected', true);
+      return P.emit('timer.started');
     }).bind(this));
     P.listen('timer.stop', (function () {
       T.stop();
       _ToggleClass(this._playBtn, 'selected', false);
+      return P.emit('timer.stopped');
     }).bind(this));
     P.listen('timer.seek', function (time) {
       T.set(time);
@@ -57,7 +59,7 @@ var Playback = (function () {
     P.listen('timer.time', (function (time) {
       var updates = [];
       updates.push(P.emit('slider.update', time));
-      updates.push(P.emit('animation.global.time', time));
+      updates.push(P.emit('timeline.update', time));
       if (time > this.getDuration()) {
         updates.push(P.emit('timer.stop').then(
           P.emit('timer.seek', this.getDuration())));
@@ -92,12 +94,15 @@ var Playback = (function () {
         Promise.resolve(e));
     });
     P.bind(this._recBtn, 'click', 'playback.rec');
-    P.listen('playback.rec', function (e) {
+    P.listen('playback.rec', (function (e) {
       try {
         e.event.target.blur();
       } catch (err) {}
-      return P.emit('animation.pin').then(Promise.resolve(e));
-    });
+      return P.emit('timeline.rec', {
+        'time': this.T.time(),
+        'status': this.T.isRunning
+      }).then(Promise.resolve(e));
+    }).bind(this));
 
     P.bind(this._ruler, 'mousedown', 'playback.seek');
     P.bind(this._ruler, 'mousemove', 'playback.scrub');

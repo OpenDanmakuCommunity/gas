@@ -295,6 +295,37 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
 #timeline .row.selected > .row-label {
   color: #72DEC9;
 }
+#timeline .row > .track > .pin > .mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -4px;
+  margin: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #72DEC9;
+}
+#timeline .row > .track > .pin {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 0;
+  margin: auto;
+  border: 1px #72DEC9 solid;
+  width: 100px;
+}
+#timeline .row > .track > .pin.active {
+  border-color: #FFAF53 !important;
+}
+#timeline .row > .track > .pin.active > .mark {
+  background-color: #FFAF53;
+}
+#timeline .row > .track > .pin.static {
+  height: 0px;
+  border: 1px #72DEC9 dotted;
+  background-color: inherit;
+}
 
 /** Editor Related **/
 #work-area {
