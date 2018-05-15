@@ -27,7 +27,7 @@ var Editor = (function () {
       return obj.slice(0).map(function (item) {
         return _deepCopy(item);
       });
-    } 
+    }
     if (typeof obj === 'number' || typeof obj === 'string' ||
       typeof obj === 'boolean' || obj === null) {
       return obj;
@@ -88,12 +88,12 @@ var Editor = (function () {
       case 'select':
         if (e.event.target !== this._canvas &&
           e.event.target !== this._workArea) {
-  
+
           var ideName = e.event.target.getAttribute('ide-object-name');
           if (e.event.ctrlKey) {
             var newSelection = Selection.multiSelect(ideName, 'toggle');
             return this.P.emit('objects.select', newSelection).then(
-              Promise.resolve(e));
+              P.next(e));
           } else {
             if (Selection.isSelected(ideName)) {
               // Don't change selection
@@ -104,7 +104,7 @@ var Editor = (function () {
               return this.P.emit('objects.select', ideName).then((function (){
                 this._movingStart = this._translateOffsets(
                   e.event.offsetX, e.event.offsetY, e.event.target);
-              }).bind(this)).then(Promise.resolve(e));
+              }).bind(this)).then(P.next(e));
             }
           }
         } else {
@@ -126,7 +126,7 @@ var Editor = (function () {
               'size': null,
               'DOM': null,
             }
-          }).bind(this)).then(Promise.resolve(e));
+          }).bind(this)).then(P.next(e));
         }
       case 'text':
       case 'sprite':
@@ -135,17 +135,17 @@ var Editor = (function () {
           e.event.target !== this._workArea) {
           // Clicking on existing item
           var objName = e.event.target.getAttribute('ide-object-name');
-          if (ReprTools.objectExists(objName) && 
-            ReprTools.typeAsTool(ReprTools.getObjectType(objName), 
+          if (ReprTools.objectExists(objName) &&
+            ReprTools.typeAsTool(ReprTools.getObjectType(objName),
               this.selectedTool)) {
             // Same type as current tool, enter move mode
 
             return this.P.emit('objects.select', objName).then(
-              Promise.resolve(e));
+              P.next(e));
           }
           return e;
         }
-        var position = this._canvasPosition(e.event.offsetX, 
+        var position = this._canvasPosition(e.event.offsetX,
           e.event.offsetY, e.event.target);
         var objectBase = _deepCopy(DEFAULTS[this.selectedTool]);
         objectBase.name = ReprTools.getUniqueName(objectBase.type);
@@ -160,7 +160,7 @@ var Editor = (function () {
 
         return this.P.emit('objects.add', objectBase).catch(function (err) {
             alert(err);
-          }).then(Promise.resolve(e));
+          }).then(P.next(e));
 
       case 'frame':
       default:
@@ -174,7 +174,7 @@ var Editor = (function () {
     // Reset moving and draggind flags
     this._movingStart = null;
     this._draggingStart = null;
-    
+
     if (this._selectBox !== null) {
       if (this._selectBox.DOM !== null) {
         this._workArea.removeChild(this._selectBox.DOM);
@@ -229,7 +229,7 @@ var Editor = (function () {
         ReprTools.callOnSelection('resize', width, height);
       }
     } else {
-      // Non-selection tool. 
+      // Non-selection tool.
       if (this._draggingStart !== null) {
         var width = currentPosition.x - this._draggingStart.x;
         var height = currentPosition.y - this._draggingStart.y;
@@ -239,25 +239,25 @@ var Editor = (function () {
   };
 
   Editor.prototype._bindConfigButtons = function (P) {
-    P.bind(this._workAreaConfigButtons.bgBlack, 'click', 
+    P.bind(this._workAreaConfigButtons.bgBlack, 'click',
       'editor.controls.bgBlack');
-    P.bind(this._workAreaConfigButtons.bgWhite, 'click', 
+    P.bind(this._workAreaConfigButtons.bgWhite, 'click',
       'editor.controls.bgWhite');
-    P.bind(this._workAreaConfigButtons.bgCheckered, 'click', 
+    P.bind(this._workAreaConfigButtons.bgCheckered, 'click',
       'editor.controls.bgCheckered');
     P.listen('editor.controls.bgBlack', function (e) {
       return P.emit('editor.canvas.background.set', 'black').then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.controls.bgWhite', function (e) {
       return P.emit('editor.canvas.background.set', 'white').then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.controls.bgCheckered', function (e) {
       return P.emit('editor.canvas.background.set', 'checkered').then(
-        Promise.resolve(e));
+        P.next(e));
     });
-    
+
     P.listen('editor.canvas.background.set', (function (type) {
       if (type === 'black' || type === 'white' || type === 'checkered') {
         // Reset work area
@@ -269,7 +269,7 @@ var Editor = (function () {
           this._workAreaConfigButtons.bgCheckered
         ], 'selected', false);
         _ToggleClass(this._canvas, type, true);
-        
+
         switch(type) {
           case 'black':
             _ToggleClass(this._workAreaConfigButtons.bgBlack, 'selected', true);
@@ -286,21 +286,21 @@ var Editor = (function () {
         throw new Error('Unrecognized background settings');
       }
     }).bind(this));
-    
+
     P.listen('reset.editor.canvas.background', function () {
       return P.emit('editor.canvas.background.set', 'black');
     });
-    
+
     // Bind the size adjustments
     P.bind(this._workAreaConfigButtons.width, 'change', 'editor.controls.width');
     P.bind(this._workAreaConfigButtons.height, 'change', 'editor.controls.height');
     P.listen('editor.controls.width', function (e) {
       return P.emit('editor.canvas.width.set', e.event.target.value).then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.controls.height', function (e) {
       return P.emit('editor.canvas.height.set', e.event.target.value).then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.canvas.width.set', (function (width) {
       this._canvas.style.width = width + 'px';
@@ -342,7 +342,7 @@ var Editor = (function () {
       for (var i = 0; i < tools.length; i++) {
         _ToggleClass($('tool-' + this.tools[i]), 'selected', false);
       }
-      return Promise.resolve();
+      return P.next();
     });
   };
 
@@ -382,12 +382,12 @@ var Editor = (function () {
   Editor.prototype.render = function (P) {
     return Promise.all([
       P.emit('tool.change', {
-        'from': this.selectedTool, 
+        'from': this.selectedTool,
         'to': this.selectedTool
       }),
       P.emit('reset.editor.canvas.background'),
     ]);
   };
-  
+
   return Editor;
 })();

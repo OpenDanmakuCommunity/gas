@@ -4,6 +4,7 @@ var TimelineManager = (function () {
     this._playback = playback;
 
     this._tracks = {};
+    this._selectedPins = [];
   };
 
   TimelineManager.prototype._createBinding = function (name, trackSpec) {
@@ -28,7 +29,9 @@ var TimelineManager = (function () {
 
   TimelineManager.prototype._onSelect = function (oldSelection, newSelection) {
     oldSelection.forEach((function (item) {
-      _ToggleClass(this._tracks[item].row, 'selected', false);
+      if (item in this._tracks) {
+        _ToggleClass(this._tracks[item].row, 'selected', false);
+      }
     }).bind(this));
     newSelection.forEach((function (item) {
       _ToggleClass(this._tracks[item].row, 'selected', true);
@@ -82,15 +85,15 @@ var TimelineManager = (function () {
       if (e.event.ctrlKey) {
         return P.emit('objects.select',
           Selection.multiSelect(binding.name, 'toggle')).then(
-            Promise.resolve(e));
+            P.next(e));
       } else {
         return P.emit('objects.select', binding.name).then(
-          Promise.resolve(e));
+          P.next(e));
       }
     });
     P.listen('track.' + spec.name + '.dblclick', function (e) {
       var name = prompt('Please input new name', binding.name);
-      if (typeof name === 'string' && name !== null && name.length > 1 
+      if (typeof name === 'string' && name !== null && name.length > 1
         && name != binding.name) {
 
         console.log('Initiating rename ' + binding.name + ' to ' + name);
@@ -100,17 +103,74 @@ var TimelineManager = (function () {
         }).catch(function (err) {
           console.log(err);
           alert(err);
-        }).then(Promise.resolve(e));
+        }).then(P.next(e));
       }
     });
   };
 
-  TimelineManager.prototype._insertPin = function (name, start, end, isAnimated) {
+  TimelineManager.prototype._canPin = function (name, start, end) {
+    var pins = this._tracks[name].pins;
+    if (pins.length === 0) {
+      return true;
+    } else {
+      for (var i = 0; i < pins.length; i++) {
+        if (pins[i].end <= start) {
+          continue;
+        }
+        // This is the first pin after last fitting one
+        if (pins[i].start >= end) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      // No pin after this pin
+      return true;
+    }
+  };
+
+  TimelineManager.prototype._lastPin = function (name, time) {
+    for (var i = 0; i < this._tracks[name].pins.length; i++) {
+      if (this._tracks[name].pins[i].end <= time) {
+        continue;
+      } else {
+        // First one that's larger
+        return i > 0 ? this._tracks[name].pins[i - 1] : null;
+      }
+    }
+    // No pins after
+    return this._tracks[name].pins.length > 0 ?
+      this._tracks[name].pins[this._tracks[name].pins.length - 1] : null;
+  };
+
+  TimelineManager.prototype._setSelectedPins = function (pins) {
+    this._selectedPins.forEach((function (idx) {
+      this._tracks[idx.track].pins.forEach(function (pin) {
+        if (pin.name === idx.pin) {
+          _ToggleClass(pin.dom, 'active', false);
+        }
+      })
+    }).bind(this));
+    pins.forEach((function (idx) {
+      this._tracks[idx.track].pins.forEach(function (pin) {
+        if (pin.name === idx.pin) {
+          _ToggleClass(pin.dom, 'active', true);
+        }
+      })
+    }).bind(this));
+    this._selectedPins = pins;
+  };
+
+  TimelineManager.prototype._insertPin = function (P, name, start, end, isAnimated) {
     if (!(name in this._tracks)) {
       throw new Error('Could not find track ' + name);
     }
     if (end <= start) {
       throw new Error('End time must be after start time');
+    }
+    if (!this._canPin(name, start, end)) {
+      throw new Error('Cannot pin ' + start + '->' + end +
+        ': Overlaps existing pin.');
     }
     var pinDom = _Create('div', {
         'className': 'pin' + (!isAnimated ? ' static' : ''),
@@ -126,13 +186,38 @@ var TimelineManager = (function () {
     var pin = {
       'dom': pinDom,
       'start': start,
-      'end': end
-    }
+      'end': end,
+      'name': 'pin-' + start + '-' + end,
+    };
+    // Check if the pin can actually be inserted
     this._tracks[name].pins.push(pin);
+    // Maintain the pins sorted by end time
+    this._tracks[name].pins.sort(function (a, b) {
+      if (a.end !== b.end) {
+        return a.end > b.end ? 1 : -1;
+      } else if (a.start !== b.start) {
+        return a.start > b.start ? 1 : -1;
+      } else {
+        return 0;
+      }
+    });
     this._tracks[name].track.appendChild(pinDom);
+    // Bind the events
+    P.bind(pinDom, 'mousedown', 'track.' + name + '.pin.' + pin.name);
+    P.listen('track.' + name + '.pin.' + pin.name, (function (e) {
+      var idx = {
+        'pin': pin.name,
+        'track': name
+      };
+      if (e.event.ctrlKey) {
+      } else {
+        this._setSelectedPins([idx]);
+      }
+      return e;
+    }).bind(this));
   };
   TimelineManager.prototype._removePin = function () {
-    
+
   };
   TimelineManager.prototype._firstGap = function (name, time) {
     //
@@ -142,14 +227,25 @@ var TimelineManager = (function () {
     if (newName in this._tracks) {
       throw new Error('Naming conflict. ' + newName + ' already exists!');
     }
+    // Rename track events
     P.rename('track.' + oldName + '.click', 'track.' + newName + '.click');
-    P.rename('track.' + oldName + '.dblclick', 'track.' + newName + '.dblclick');
+    P.rename('track.' + oldName + '.dblclick',
+      'track.' + newName + '.dblclick');
+
+    // Rename track's pin events
+    for (var i = 0; i < this._tracks[oldName].pins.length; i++) {
+      var pinName = this._tracks[oldName].pins[i].name;
+      P.rename('track.' + oldName + '.pin.' + pinName,
+        'track.' + newName + '.pin.' + pinName);
+    }
+
+    // Rename the track binding
     this._renameBinding(oldName, newName);
     // Get the binding
     this._tracks[newName].labelText.innerText = newName;
     this._tracks[newName].row.setAttribute('ide-object-name', newName);
   };
-  
+
   TimelineManager.prototype._removeTrack = function (P, name) {
     // Drop Listeners
     P.drop('track.' + name + '.click');
@@ -161,7 +257,9 @@ var TimelineManager = (function () {
   TimelineManager.prototype._bindPin = function (P) {
     P.listen('timeline.rec', (function (timeObj) {
       Selection.get().forEach((function (item) {
-        this._insertPin(item, 0, timeObj.time, false);
+        var lastPin = this._lastPin(item, timeObj.time);
+        this._insertPin(P, item, (lastPin === null ? 0 : lastPin.end),
+          timeObj.time, false);
       }).bind(this));
     }).bind(this));
   };
@@ -172,7 +270,7 @@ var TimelineManager = (function () {
       this._createTrack(P, spec);
       return spec;
     }).bind(this));
-    
+
     // Bind object selection
     P.listen('selection.change', (function (changes) {
       this._onSelect(changes.from, changes.to);
@@ -188,7 +286,7 @@ var TimelineManager = (function () {
       this._removeTrack(P, objName);
       return objName;
     }).bind(this));
-    
+
     // Bind pin controls
     this._bindPin(P);
   };

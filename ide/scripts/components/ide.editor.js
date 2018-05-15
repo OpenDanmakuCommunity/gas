@@ -27,7 +27,7 @@ var Editor = (function () {
       return obj.slice(0).map(function (item) {
         return _deepCopy(item);
       });
-    } 
+    }
     if (typeof obj === 'number' || typeof obj === 'string' ||
       typeof obj === 'boolean' || obj === null) {
       return obj;
@@ -49,6 +49,8 @@ var Editor = (function () {
     this._workArea = workArea;
     this._canvas = canvas;
     this._workAreaConfigButtons = workAreaConfigButtons;
+
+    this._isPreviewMode = false;
 
     this._draggingStart = null;
     this._movingStart = null;
@@ -88,12 +90,12 @@ var Editor = (function () {
       case 'select':
         if (e.event.target !== this._canvas &&
           e.event.target !== this._workArea) {
-  
+
           var ideName = e.event.target.getAttribute('ide-object-name');
           if (e.event.ctrlKey) {
             var newSelection = Selection.multiSelect(ideName, 'toggle');
             return this.P.emit('objects.select', newSelection).then(
-              Promise.resolve(e));
+              this.P.next(e));
           } else {
             if (Selection.isSelected(ideName)) {
               // Don't change selection
@@ -104,7 +106,7 @@ var Editor = (function () {
               return this.P.emit('objects.select', ideName).then((function (){
                 this._movingStart = this._translateOffsets(
                   e.event.offsetX, e.event.offsetY, e.event.target);
-              }).bind(this)).then(Promise.resolve(e));
+              }).bind(this)).then(this.P.next(e));
             }
           }
         } else {
@@ -126,7 +128,7 @@ var Editor = (function () {
               'size': null,
               'DOM': null,
             }
-          }).bind(this)).then(Promise.resolve(e));
+          }).bind(this)).then(this.P.next(e));
         }
       case 'text':
       case 'sprite':
@@ -135,17 +137,17 @@ var Editor = (function () {
           e.event.target !== this._workArea) {
           // Clicking on existing item
           var objName = e.event.target.getAttribute('ide-object-name');
-          if (ReprTools.objectExists(objName) && 
-            ReprTools.typeAsTool(ReprTools.getObjectType(objName), 
+          if (ReprTools.objectExists(objName) &&
+            ReprTools.typeAsTool(ReprTools.getObjectType(objName),
               this.selectedTool)) {
             // Same type as current tool, enter move mode
 
             return this.P.emit('objects.select', objName).then(
-              Promise.resolve(e));
+              this.P.next(e));
           }
           return e;
         }
-        var position = this._canvasPosition(e.event.offsetX, 
+        var position = this._canvasPosition(e.event.offsetX,
           e.event.offsetY, e.event.target);
         var objectBase = _deepCopy(DEFAULTS[this.selectedTool]);
         objectBase.name = ReprTools.getUniqueName(objectBase.type);
@@ -161,7 +163,7 @@ var Editor = (function () {
         return this.P.emit('objects.add', objectBase).catch(function (err) {
             console.log(err);
             alert(err);
-          }).then(Promise.resolve(e));
+          }).then(this.P.next(e));
 
       case 'frame':
       default:
@@ -175,7 +177,7 @@ var Editor = (function () {
     // Reset moving and draggind flags
     this._movingStart = null;
     this._draggingStart = null;
-    
+
     if (this._selectBox !== null) {
       if (this._selectBox.DOM !== null) {
         this._workArea.removeChild(this._selectBox.DOM);
@@ -230,7 +232,7 @@ var Editor = (function () {
         ReprTools.callOnGroup(Selection.get(), 'resize', width, height);
       }
     } else {
-      // Non-selection tool. 
+      // Non-selection tool.
       if (this._draggingStart !== null) {
         var width = currentPosition.x - this._draggingStart.x;
         var height = currentPosition.y - this._draggingStart.y;
@@ -240,7 +242,9 @@ var Editor = (function () {
   };
   Editor.prototype._onSelect = function (oldSelection, newSelection) {
     oldSelection.forEach(function (selection) {
-      ReprTools.getObject(selection).setFocus(false);
+      if (ReprTools.objectExists(selection)) {
+        ReprTools.getObject(selection).setFocus(false);
+      }
     });
     newSelection.forEach(function (selection) {
       ReprTools.getObject(selection).setFocus(true);
@@ -249,25 +253,25 @@ var Editor = (function () {
 
 
   Editor.prototype._bindConfigButtons = function (P) {
-    P.bind(this._workAreaConfigButtons.bgBlack, 'click', 
+    P.bind(this._workAreaConfigButtons.bgBlack, 'click',
       'editor.controls.bgBlack');
-    P.bind(this._workAreaConfigButtons.bgWhite, 'click', 
+    P.bind(this._workAreaConfigButtons.bgWhite, 'click',
       'editor.controls.bgWhite');
-    P.bind(this._workAreaConfigButtons.bgCheckered, 'click', 
+    P.bind(this._workAreaConfigButtons.bgCheckered, 'click',
       'editor.controls.bgCheckered');
     P.listen('editor.controls.bgBlack', function (e) {
       return P.emit('editor.canvas.background.set', 'black').then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.controls.bgWhite', function (e) {
       return P.emit('editor.canvas.background.set', 'white').then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.controls.bgCheckered', function (e) {
       return P.emit('editor.canvas.background.set', 'checkered').then(
-        Promise.resolve(e));
+        P.next(e));
     });
-    
+
     P.listen('editor.canvas.background.set', (function (type) {
       if (type === 'black' || type === 'white' || type === 'checkered') {
         // Reset work area
@@ -279,7 +283,7 @@ var Editor = (function () {
           this._workAreaConfigButtons.bgCheckered
         ], 'selected', false);
         _ToggleClass(this._canvas, type, true);
-        
+
         switch(type) {
           case 'black':
             _ToggleClass(this._workAreaConfigButtons.bgBlack, 'selected', true);
@@ -296,21 +300,30 @@ var Editor = (function () {
         throw new Error('Unrecognized background settings');
       }
     }).bind(this));
-    
+
     P.listen('reset.editor.canvas.background', function () {
       return P.emit('editor.canvas.background.set', 'black');
     });
-    
+    // Bind the preview button
+    P.bind(this._workAreaConfigButtons.configPreview, 'click',
+      'editor.canvas.previewMode.toggle');
+    P.listen('editor.canvas.previewMode.toggle', (function () {
+      this._isPreviewMode = !this._isPreviewMode;
+      _ToggleClass(this._canvas, 'preview', this._isPreviewMode);
+      _ToggleClass(this._workAreaConfigButtons.configPreview, 'selected',
+        this._isPreviewMode);
+    }).bind(this));
+
     // Bind the size adjustments
     P.bind(this._workAreaConfigButtons.width, 'change', 'editor.controls.width');
     P.bind(this._workAreaConfigButtons.height, 'change', 'editor.controls.height');
     P.listen('editor.controls.width', function (e) {
       return P.emit('editor.canvas.width.set', e.event.target.value).then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.controls.height', function (e) {
       return P.emit('editor.canvas.height.set', e.event.target.value).then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.listen('editor.canvas.width.set', (function (width) {
       this._canvas.style.width = width + 'px';
@@ -352,13 +365,13 @@ var Editor = (function () {
       for (var i = 0; i < tools.length; i++) {
         _ToggleClass($('tool-' + this.tools[i]), 'selected', false);
       }
-      return Promise.resolve();
+      return P.next();
     });
   };
 
   Editor.prototype._bindPlayback = function (P) {
     P.listen('timeline.update', (function (time) {
-      
+
     }).bind(this));
   };
 
@@ -374,15 +387,15 @@ var Editor = (function () {
       return P.emit('tracks.add', spec).then(P.emit('objects.added', {
           'name': spec.name,
           'inst': objInst
-        })).then(Promise.resolve(spec));
+        })).then(P.next(spec));
     }).bind(this));
 
     P.listen('objects.remove', (function (objName) {
-      this._canvas.removeChild(ReprTools.getObject(objName));
-      ReprTools.removeObject(objName);
       return P.emit('objects.select',
-        Selection.multiSelect(objName, 'remove')).then(
-          Promise.resolve(objName));
+        Selection.multiSelect(objName, 'remove')).then((function () {
+          this._canvas.removeChild(ReprTools.getObject(objName).DOM);
+          ReprTools.removeObject(objName);
+        }).bind(this)).then(P.next(objName));
     }).bind(this));
 
     P.listen('objects.rename', function (nameSpec) {
@@ -414,19 +427,33 @@ var Editor = (function () {
       return P.emit('selection.change', {
         'from': originalSelection,
         'to': newSelection,
-      }).then(Promise.resolve(objectNames));
+      }).then(P.next(objectNames));
     });
-    
+
     // Bind post-events
     P.listen('objects.added', (function (objData) {
       return P.emit('trace',
         'Created [' + objData.inst.type + '] object "' + objData.name + '"').then(
           P.emit('objects.select', objData.name)).then(
-            Promise.resolve(objData));
+            P.next(objData));
     }).bind(this));
     P.listen('selection.change', (function (changes) {
       this._onSelect(changes.from, changes.to);
       return changes;
+    }).bind(this));
+  };
+
+  Editor.prototype._bindKeyboard = function (P) {
+    P.listen('global.keydown', (function (e) {
+      if (e.event.keyCode === 46 && !e.event.ctrlKey) {
+        if (!confirm('You are about to remove ' + Selection.count() +
+          ' items.\nAre you sure? (Action cannot be reversed)')) {
+          return e;
+        }
+        return Promise.all(Selection.get().map(function (objectName) {
+          return P.emit('objects.remove', objectName);
+        })).then(P.next(e));
+      }
     }).bind(this));
   };
 
@@ -436,6 +463,8 @@ var Editor = (function () {
     }
     this.P = P;
 
+    // Bind the keyboard
+    this._bindKeyboard(P);
     // Bind the object actions
     this._bindObjectActions(P);
     // Bind the playback events
@@ -470,12 +499,12 @@ var Editor = (function () {
   Editor.prototype.render = function (P) {
     return Promise.all([
       P.emit('tool.change', {
-        'from': this.selectedTool, 
+        'from': this.selectedTool,
         'to': this.selectedTool
       }),
       P.emit('reset.editor.canvas.background'),
     ]);
   };
-  
+
   return Editor;
 })();

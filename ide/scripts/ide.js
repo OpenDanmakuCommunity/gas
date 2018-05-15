@@ -49,6 +49,7 @@
       'bgBlack': $('editor-bg-black'),
       'bgWhite': $('editor-bg-white'),
       'bgCheckered': $('editor-bg-checkered'),
+      'configPreview': $('editor-config-preview'),
       'width': $('editor-config-width'),
       'height': $('editor-config-height'),
     });
@@ -66,6 +67,7 @@
       });
     playback.bind(P);
 
+    // Create and bind to the timeline controls
     var timeline = new TimelineManager($('tracks'), playback);
     timeline.bind(P);
 
@@ -73,6 +75,13 @@
     var assetsLibrary = new AssetsLibrary($('library-import'),
       $('library-inner'));
     assetsLibrary.bind(P);
+
+    // Create and bind to the properties panel
+    var propertiesManager = new PropertyManager($('properties-inner'));
+    propertiesManager.bind(P);
+
+    // Bind global keydown listener
+    P.bind(document.body, 'keydown', 'global.keydown');
 
     // Bind the listener for global render and reset
     P.listen('reset', function () {
@@ -82,12 +91,12 @@
       return Promise.all(RENDER_COMPONENTS);
     });
 
+    // Render the UI
     P.emit('render').then(function () {
       trace('Generic Animation Comment IDE -- Initialization Complete');
     }).catch(function (e) {
       trace(e);
     });
-
     window.pet = P;
   });
 })();

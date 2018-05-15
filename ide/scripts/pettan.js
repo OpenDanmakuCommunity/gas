@@ -44,13 +44,13 @@ var Pettan = (function () {
   // Drop all bindings for event
   Pettan.prototype.drop = function (eventName) {
     this.bindings[eventName] = [];
-  }
+  };
 
   Pettan.prototype.rename = function (eventOldName, eventNewName) {
     if (eventNewName in this.bindings &&
       this.bindings[eventNewName].length !== 0) {
 
-      throw new Error('Cannot rename to ' + eventNewName + '. ' + 
+      throw new Error('Cannot rename to ' + eventNewName + '. ' +
         'A non-empty listener group with the same name already exists.');
     }
     // Find native binding
@@ -58,7 +58,7 @@ var Pettan = (function () {
       if (eventNewName in this.nativeBindings &&
         this.nativeBindings[eventNewName].length !== 0) {
 
-        throw new Error('Cannot rename native bindings for ' + eventOldName + 
+        throw new Error('Cannot rename native bindings for ' + eventOldName +
           ' to ' + eventNewName + '. Naming conflict at target.');
       }
       this.nativeBindings[eventOldName].forEach(function (boundObject) {
@@ -69,6 +69,12 @@ var Pettan = (function () {
     }
     this.bindings[eventNewName] = this.bindings[eventOldName];
     delete this.bindings[eventOldName];
-  }
+  };
+
+  Pettan.prototype.next = function (value) {
+    return function () {
+      return value;
+    };
+  };
   return Pettan;
 })();

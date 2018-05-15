@@ -15,7 +15,10 @@ p {
   margin: 0;
   padding: 10px;
 }
-input[type="text"], input[type="number"], textarea {
+input[type="text"],
+input[type="number"],
+textarea,
+select {
   border: none;
   padding: 0;
   margin: 0;
@@ -23,11 +26,17 @@ input[type="text"], input[type="number"], textarea {
   color: #838383;
   highlight: none;
 }
-input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
   outline: none;
   color: #72DEC9;
 }
-input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
+input[type="text"]:invalid,
+input[type="number"]:invalid,
+textarea:invalid,
+select:invalid {
   color: #ED5276;
 }
 
@@ -363,6 +372,10 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
 #canvas.white {
   background-color: #fff;
 }
+#editor-tools .micro-button-separator {
+  width: 10px;
+  height: 14px;
+}
 #editor-tools .micro-button {
   width: 14px;
   height: 14px;
@@ -445,7 +458,8 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
 .image-group:hover > .image {
   border-right: 1px #fff dotted;
 }
-.input-group:hover > input {
+.input-group:hover > input,
+.input-group:hover > select {
   background-color: #363636;
 }
 .input-group > label,
@@ -459,14 +473,28 @@ input[type="text"]:invalid, input[type="number"]:invalid, textarea:invalid {
   user-select: none;
 }
 .input-group > input[type="text"],
-.input-group > input[type="number"] {
+.input-group > input[type="number"],
+.input-group > select {
   font-size: 1.1em;
 }
 .input-group > input,
 .input-group > textarea,
+.input-group > select,
 .fixed-group > input {
   width: 64%;
   float: left;
+}
+
+/** Properties panel **/
+#properties-inner > .input-group > label,
+#properties-inner > .fixed-group > label {
+  width: 44%;
+}
+#properties-inner > .input-group > input,
+#properties-inner > .input-group > textarea,
+#properties-inner > .input-group > select,
+#properties-inner > .fixed-group > input {
+  width: 50%;
 }
 
 /** Library Related **/

@@ -36,7 +36,7 @@ var Playback = (function () {
   Playback.prototype.bindAnimation = function (P) {
     P.listen('timeline.update', function (time) {
       // Animate all the things
-      
+
     });
   };
 
@@ -64,7 +64,7 @@ var Playback = (function () {
         updates.push(P.emit('timer.stop').then(
           P.emit('timer.seek', this.getDuration())));
       }
-      return Promise.all(updates).then(Promise.resolve(time));
+      return Promise.all(updates).then(P.next(time));
     }).bind(this));
     T.broadcast(10, function (time) {
       P.emit('timer.time', time);
@@ -79,9 +79,9 @@ var Playback = (function () {
         e.event.target.blur();
       } catch (err) {}
       if (this.T.isRunning) {
-        return P.emit('timer.stop').then(Promise.resolve(e));
+        return P.emit('timer.stop').then(P.next(e));
       } else {
-        return P.emit('timer.start').then(Promise.resolve(e));
+        return P.emit('timer.start').then(P.next(e));
       }
       return e;
     }).bind(this));
@@ -91,7 +91,7 @@ var Playback = (function () {
         e.event.target.blur();
       } catch (err) {}
       return P.emit('timer.stop').then(P.emit('timer.seek', 0)).then(
-        Promise.resolve(e));
+        P.next(e));
     });
     P.bind(this._recBtn, 'click', 'playback.rec');
     P.listen('playback.rec', (function (e) {
@@ -101,7 +101,9 @@ var Playback = (function () {
       return P.emit('timeline.rec', {
         'time': this.T.time(),
         'status': this.T.isRunning
-      }).then(Promise.resolve(e));
+      }).catch(function (err) {
+        alert(err);
+      }).then(P.next(e));
     }).bind(this));
 
     P.bind(this._ruler, 'mousedown', 'playback.seek');

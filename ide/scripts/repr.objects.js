@@ -2,7 +2,7 @@ var PropManager = (function () {
   var PropManager = function (spec) {
     this.spec = spec;
   };
-  
+
   PropManager.prototype.getProp = function (propertyName, def) {
     var keys = propertyName.split('.');
     var curSpec = this.spec;
@@ -15,7 +15,7 @@ var PropManager = (function () {
     }
     return curSpec;
   };
-  
+
   PropManager.prototype.setProp = function (propertyName, newValue) {
     var keys = propertyName.split('.');
     var curSpec = this.spec;
@@ -33,7 +33,7 @@ var PropManager = (function () {
       }
     }
   };
-  
+
   return PropManager;
 })();
 
@@ -109,12 +109,26 @@ var GSprite = (function () {
   GSprite.prototype.setImage = function (image) {
     if (typeof image === 'undefined' || image === null || !'type' in image) {
       _ToggleClass(this.DOM, 'no-image', true);
+      this._pm.setProp('content', null);
       return;
     }
     switch (image.type) {
+      case 'image/png':
+      case 'image/jpg':
+      case 'image/jpeg':
+        this._pm.setProp('content', image);
+        this.type = 'BinarySprite';
+        break;
+      case 'image/gif':
+        this._pm.setProp('content', image);
+        this.type = 'AnimatedSprite';
+        break;
+      case 'svg':
       default:
         throw new Error('Sprite does not support image type of ' + image.type);
     }
+    this.DOM.style.backgroundImage = 'url(' + image.dataUri + ')';
+    this.DOM.style.backgroundSize = 'contain';
     _ToggleClass(this.DOM, 'no-image', false);
   };
 
@@ -178,7 +192,7 @@ var GButton = (function () {
     this.DOM.style.left = this._pm.getProp('position.x', 0) + 'px';
     this.DOM.style.top = this._pm.getProp('position.y', 0) + 'px';
   };
-  
+
   GButton.prototype.resize = function (width, height) {
     this._pm.setProp('size.width', Math.max(1, width));
     this._pm.setProp('size.height', Math.max(1, height));

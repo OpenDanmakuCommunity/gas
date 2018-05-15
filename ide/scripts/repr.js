@@ -77,6 +77,9 @@ var Selection = new function() {
   this.get = function () {
     return selection.slice(0);
   };
+  this.count = function () {
+    return selection.length;
+  };
 };
 
 // Tools for working with the repr

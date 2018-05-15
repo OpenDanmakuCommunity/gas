@@ -78,7 +78,8 @@ var AssetsLibrary = (function () {
     return {
       'type': asset.type,
       'encoding': asset.encoding,
-      'data': asset.data
+      'data': asset.data,
+      'dataUri': this.getAssetAsUri(assetName)
     };
   };
 
@@ -107,6 +108,28 @@ var AssetsLibrary = (function () {
     this._assets[assetName] = assetData;
   };
 
+  AssetsLibrary.prototype._bindObjects = function (P) {
+    P.listen('object.setImage', (function (names) {
+      if (ReprTools.getObjectType(names.objectName) !== 'Sprite' &&
+        ReprTools.getObjectType(names.objectName) !== 'BinarySprite' &&
+        ReprTools.getObjectType(names.objectName) !== 'SVGSprite' &&
+        ReprTools.getObjectType(names.objectName) !== 'AnimatedSprite') {
+        return names;
+      }
+      ReprTools.getObject(names.objectName).setImage(
+        this.getAssetAsContent(names.assetName));
+      return names;
+    }).bind(this));
+    P.listen('selection.setImage', (function (assetName) {
+      return Promise.all(Selection.get().map(function (objectName) {
+        return P.emit('object.setImage', {
+          'objectName': objectName,
+          'assetName': assetName,
+        })
+      })).then(P.next(assetName));
+    }).bind(this));
+  };
+
   // Bind stuff
   AssetsLibrary.prototype.bind = function (P) {
     P.bind(this._filePicker, 'change', 'library.filepicker.pick');
@@ -124,18 +147,18 @@ var AssetsLibrary = (function () {
           return Promise.all(promises);
         }).bind(this)).catch(function (err) {
           alert(err);
-        }).then(Promise.resolve(e));
+        }).then(P.next(e));
     }).bind(this));
 
     // Bind to the event to add the asset
     P.listen('library.add', (function (asset) {
       this.addAsset(asset.name, asset.data);
-      return P.emit('library.added', asset.name).then(Promise.resolve(asset));
+      return P.emit('library.added', asset.name).then(P.next(asset));
     }).bind(this));
 
     P.listen('library.remove', (function (name) {
       this.removeAsset(name);
-      return P.emit('library.removed', name).then(Promise.resolve(name));
+      return P.emit('library.removed', name).then(P.next(name));
     }).bind(this));
 
     // Bind to add event to update the ui
@@ -167,16 +190,22 @@ var AssetsLibrary = (function () {
           'className': 'clearfix'
         }),
       ]);
+      P.bind(item, 'dblclick', 'library.asset.' + assetName + '.dblclick');
+      P.listen('library.asset.' + assetName + '.dblclick', (function () {
+        return P.emit('selection.setImage', assetName);
+      }).bind(this));
       this._libraryInner.insertBefore(item, this._libraryInner.firstChild);
       this._setAssetListItem(assetName, item);
       return assetName;
     }).bind(this));
 
-    P.listen('libray.removed', (function (assetName) {
+    P.listen('library.removed', (function (assetName) {
       this._libraryLinner.removeChild(this._getAssetListItem(assetName));
       this._clearAssetListItem(assetName);
       return assetName;
     }).bind(this));
+
+    this._bindObjects(P);
   };
 
   return AssetsLibrary;
