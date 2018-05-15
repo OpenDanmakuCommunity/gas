@@ -73,7 +73,15 @@ var AssetsLibrary = (function () {
       asset.data;
   };
 
-  // Modeify the asset representations
+  AssetsLibrary.prototype.getAssetAsContent = function (assetName) {
+    var asset = this._assets[assetName];
+    return {
+      'type': asset.type,
+      'encoding': asset.encoding,
+      'data': asset.data
+    };
+  };
+
   AssetsLibrary.prototype.getAssetSummary = function (assetName) {
     var asset = this._assets[assetName];
     return {

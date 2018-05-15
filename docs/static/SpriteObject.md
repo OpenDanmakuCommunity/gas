@@ -2,12 +2,18 @@
 
 ## 基础参数
 
-### `type = [ "SVGSprite" | "Bitmap" | "AnimatedSprite" ]` 类型
+### `type = [ "SVGSprite" | "BinarySprite" | "AnimatedSprite" ]` 类型
 
 ### `position` 位置
 
 ### `size` 大小
 
+### `transform` 旋转
+
+### `imageAlignment` 图像定位
+- `position`
+- `repeat`
+- `size`: `fill | cover | contain | static`
 
 ## SVGSprite
 Example:
