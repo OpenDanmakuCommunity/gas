@@ -46,18 +46,25 @@
         "groups": {
             "group1": ["ExampleFrameObject", "ExampleSprite"]
         },
+        "interpolators": {
+          "linear": 
+        },
         "anchors": [
             {
                 "time": 1000,
                 "key": {
                     "group1": {
+                      "linear": {
                         "position": {
                             "x": 200,
                             "y": 300
                         }
+                      },
+                      "none": {
+                        "content": "foo!"
+                      }
                     }
-                },
-                "interpolation": "linear"
+                }
             }
         ]
     },

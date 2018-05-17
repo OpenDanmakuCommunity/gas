@@ -14,6 +14,9 @@ var Repr = {
         'components': []
       }
     },
+    'animation': {
+      'anchors': [],
+    },
     'metadata': {
       'animation': {
         'duration': 12000,

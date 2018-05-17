@@ -4,34 +4,11 @@ var PropManager = (function () {
   };
 
   PropManager.prototype.getProp = function (propertyName, def) {
-    var keys = propertyName.split('.');
-    var curSpec = this.spec;
-    for (var i = 0; i < keys.length; i++) {
-      if (keys[i] in curSpec) {
-        curSpec = curSpec[keys[i]];
-      } else {
-        return def;
-      }
-    }
-    return curSpec;
+    return propertyName in this.spec ? this.spec[propertyName] : def;
   };
 
   PropManager.prototype.setProp = function (propertyName, newValue) {
-    var keys = propertyName.split('.');
-    var curSpec = this.spec;
-    while (true) {
-      var curKey = keys.shift();
-      if (keys.length === 0) {
-        // This is the thing we need to write
-        curSpec[curKey] = newValue;
-        return;
-      } else {
-        if (!curKey in curSpec) {
-          curSpec[curKey] = {};
-        }
-        curSpec = curSpec[curKey];
-      }
-    }
+    this.spec[propertyName] = newValue;
   };
 
   return PropManager;
@@ -65,7 +42,7 @@ var GText = (function () {
         'className': 'text',
         'ide-object-name': this.name
       }, [
-        _Create('text', this._pm.getProp('text', '(Example)'))
+        _Create('text', this._pm.getProp('content', '(Example)'))
       ]);
       this.DOM.style.position = 'absolute';
     }

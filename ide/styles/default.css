@@ -459,7 +459,9 @@ select:invalid {
   border-right: 1px #fff dotted;
 }
 .input-group:hover > input,
-.input-group:hover > select {
+.input-group:hover > select,
+.input-group:hover > .tuple > input,
+.input-group:hover > .tuple > select {
   background-color: #363636;
 }
 .input-group > label,
@@ -472,17 +474,30 @@ select:invalid {
   margin-right: 5%;
   user-select: none;
 }
-.input-group > input[type="text"],
-.input-group > input[type="number"],
-.input-group > select {
+.input-group > input,
+.input-group > select,
+.input-group > .tuple > input,
+.input-group > .tuple > select {
   font-size: 1.1em;
 }
 .input-group > input,
 .input-group > textarea,
 .input-group > select,
-.fixed-group > input {
+.fixed-group > input,
+.input-group > .tuple {
   width: 64%;
   float: left;
+}
+
+.input-group > .tuple > input,
+.input-group > .tuple > select {
+  width: 45%;
+  margin: 0 5% 0 0;
+  float: right;
+}
+.input-group > .tuple > *:first-child {
+  width: 50%;
+  margin: 0;
 }
 
 /** Properties panel **/
@@ -493,7 +508,8 @@ select:invalid {
 #properties-inner > .input-group > input,
 #properties-inner > .input-group > textarea,
 #properties-inner > .input-group > select,
-#properties-inner > .fixed-group > input {
+#properties-inner > .fixed-group > input,
+#properties-inner > .input-group > .tuple {
   width: 50%;
 }
 

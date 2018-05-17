@@ -1,21 +1,29 @@
 var Editor = (function () {
   var DEFAULTS = {
     'text': {
-      'type': 'Text'
+      'type': 'Text',
+      'content': '(Text Here)',
+      'position.axis': 'top-left',
+      'transform.scale': 1,
+      'transform.rotX': 0,
+      'transform.rotY': 0,
+      'transform.rotZ': 0,
     },
     'sprite': {
       'type': 'Sprite',
-      'size': {
-        'width': 1,
-        'height': 1
-      }
+      'size.width': 1,
+      'size.height': 1,
+      'position.axis': 'top-left',
+      'transform.scale': 1,
+      'transform.rotX': 0,
+      'transform.rotY': 0,
+      'transform.rotZ': 0,
     },
     'button': {
       'type': 'Button',
-      'size': {
-        'width': 1,
-        'height': 1
-      }
+      'content': 'Button Label',
+      'size.width': 1,
+      'size.height': 1
     },
     'frame': {
       'type': 'Frame'
@@ -151,7 +159,8 @@ var Editor = (function () {
           e.event.offsetY, e.event.target);
         var objectBase = _deepCopy(DEFAULTS[this.selectedTool]);
         objectBase.name = ReprTools.getUniqueName(objectBase.type);
-        objectBase.position = position;
+        objectBase['position.x'] = position.x;
+        objectBase['position.y'] = position.y;
 
         if (this.selectedTool === 'sprite' ||
           this.selectedTool === 'button') {
@@ -184,6 +193,7 @@ var Editor = (function () {
       }
       this._selectBox = null;
     }
+    this.P.emit('properties.load', Selection.get());
   };
   Editor.prototype._onMove = function (e) {
     if (e.event.buttons !== 1) {
@@ -446,6 +456,9 @@ var Editor = (function () {
   Editor.prototype._bindKeyboard = function (P) {
     P.listen('global.keydown', (function (e) {
       if (e.event.keyCode === 46 && !e.event.ctrlKey) {
+        if (Selection.count() === 0) {
+          return e; // Nothing to remove
+        } 
         if (!confirm('You are about to remove ' + Selection.count() +
           ' items.\nAre you sure? (Action cannot be reversed)')) {
           return e;
