@@ -337,6 +337,7 @@ var PropertyManager = (function () {
       P.emit('property.' + propertyName + '.change', value);
     });
     P.listen('property.' + propertyName + '.change', (function () {
+      // Change the property for the selected elements
       
     }).bind(this));
   };

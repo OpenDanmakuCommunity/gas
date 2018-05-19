@@ -19,7 +19,11 @@
 	<script src="scripts/timer.js"></script>
 
 	<script src="scripts/repr.js"></script>
-	<script src="scripts/repr.objects.js"></script>
+	<script src="scripts/representation/propmanager.js"></script>
+	<script src="scripts/representation/repr.text.js"></script>
+	<script src="scripts/representation/repr.sprite.js"></script>
+	<script src="scripts/representation/repr.button.js"></script>
+	<script src="scripts/representation/repr.objects.js"></script>
 
 	<script src="scripts/components/ide.playback.js"></script>
 	<script src="scripts/components/ide.timeline.js"></script>
@@ -42,7 +46,7 @@
 		</div>
 	</noscript>
   <div id="left" class="container" draggable="false">
-		<div id="toolbox" class="mini-window" style="height: 500px;">
+		<div id="toolbox" class="mini-window" style="height: 360px;">
 			<h1>Toolbox</h1>
 			<div class="body">
 				<div id='tool-select' class="tool-icon cursor button" tabindex="0" role="button" title="Select Tool"></div>
@@ -54,7 +58,14 @@
 				<div id='tool-frame' class="tool-icon frame button" tabindex="0" role="button" title="Frame Tool"></div>
 			</div>
 		</div>
-		<div id="toolbox" class="mini-window" style="height: 100px;">
+		<div id="toolbox" class="mini-window" style="height: 106px;">
+			<h1>Ordering</h1>
+			<div class="body">
+				<div id='order-up' class="tool-icon up button" tabindex="1" role="button" title="Move Up"></div>
+				<div id='order-down' class="tool-icon down button" tabindex="1" role="button" title="Move Down"></div>
+			</div>
+		</div>
+		<div id="toolbox" class="mini-window" style="height: 200px;">
 			<h1>Playback</h1>
 			<div class="body">
 				<div id='playback-play-pause' class="tool-icon play button" tabindex="1" role="button" title="Play/Pause"></div>
@@ -62,7 +73,7 @@
 				<div id='playback-rec' class="tool-icon rec button" tabindex="1" role="button" title="Add Pin"></div>
 			</div>
 		</div>
-		<div id="Export" class="mini-window">
+		<div id="Export" class="mini-window" style="height: 200px;">
 			<h1>Export</h1>
 			<div class="body">
 				<div class="button" tabindex="2" role="button"><p>Generic (GAS-S)</p></div>

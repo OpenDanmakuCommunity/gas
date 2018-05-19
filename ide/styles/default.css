@@ -188,7 +188,7 @@ select:invalid {
 
 /** Mini-window **/
 .mini-window {
-  min-height: 200px;
+  min-height: 106px;
   overflow: hidden;
   position: relative;
 }

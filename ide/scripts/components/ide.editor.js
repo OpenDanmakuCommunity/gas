@@ -3,6 +3,7 @@ var Editor = (function () {
     'text': {
       'type': 'Text',
       'content': '(Text Here)',
+      'font.orientation': 'horizontal-tb',
       'position.axis': 'top-left',
       'transform.scale': 1,
       'transform.rotX': 0,

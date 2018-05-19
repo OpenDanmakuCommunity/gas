@@ -3,7 +3,7 @@ var LayerManager = (function () {
     if (!Repr || !_Create) {
       throw new Error('Global Stuff not loaded!');
     }
-    
+
     this._layerList = layerList;
   };
 
