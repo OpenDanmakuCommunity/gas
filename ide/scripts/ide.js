@@ -1,6 +1,6 @@
 (function () {
-  if (!Repr || !Pettan) {
-    alert('Error: Some libraries were not loaded!');
+  if (!Repr || !Pettan || !_Create || !_CreateP || !ReprTools) {
+    alert('Error: Some libraries were not loaded! Cannot proceed.');
     return;
   }
 
@@ -10,40 +10,11 @@
   var P = new Pettan();
   var T = new Timer();
 
-  /** Helpers **/
-  function trace(message) {
-    return P.emit('trace', message);
-  }
-
   /** Initialize Reactive Environment **/
   window.addEventListener('load', function () {
     // Bind logging actions
-    P.listen('trace', function (message) {
-      var hist = _CreateP(message, {
-        'draggable': 'false'
-      });
-
-      hist.addEventListener('dblclick', (function (srepr) {
-        return function () {
-          if(confirm('Are you sure you want to rewind to this point in history?\n' +
-            'This feature is experimental and may break!')) {
-
-            trace('Rewind history: Experimental');
-            Repr = JSON.parse(srepr);
-            P.emit('reset').then(function () {
-              return P.emit('render');
-            });
-          }
-        };
-      })(JSON.stringify(Repr)));
-
-      $('messages').insertBefore(hist, $('messages').firstChild);
-      // Remove extra
-      while ($('messages').childElementCount > Repr.uiState.config.historyMax) {
-        $('messages').removeChild($('messages').lastChild);
-      };
-      return message;
-    });
+    var logger = new Logger($('messages'));
+    logger.bind(P);
 
     // Create and bind to Editor
     var editor = new Editor(T, $('work-area'), $('canvas'), {
@@ -68,6 +39,16 @@
       });
     playback.bind(P);
 
+    var saveLoad = new SaveLoad({
+      'gas': $('io-export-gas'),
+      'mode7': $('io-export-mode7'),
+      'bas': $('io-export-bas'),
+      'htmlcss': $('io-export-htmlcss')
+    }, {
+      'gas': $('io-import-gas'),
+    });
+    saveLoad.bind(P);
+
     // Create and bind to the timeline controls
     var timeline = new TimelineManager($('tracks'), playback);
     timeline.bind(P);
@@ -86,18 +67,25 @@
 
     // Bind the listener for global render and reset
     P.listen('reset', function () {
-      return Promise.all(RESET_COMPONENTS);
+      return Promise.all(RESET_COMPONENTS.map(function (component) {
+        return P.emit(component);
+      }));
     });
     P.listen('render', function () {
-      return Promise.all(RENDER_COMPONENTS);
+      return Promise.all(RENDER_COMPONENTS.map(function (component) {
+        return P.emit(component);
+      }));
     });
 
     // Render the UI
     P.emit('render').then(function () {
-      trace('Generic Animation Comment IDE -- Initialization Complete');
+      logger.log('Generic Animation Comment IDE -- Initialization Complete');
     }).catch(function (e) {
-      trace(e);
+      logger.warn(e);
     });
+
+    // Expose the pettan instance
+    // TODO: Remove in production
     window.pet = P;
   });
 })();

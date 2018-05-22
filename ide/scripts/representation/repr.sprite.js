@@ -30,8 +30,9 @@ var GSprite = (function () {
       case 'size.height':
         this.DOM.style.height = newValue + 'px';
         break;
-      case 'content':
-        this._setImage(newValue);
+      case 'image.position':
+        this.DOM.style.backgroundPosition =
+          newValue !== null ? newValue.join(' ') : '';
         break;
       case 'image.repeat':
         this.DOM.style.backgroundRepeat = newValue + '';
@@ -44,6 +45,9 @@ var GSprite = (function () {
         } else if (newValue === 'crop') {
           this.DOM.style.backgroundSize = 'auto';
         }
+        break;
+      case 'content':
+        this._setImage(newValue);
         break;
       default:
         console.warn('Property ' + propertyName + ' changed to ' + newValue +

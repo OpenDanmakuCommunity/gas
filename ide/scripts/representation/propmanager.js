@@ -64,7 +64,7 @@ var PropManager = (function () {
     // Anchors is a list of key frames
     this.anchors = anchorsInst;
     // onChange is delegator function to delegate upwards
-    this._onPropChange = onChange;   
+    this._onPropChange = onChange;
     // This saves the properties RIGHT NOW
     this.spec = {};
 
@@ -88,7 +88,7 @@ var PropManager = (function () {
         // This is exactly the range
         return i;
       } else {
-        // This is in a blank range and thus should be associated with the pin 
+        // This is in a blank range and thus should be associated with the pin
         // before
         return i - 1;
       }
@@ -119,10 +119,10 @@ var PropManager = (function () {
   PropManager.prototype._setProp = function (propertyName, newValue) {
     this.spec[propertyName] = newValue;
     if (this._onPropChange !== null) {
-      this._onPropChange(propertyName, newValue);
+      this._onPropChange(propertyName, newValue, this);
     }
   };
-  
+
   PropManager.prototype._applyProps = function (props, keyFrame) {
     for (var propName in props) {
       if (keyFrame) {
@@ -146,10 +146,10 @@ var PropManager = (function () {
   PropManager.prototype._applySubframe = function (time) {
     if (this._keyFrameIndex < 0) {
       if (time !== 0) {
-        throw new Error('Attempting to apply subframe at origin with ' + 
+        throw new Error('Attempting to apply subframe at origin with ' +
           'non-origin time.');
       }
-      return; 
+      return;
     }
     var frameSpec = this.anchors[this._keyFrameIndex];
     for (var easing in frameSpec.spec) {
@@ -212,7 +212,7 @@ var PropManager = (function () {
           return this.anchors[index].spec[easing][propName];
         }
       }
-      // Did not find anything, 
+      // Did not find anything,
       return this._getPropByIndex(index - 1, propName, def);
     }
   };
@@ -232,10 +232,10 @@ var PropManager = (function () {
     if (!this._isConfigurable(time)) {
       throw new Error('Time ' + time + ' is in the middle of an animation!');
     }
-    // Figure out what to update 
+    // Figure out what to update
     var index = this._getSpecIndex(time);
     if (index < 0) {
-      // Update the base 
+      // Update the base
       this._baseSpec[propertyName] = value;
       this._setProp(propertyName, value);
     } else {
@@ -252,7 +252,7 @@ var PropManager = (function () {
   };
 
   PropManager.prototype.createKeyFrame = function (start, end) {
-    
+
   };
 
   return PropManager;

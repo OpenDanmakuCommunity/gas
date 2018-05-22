@@ -1,0 +1,29 @@
+/** Left bar **/
+#toolbox {
+  height: 360px;
+}
+
+#ordering {
+  height: 106px;
+}
+
+#playback {
+  height: 200px;
+}
+
+#export {
+  height: 200px;
+}
+
+#import {
+  height: 200px;
+}
+
+/** Right bar **/
+#library {
+  height: 350px;
+}
+
+#properties {
+  height: 450px;
+}

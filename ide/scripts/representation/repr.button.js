@@ -24,11 +24,38 @@ var GButton = (function () {
       case 'position.y':
         this.DOM.style.top = newValue + 'px';
         break;
+      case 'size.width':
+        this.DOM.style.width = newValue + 'px';
+        break;
+      case 'size.height':
+        this.DOM.style.height = newValue + 'px';
+        break;
       case 'font.family':
         this.DOM.style.fontFamily = newValue + '';
         break;
       case 'font.size':
         this.DOM.style.fontSize = newValue + 'px';
+        break;
+      case 'font.orientation':
+        this.DOM.style.writingMode = newValue + '';
+        break;
+      case 'font.decoration':
+        if (newValue !== null && Array.isArray(newValue)) {
+          _ToggleClass(this.DOM, 'text-decoration-outline',
+            newValue.indexOf('outline') >= 0 && newValue.indexOf('shadow') < 0);
+          _ToggleClass(this.DOM, 'text-decoration-shadow',
+            newValue.indexOf('shadow') >= 0 && newValue.indexOf('outline') < 0);
+          _ToggleClass(this.DOM, 'text-decoration-outline-shadow',
+            newValue.indexOf('shadow') >= 0 && newValue.indexOf('outline') >=0);
+          _ToggleClass(this.DOM, 'text-decoration-bold',
+            newValue.indexOf('bold') >= 0);
+          _ToggleClass(this.DOM, 'text-decoration-italic',
+            newValue.indexOf('italic') >= 0);
+          this.DOM.style.textDecoration = newValue.filter(function (val) {
+            return val !== 'outline' && val !== 'shadow' &&
+              val !== 'bold' && val !=='italic';
+          }).join(' ');
+        }
         break;
       case 'content':
         this.DOM.innerText = newValue;

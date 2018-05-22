@@ -18,7 +18,7 @@
         "ExampleButtonObject": {
             "type": "Button",
             "content": "This is some sample button text",
-            
+
         },
         "ExampleSpriteObject": {
             "type": "SVGSprite",
@@ -45,9 +45,6 @@
     "animation": {
         "groups": {
             "group1": ["ExampleFrameObject", "ExampleSprite"]
-        },
-        "interpolators": {
-          "linear": 
         },
         "anchors": [
             {

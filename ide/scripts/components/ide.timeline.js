@@ -100,6 +100,7 @@ var TimelineManager = (function () {
       return e;
     }).bind(this));
   };
+
   TimelineManager.prototype._removePin = function () {
 
   };
@@ -155,58 +156,6 @@ var TimelineManager = (function () {
       })
     }).bind(this));
     this._selectedPins = pins;
-  };
-
-  /** Anchor Related **/
-  TimelineManager.prototype._getAnchor = function (time) {
-    var anchor = Repr.workspace.animation.anchors.filter(function (anchor) {
-      return anchor.time === time;
-    });
-    if (anchor.length > 1) {
-      throw new Error('BUG: More than one anchor at ' + time + '!');
-    } else if (anchor.length === 1) {
-      return anchor[0];
-    } else {
-      return null;
-    }
-  };
-
-  TimelineManager.prototype._addAnchor = function (name, time) {
-    var existingAnchor = this._getAnchor(time);
-    if (existingAnchor === null) {
-      existingAnchor = {
-        'time': time,
-        'key': {}
-      };
-      Repr.workspace.animation.anchors.push(existingAnchor);
-    }
-    if (!(name in existingAnchor.key)) {
-      existingAnchor.key[name] = {
-        'linear': {},
-        'none': {}
-      }
-    }
-  };
-
-  TimelineManager.prototype._removeAnchor = function (name, time) {
-    var existingAnchor = this._getAnchor(time);
-    if (existingAnchor !== null) {
-      if (name in existingAnchor.key) {
-        delete existingAnchor.key[name];
-      }
-    }
-    for (var anchorName in existingAnchor.key) {
-      return;
-    }
-    var idx = Repr.workspace.animation.anchors.indexOf(existingAnchor);
-    if (idx >= 0) {
-      Repr.workspace.animation.anchors.splice(idx, 1);
-    }
-    return;
-  };
-
-  TimelineManager.prototype._firstGap = function (name, time) {
-    //
   };
 
   /** Track Related **/
@@ -291,16 +240,6 @@ var TimelineManager = (function () {
         'track.' + newName + '.pin.' + pinName);
     }
 
-    // Rename track's anchors
-    Repr.workspace.animation.anchors = 
-      Repr.workspace.animation.anchors.map(function (anchor) {
-        if (oldName in anchor.key) {
-          anchor.key[newName] = anchor.key[oldName];
-          delete anchor.key[oldName];
-        }
-        return anchor;
-      });
-
     // Rename the track binding
     this._renameBinding(oldName, newName);
     // Get the binding
@@ -314,20 +253,6 @@ var TimelineManager = (function () {
     P.drop('track.' + name + '.dblclick');
     this._timeline.removeChild(this._tracks[name].row);
 
-    // Remove the track's anchors
-    Repr.workspace.animation.anchors = 
-      Repr.workspace.animation.anchors.map(function (anchor) {
-        if (name in anchor.key) {
-          delete anchor.key[name];
-        }
-        return anchor;
-      }).filter(function (anchor) {
-        for (var j in anchor.key) {
-          return true;
-        }
-        return false;
-      });
-
     this._removeBinding(name);
   };
 
@@ -337,7 +262,6 @@ var TimelineManager = (function () {
         var lastPin = this._lastPin(item, timeObj.time);
         this._insertPin(P, item, (lastPin === null ? 0 : lastPin.end),
           timeObj.time, false);
-        this._addAnchor(item, timeObj.time);
       }).bind(this));
     }).bind(this));
   };

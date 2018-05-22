@@ -1,18 +1,26 @@
 var PropertyManager = (function () {
   var ENABLED_PROPERTIES = {
-    '*': ['position.x', 'position.y', 'position.anchor', 'position.axis', 'size.width', 'size.height', 'transform.scale', 'transform.rotX', 'transform.rotY', 'transform.rotZ'],
-    'Text': ['font.size', 'font.decoration', 'font.family', 'font.orientation', 'content'],
+    '*': ['position.x', 'position.y', 'position.anchor', 'position.axis',
+      'size.width', 'size.height', 'transform.scale', 'transform.rotX',
+      'transform.rotY', 'transform.rotZ'],
+    'Text': ['font.size', 'font.decoration', 'font.family', 'font.orientation',
+      'font.color', 'content'],
     'RichText': ['content'],
-    'Sprite': ['image.position', 'image.repeat', 'image.stretchMode', 'content'],
-    'BinarySprite': ['image.position', 'image.repeat', 'image.stretchMode', 'content'],
-    'AnimatedSprite': ['image.position', 'image.repeat', 'image.stretchMode', 'content'],
+    'Sprite': ['image.position', 'image.repeat', 'image.stretchMode',
+      'content'],
+    'BinarySprite': ['image.position', 'image.repeat', 'image.stretchMode',
+      'content'],
+    'AnimatedSprite': ['image.position', 'image.repeat', 'image.stretchMode',
+      'content'],
     'Frame': ['children'],
-    'Button': ['font.size', 'font.decoration', 'font.family', 'font.orientation', 'content', 'interaction']
+    'Button': ['font.size', 'font.decoration', 'font.family',
+      'font.orientation', 'font.color', 'content', 'interaction']
   };
   var PARAMETERS = {
     'select': ['values'],
     'number': ['min', 'max', 'step'],
-    'text': ['validator']
+    'text': ['validator'],
+    'color': []
   };
   var PROPERTIES = {
     'position.x': {
@@ -71,11 +79,15 @@ var PropertyManager = (function () {
     'font.decoration': {
       'type':'multiselect',
       'values': ['bold', 'italic', 'underline', 'overline', 'line-through', 'shadow', 'outline'],
-      'default': [],
+      'default': ['bold', 'outline'],
     },
     'font.family': {
       'type': 'text',
       'default': null,
+    },
+    'font.color': {
+      'type': 'color',
+      'default': 0xffffff
     },
     'font.orientation': {
       'type': 'select',
@@ -116,6 +128,73 @@ var PropertyManager = (function () {
     }
   };
 
+  /** Helper tools **/
+  var Color = function () {
+    this.r = 0;
+    this.g = 0;
+    this.b = 0;
+    this.a = 1;
+  }
+
+  Color.prototype.fromRgba = function (r, g, b, a) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = (typeof a === 'number') ? a : 1;
+  };
+
+  Color.prototype.fromNumber = function (rgb) {
+    this.r = (rgb>>16) &0x0ff;
+    this.g = (rgb>>8)  &0x0ff;
+    this.b = (rgb)     &0x0ff;
+  };
+
+  Color.prototype.fromString = function (rgbStr) {
+    if (rgbStr.indexOf('#') === 0) {
+      var str = rgbStr.substring(1);
+      if (str.length === 3) {
+        str = str.replace(new RegExp('(.)(.)(.)', 'g'), '$1$1$2$2$3$3');
+      }
+      this.fromNumber(parseInt(str, 16));
+    } else if (rgbStr.indexOf('rgb(') === 0) {
+      var str = rgbStr.substring(4);
+      var nums = str.substring(0, str.length - 1).split(',').map(function (num) {
+        return parseInt(num, 10);
+      });
+      this.fromRgba(nums[0], nums[1], nums[2]);
+    } else if (rgbStr.indexOf('rgba(') === 0) {
+      var str = rgbStr.substring(5);
+      var nums = str.substring(0, str.length - 1).split(',').map(function (num) {
+        return parseFloat(num, 10);
+      });
+      this.fromRgba(nums[0], nums[1], nums[2], nums[3]);
+    } else {
+      throw new Error('Unrecognized color format');
+    }
+  };
+
+  Color.prototype.setAlpha = function (alpha) {
+    this.a = alpha;
+  };
+
+  Color.prototype.toNumber = function () {
+    return ((this.r & 0x0ff) << 16)|((this.g & 0x0ff) << 8)|(this.b & 0x0ff);
+  };
+
+  Color.prototype.toString = function (notation) {
+    if (this.a === 1 || notation === 'hash') {
+      // Use hash notation
+      var color = this.toNumber().toString(16);
+      while (color.length < 6) {
+        color = '0' + color;
+      }
+      return '#' + color;
+    } else {
+      return 'rgba(' +
+        this.r + ',' + this.g + ',' + this.b + ',' + this.a + ')';
+    }
+  };
+
   var Field = function (id, fieldType, spec) {
     this.id = id;
     this.type = fieldType;
@@ -128,10 +207,49 @@ var PropertyManager = (function () {
   };
 
   Field.prototype._reprToValue = function (repr) {
-    return repr;
+    if (repr === null) {
+      return null;
+    } else if (repr === '' && this.type !== 'text') {
+      return null;
+    }
+    if (this.type === 'color') {
+      try {
+        var color = new Color();
+        if (typeof repr === 'string') {
+          color.fromString(repr);
+        } else {
+          color.fromNumber(repr);
+        }
+        return color;
+      } catch (e) {
+        console.log(e);
+        return null;
+      }
+    } else if (this.type === 'number') {
+      if (typeof repr === 'number') {
+        return repr;
+      } else {
+        return parseFloat(repr, 10);
+      }
+    } else {
+      return repr;
+    }
   };
   Field.prototype._valueToRepr = function (value) {
-    return value;
+    if (value === null) {
+      return null;
+    }
+    if (this.type === 'color') {
+      if (typeof value === 'number') {
+        var color = new Color();
+        color.fromNumber(value);
+        return color;
+      } else {
+        return value;
+      }
+    } else {
+      return value;
+    }
   };
 
   Field.prototype._copyProperties = function (base, propName) {
@@ -169,7 +287,7 @@ var PropertyManager = (function () {
           sel.appendChild(
             _Create('option', {
               'value': baseProperties.values[i][j],
-            }, [_Create('text', baseProperties.values[i][j])]))
+            }, [_Create('text', baseProperties.values[i][j])]));
         }
         fields.push(sel);
       }
@@ -217,7 +335,7 @@ var PropertyManager = (function () {
           'value': this.spec.values[i]
         }, [_Create('text', this.spec.values[i])]));
       }
-      
+
     } else if (this.type.indexOf('tuple.') === 0) {
       this._copyProperties(baseProperties, 'values');
       this._copyProperties(baseProperties, 'min');
@@ -228,6 +346,9 @@ var PropertyManager = (function () {
       if (this.type === 'text') {
         baseProperties['type'] = 'text';
         this._copyProperties(baseProperties, PARAMETERS.text);
+      } else if (this.type === 'color') {
+        baseProperties['type'] = 'text';
+        this._copyProperties(baseProperties, PARAMETERS.color);
       } else if (this.type === 'number') {
         baseProperties['type'] = 'number';
         baseProperties['placeholder'] = '(Undefined)';
@@ -261,14 +382,22 @@ var PropertyManager = (function () {
     if (this.type.indexOf('tuple.') === 0) {
       var values = [];
       for (var i = 0; i < this.DOM.children.length; i++) {
-        values.push(this.DOM.children[i]);
+        values.push(this._reprToValue(this.DOM.children[i].value));
       }
       this._set(values);
+    } else if (this.type === 'multiselect') {
+      var selected = [];
+      for (var i = 0; i < this.DOM.options.length; i++) {
+        if (this.DOM.options[i].selected) {
+          selected.push(this.DOM.options[i].value);
+        }
+      }
+      this._set(selected);
     } else {
-      this._set(this.DOM.value);
+      this._set(this._reprToValue(this.DOM.value));
     }
     if (typeof this.changeListener === 'function') {
-      this.changeListener(this.get());
+      this.changeListener(this._value);
     }
   };
 
@@ -289,11 +418,26 @@ var PropertyManager = (function () {
     // Update the UI
     if (this.type.indexOf('tuple.') === 0) {
       // Somehow update the tuple values
+      if (Array.isArray(value) && value.length >= this.DOM.children.length) {
+        for (var i = 0; i < this.DOM.children.length; i++) {
+          this.DOM.children[i].value = this._valueToRepr(value[i]);
+        }
+      }
+    } else if (this.type === 'multiselect') {
+      if (Array.isArray(this._value)) {
+        for (var i = 0; i < this.DOM.options.length; i++) {
+          if (this._value.indexOf(this.DOM.options[i].value) >= 0) {
+            this.DOM.options[i].setAttribute('selected', true);
+          } else {
+            this.DOM.options[i].removeAttribute('selected');
+          }
+        }
+      }
     } else {
       if (this._value === null) {
         this.DOM.value = '';
       } else {
-        this.DOM.value = this._value;
+        this.DOM.value = this._valueToRepr(this._value);
       }
     }
   };
@@ -334,12 +478,11 @@ var PropertyManager = (function () {
       'field': field,
     };
     field.setChangeListener(function (value) {
-      P.emit('property.' + propertyName + '.change', value);
+      P.emit('property.change', {
+        'propertyName': propertyName,
+        'value': value
+      });
     });
-    P.listen('property.' + propertyName + '.change', (function () {
-      // Change the property for the selected elements
-      
-    }).bind(this));
   };
 
   PropertyManager.prototype._collectiveValues = function (items, propName) {
@@ -358,7 +501,7 @@ var PropertyManager = (function () {
   };
 
   PropertyManager.prototype._updatePropertiesList = function (items) {
-    // FHide all currently shown properties
+    // Hide all currently shown properties
     this._visible.forEach((function (prop) {
       this._fields[prop].item.style.display = 'none';
     }).bind(this));
@@ -399,6 +542,17 @@ var PropertyManager = (function () {
     for (var name in PROPERTIES) {
       this._buildPropertyField(P, name, PROPERTIES[name]);
     }
+    // Bind to the property change event
+    P.listen('property.change', (function (propSpec) {
+      // Change the property for the selected elements
+      return Promise.all(Selection.get().map(function (objectName) {
+        return P.emit('object.setProperty', {
+          'objectName': objectName,
+          'propertyName': propSpec.propertyName,
+          'value': propSpec.value,
+        });
+      })).then(P.next(propSpec));
+    }).bind(this));
 
     P.listen('properties.load', (function (objects) {
       this._updatePropertiesList(objects);

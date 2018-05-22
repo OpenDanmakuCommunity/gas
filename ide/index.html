@@ -5,9 +5,12 @@
 	<meta http-equiv="X-UA-Compatible" value="IE=9">
 	<title>Integrated Development Environment Application For Generic Animation Script</title>
 
+	<!-- Stylesheets -->
 	<link rel="stylesheet" href="styles/default.css" />
+	<link rel="stylesheet" href="styles/sections.css" />
 	<link rel="stylesheet" href="styles/icons.css" />
 	<link rel="stylesheet" href="styles/canvas.css" />
+
 	<!-- GAS -->
 
 	<!-- 3rd party -->
@@ -26,8 +29,10 @@
 	<script src="scripts/representation/repr.objects.js"></script>
 
 	<script src="scripts/components/ide.playback.js"></script>
+	<script src="scripts/components/ide.saveload.js"></script>
 	<script src="scripts/components/ide.timeline.js"></script>
 	<script src="scripts/components/ide.editor.js"></script>
+	<script src="scripts/components/ide.trace.js"></script>
 	<script src="scripts/components/ide.library.js"></script>
 	<script src="scripts/components/ide.properties.js"></script>
 	<script src="scripts/ide.js"></script>
@@ -58,14 +63,14 @@
 				<div id='tool-frame' class="tool-icon frame button" tabindex="0" role="button" title="Frame Tool"></div>
 			</div>
 		</div>
-		<div id="toolbox" class="mini-window" style="height: 106px;">
+		<div id="ordering" class="mini-window" style="height: 106px;">
 			<h1>Ordering</h1>
 			<div class="body">
 				<div id='order-up' class="tool-icon up button" tabindex="1" role="button" title="Move Up"></div>
 				<div id='order-down' class="tool-icon down button" tabindex="1" role="button" title="Move Down"></div>
 			</div>
 		</div>
-		<div id="toolbox" class="mini-window" style="height: 200px;">
+		<div id="playback" class="mini-window" style="height: 200px;">
 			<h1>Playback</h1>
 			<div class="body">
 				<div id='playback-play-pause' class="tool-icon play button" tabindex="1" role="button" title="Play/Pause"></div>
@@ -73,13 +78,19 @@
 				<div id='playback-rec' class="tool-icon rec button" tabindex="1" role="button" title="Add Pin"></div>
 			</div>
 		</div>
-		<div id="Export" class="mini-window" style="height: 200px;">
+		<div id="export" class="mini-window" style="height: 200px;">
 			<h1>Export</h1>
 			<div class="body">
-				<div class="button" tabindex="2" role="button"><p>Generic (GAS-S)</p></div>
-				<div class="button" tabindex="2" role="button"><p>Mode 7 (Legacy)</p></div>
-				<div class="button" tabindex="2" role="button"><p>Bilibili (BAS)</p></div>
-				<div class="button" tabindex="2" role="button"><p>HTML+CSS3</p></div>
+				<div id="io-export-gas" class="button" tabindex="2" role="button"><p>Generic (GAS-S)</p></div>
+				<div id="io-export-mode7" class="button" tabindex="2" role="button"><p>Mode 7 (Legacy)</p></div>
+				<div id="io-export-bas" class="button" tabindex="2" role="button"><p>Bilibili (BAS)</p></div>
+				<div id="io-export-htmlcss" class="button" tabindex="2" role="button"><p>HTML+CSS3</p></div>
+			</div>
+		</div>
+		<div id="import" class="mini-window" style="height: 200px;">
+			<h1>Import</h1>
+			<div class="body">
+				<div id="io-import-gas" class="button" tabindex="2" role="button"><p>Generic (GAS-S)</p></div>
 			</div>
 		</div>
   </div>
@@ -117,7 +128,7 @@
 		<div id="messages" class="container" draggable="false"></div>
   </div>
   <div id="right" class="container" draggable="false">
-		<div id="library" class="mini-window"  style="min-height: 350px;">
+		<div id="library" class="mini-window">
 			<h1>Library</h1>
 			<div class="body">
 				<div class="fixed-group">
@@ -129,13 +140,17 @@
 				</div>
 			</div>
 		</div>
-		<div id="properties" class="mini-window" style="min-height: 450px;">
+		<div id="properties" class="mini-window">
 			<h1>Properties</h1>
 			<div id="properties-inner" class="body"></div>
 		</div>
 		<div id="layers" class="mini-window">
 			<h1>Layers</h1>
 			<div id="layers-inner" class="body"></div>
+		</div>
+		<div id="animation" class="mini-window">
+			<h1>Animation</h1>
+			<div id="animation-inner" class="body"></div>
 		</div>
   </div>
 </body>

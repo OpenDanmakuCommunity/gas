@@ -6,6 +6,11 @@ var Pettan = (function () {
   };
 
   Pettan.prototype.bind = function (item, nativeEventName, eventName) {
+    if (typeof item === 'undefined' || typeof nativeEventName === 'undefined'
+      || typeof eventName === 'undefined') {
+
+      throw new Error('Insufficient parameters');
+    }
     var self = this;
     if (!(eventName in this.nativeBindings)) {
       this.nativeBindings[eventName] = [];

@@ -3,8 +3,10 @@ var Editor = (function () {
     'text': {
       'type': 'Text',
       'content': '(Text Here)',
-      'font.orientation': 'horizontal-tb',
+      'font.decoration': ['outline'],
       'position.axis': 'top-left',
+      'font.color': 0xffffff,
+      'font.orientation': 'horizontal-tb',
       'transform.scale': 1,
       'transform.rotX': 0,
       'transform.rotY': 0,
@@ -20,16 +22,26 @@ var Editor = (function () {
       'transform.rotY': 0,
       'transform.rotZ': 0,
       'image.repeat': 'no-repeat',
-      'image.stretchMode': 'contain'
+      'image.stretchMode': 'contain',
     },
     'button': {
       'type': 'Button',
       'content': 'Button Label',
       'size.width': 1,
-      'size.height': 1
+      'size.height': 1,
+      'font.decoration': ['outline'],
+      'font.color': 0xffffff,
+      'font.orientation': 'horizontal-tb',
+      'position.axis': 'top-left',
+      'transform.scale': 1,
+      'transform.rotX': 0,
+      'transform.rotY': 0,
+      'transform.rotZ': 0,
     },
     'frame': {
-      'type': 'Frame'
+      'type': 'Frame',
+      'size.width': 1,
+      'size.height': 1,
     },
   }
 
@@ -73,17 +85,15 @@ var Editor = (function () {
   };
 
   Editor.prototype._translateOffsets = function (x, y, target) {
-    while (target.parentNode !== null && target !== this._workArea) {
-      x += target.offsetLeft;
-      y += target.offsetTop;
-      target = target.parentNode;
-    }
-    if (target !== this._workArea) {
-      throw new Error('Offset Translation Failed');
+    var layer = target;
+    while (layer !== null && layer !== this._workArea) {
+      x += layer.offsetLeft;
+      y += layer.offsetTop;
+      layer = layer.offsetParent;
     }
     return {
       'x': x,
-      'y': y,
+      'y': y
     }
   };
   Editor.prototype._canvasPosition = function (x, y, item) {
@@ -323,6 +333,10 @@ var Editor = (function () {
     P.listen('reset.editor.canvas.background', function () {
       return P.emit('editor.canvas.background.set', 'black');
     });
+    P.listen('reset.editor.canvas.perspective', (function () {
+      return P.emit('editor.canvas.perspective.set',
+        this._canvas.offsetWidth / 2 / Math.tan(Math.PI/180 * 27.5));
+    }).bind(this));
     // Bind the preview button
     P.bind(this._workAreaConfigButtons.configPreview, 'click',
       'editor.canvas.previewMode.toggle');
@@ -346,9 +360,16 @@ var Editor = (function () {
     });
     P.listen('editor.canvas.width.set', (function (width) {
       this._canvas.style.width = width + 'px';
+      return width;
     }).bind(this));
     P.listen('editor.canvas.height.set', (function (height) {
       this._canvas.style.height = height + 'px';
+      return height;
+    }).bind(this));
+    P.listen('editor.canvas.perspective.set', (function (perspective) {
+      this._canvas.style.perspective = perspective;
+      this._canvas.style.webkitPerspective = perspective;
+      return perspective;
     }).bind(this));
   };
 
@@ -367,7 +388,7 @@ var Editor = (function () {
             'to': toolName
           }).then(function (tool) {
             self.selectedTool = toolName;
-            return P.emit('trace','Change to tool ' + toolName);
+            return P.emit('trace.log','Change to tool ' + toolName);
           });
         }
       })(this, toolName));
@@ -452,15 +473,17 @@ var Editor = (function () {
     // Listen on object property updates
     P.listen('object.setProperty', (function (spec) {
       ReprTools.getObject(spec.objectName).setProperty(
-        this.T.time(),
-        spec.propertyName, 
+        ('time' in spec ? spec.time : this.T.time()),
+        spec.propertyName,
         spec.value);
-      return spec;
+      return P.emit('trace.log',
+        'Set property: ' + spec.objectName + '.' + spec.propertyName + ' = ' +
+          spec.value).then(P.next(spec));
     }).bind(this));
 
     // Bind post-events
     P.listen('objects.added', (function (objData) {
-      return P.emit('trace',
+      return P.emit('trace.log',
         'Created [' + objData.inst.type + '] object "' + objData.name + '"').then(
           P.emit('objects.select', objData.name)).then(
             P.next(objData));
@@ -476,7 +499,7 @@ var Editor = (function () {
       if (e.event.keyCode === 46 && !e.event.ctrlKey) {
         if (Selection.count() === 0) {
           return e; // Nothing to remove
-        } 
+        }
         if (!confirm('You are about to remove ' + Selection.count() +
           ' items.\nAre you sure? (Action cannot be reversed)')) {
           return e;
@@ -524,16 +547,20 @@ var Editor = (function () {
     P.listen('editor.work-area.move', this._onMove.bind(this));
 
     this._isBound = true;
-    return this.render(P);
+    P.listen('render.editor', (function () {
+      return this._render(P).then(P.next());
+    }).bind(this));
+    return;
   };
 
-  Editor.prototype.render = function (P) {
+  Editor.prototype._render = function (P) {
     return Promise.all([
       P.emit('tool.change', {
         'from': this.selectedTool,
         'to': this.selectedTool
       }),
       P.emit('reset.editor.canvas.background'),
+      P.emit('reset.editor.canvas.perspective'),
     ]);
   };
 
