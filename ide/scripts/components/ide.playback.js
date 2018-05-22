@@ -2,10 +2,12 @@ var Playback = (function () {
   var PIXEL_CONVERSION = 10;
   var TIMELINE_LABEL_OFFSET = 200;
 
-  var Playback = function (playbackControls, timelineIndicators) {
-    if (!ReprTools || !Repr || !_Create || !_ToggleClass || !Timer) {
+  var Playback = function (timer, playbackControls, timelineIndicators) {
+    if (!ReprTools || !Repr || !_Create || !_ToggleClass) {
       throw new Error('Environment not loaded correctly!');
     }
+    this.T = timer;
+
     this.PIXEL_CONVERSION = 10;
     this._playBtn = playbackControls.playBtn;
     this._stopBtn = playbackControls.stopBtn;
@@ -13,8 +15,6 @@ var Playback = (function () {
     this._ruler = timelineIndicators.ruler;
     this._slider = timelineIndicators.slider;
     this._sliderValue = timelineIndicators.sliderValue;
-
-    this.T = new Timer();
   };
 
   Playback.prototype.getDuration = function () {

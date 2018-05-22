@@ -8,6 +8,7 @@
   var RESET_COMPONENTS = ['reset.editor'];
   var RENDER_COMPONENTS = ['render.editor'];
   var P = new Pettan();
+  var T = new Timer();
 
   /** Helpers **/
   function trace(message) {
@@ -45,7 +46,7 @@
     });
 
     // Create and bind to Editor
-    var editor = new Editor($('work-area'), $('canvas'), {
+    var editor = new Editor(T, $('work-area'), $('canvas'), {
       'bgBlack': $('editor-bg-black'),
       'bgWhite': $('editor-bg-white'),
       'bgCheckered': $('editor-bg-checkered'),
@@ -56,7 +57,7 @@
     editor.bind(P);
 
     // Create and bind to Playback controls
-    var playback = new Playback({
+    var playback = new Playback(T, {
         'playBtn': $('playback-play-pause'),
         'stopBtn': $('playback-stop'),
         'recBtn': $('playback-rec')

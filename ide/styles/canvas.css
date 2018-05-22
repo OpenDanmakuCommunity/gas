@@ -61,6 +61,7 @@
 }
 #canvas .sprite.no-image {
   background-color: #EFAB0A;
+  background-size: auto !important;
   background-image: url(unknown-object.png);
   opacity: 0.8;
 }

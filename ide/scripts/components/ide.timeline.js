@@ -43,171 +43,8 @@ var TimelineManager = (function () {
     }
   };
 
-  TimelineManager.prototype._createTrack = function (P, spec) {
-    console.log('Created track for ' + spec.name);
-    var label = _Create('div',{
-        'className': 'row-label',
-        'tabindex': 3,
-      }, [_CreateP(spec.name)]);
-    var track = _Create('div',{
-        'className': 'track',
-      });
-    var objRow = _Create('div', {
-        'className': 'row',
-        'ide-object-name': spec.name,
-        'style': {
-          'width': this._playback.offsetTimeToPixels(
-            this._playback.getDuration()) + 'px'
-        }
-      }, [
-        label,
-        track
-    ]);
 
-    // Bind actions
-    P.bind(label, 'mousedown', 'track.' + spec.name + '.click');
-    P.bind(label, 'dblclick', 'track.' + spec.name + '.dblclick');
-
-    var binding = {
-      'name': spec.name,
-      'row': objRow,
-      'label': label,
-      'labelText': label.firstChild,
-      'track': track,
-      'pins': []
-    };
-
-    this._timeline.insertBefore(objRow, this._timeline.firstChild);
-    this._createBinding(spec.name, binding);
-
-    // Bind handlers
-    P.listen('track.' + spec.name + '.click', function (e) {
-      if (e.event.ctrlKey) {
-        return P.emit('objects.select',
-          Selection.multiSelect(binding.name, 'toggle')).then(
-            P.next(e));
-      } else {
-        return P.emit('objects.select', binding.name).then(
-          P.next(e));
-      }
-    });
-    P.listen('track.' + spec.name + '.dblclick', function (e) {
-      var name = prompt('Please input new name', binding.name);
-      if (typeof name === 'string' && name !== null && name.length > 1
-        && name != binding.name) {
-
-        console.log('Initiating rename ' + binding.name + ' to ' + name);
-        return P.emit('objects.rename', {
-          'oldName': binding.name,
-          'newName': name
-        }).catch(function (err) {
-          console.log(err);
-          alert(err);
-        }).then(P.next(e));
-      }
-    });
-  };
-
-  TimelineManager.prototype._canPin = function (name, start, end) {
-    var pins = this._tracks[name].pins;
-    if (pins.length === 0) {
-      return true;
-    } else {
-      for (var i = 0; i < pins.length; i++) {
-        if (pins[i].end <= start) {
-          continue;
-        }
-        // This is the first pin after last fitting one
-        if (pins[i].start >= end) {
-          return true;
-        } else {
-          return false;
-        }
-      }
-      // No pin after this pin
-      return true;
-    }
-  };
-
-  TimelineManager.prototype._lastPin = function (name, time) {
-    for (var i = 0; i < this._tracks[name].pins.length; i++) {
-      if (this._tracks[name].pins[i].end <= time) {
-        continue;
-      } else {
-        // First one that's larger
-        return i > 0 ? this._tracks[name].pins[i - 1] : null;
-      }
-    }
-    // No pins after
-    return this._tracks[name].pins.length > 0 ?
-      this._tracks[name].pins[this._tracks[name].pins.length - 1] : null;
-  };
-
-  TimelineManager.prototype._setSelectedPins = function (pins) {
-    this._selectedPins.forEach((function (idx) {
-      this._tracks[idx.track].pins.forEach(function (pin) {
-        if (pin.name === idx.pin) {
-          _ToggleClass(pin.dom, 'active', false);
-        }
-      })
-    }).bind(this));
-    pins.forEach((function (idx) {
-      this._tracks[idx.track].pins.forEach(function (pin) {
-        if (pin.name === idx.pin) {
-          _ToggleClass(pin.dom, 'active', true);
-        }
-      })
-    }).bind(this));
-    this._selectedPins = pins;
-  };
-
-  TimelineManager.prototype._getAnchor = function (time) {
-    var anchor = Repr.workspace.animation.anchors.filter(function (anchor) {
-      return anchor.time === time;
-    });
-    if (anchor.length > 1) {
-      throw new Error('BUG: More than one anchor at ' + time + '!');
-    } else if (anchor.length === 1) {
-      return anchor[0];
-    } else {
-      return null;
-    }
-  };
-
-  TimelineManager.prototype._addAnchor = function (name, time) {
-    var existingAnchor = this._getAnchor(time);
-    if (existingAnchor === null) {
-      existingAnchor = {
-        'time': time,
-        'key': {}
-      };
-      Repr.workspace.animation.anchors.push(existingAnchor);
-    }
-    if (!(name in existingAnchor.key)) {
-      existingAnchor.key[name] = {
-        'linear': {},
-        'none': {}
-      }
-    }
-  };
-
-  TimelineManager.prototype._removeAnchor = function (name, time) {
-    var existingAnchor = this._getAnchor(time);
-    if (existingAnchor !== null) {
-      if (name in existingAnchor.key) {
-        delete existingAnchor.key[name];
-      }
-    }
-    for (var anchorName in existingAnchor.key) {
-      return;
-    }
-    var idx = Repr.workspace.animation.anchors.indexOf(existingAnchor);
-    if (idx >= 0) {
-      Repr.workspace.animation.anchors.splice(idx, 1);
-    }
-    return;
-  };
-
+  /** Pin Related **/
   TimelineManager.prototype._insertPin = function (P, name, start, end, isAnimated) {
     if (!(name in this._tracks)) {
       throw new Error('Could not find track ' + name);
@@ -266,8 +103,176 @@ var TimelineManager = (function () {
   TimelineManager.prototype._removePin = function () {
 
   };
+
+  TimelineManager.prototype._canPin = function (name, start, end) {
+    var pins = this._tracks[name].pins;
+    if (pins.length === 0) {
+      return true;
+    } else {
+      for (var i = 0; i < pins.length; i++) {
+        if (pins[i].end <= start) {
+          continue;
+        }
+        // This is the first pin after last fitting one
+        if (pins[i].start >= end) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      // No pin after this pin
+      return true;
+    }
+  };
+
+  TimelineManager.prototype._lastPin = function (name, time) {
+    for (var i = 0; i < this._tracks[name].pins.length; i++) {
+      if (this._tracks[name].pins[i].end <= time) {
+        continue;
+      } else {
+        // First one that's larger
+        return i > 0 ? this._tracks[name].pins[i - 1] : null;
+      }
+    }
+    // No pins after
+    return this._tracks[name].pins.length > 0 ?
+      this._tracks[name].pins[this._tracks[name].pins.length - 1] : null;
+  };
+
+  TimelineManager.prototype._setSelectedPins = function (pins) {
+    this._selectedPins.forEach((function (idx) {
+      this._tracks[idx.track].pins.forEach(function (pin) {
+        if (pin.name === idx.pin) {
+          _ToggleClass(pin.dom, 'active', false);
+        }
+      })
+    }).bind(this));
+    pins.forEach((function (idx) {
+      this._tracks[idx.track].pins.forEach(function (pin) {
+        if (pin.name === idx.pin) {
+          _ToggleClass(pin.dom, 'active', true);
+        }
+      })
+    }).bind(this));
+    this._selectedPins = pins;
+  };
+
+  /** Anchor Related **/
+  TimelineManager.prototype._getAnchor = function (time) {
+    var anchor = Repr.workspace.animation.anchors.filter(function (anchor) {
+      return anchor.time === time;
+    });
+    if (anchor.length > 1) {
+      throw new Error('BUG: More than one anchor at ' + time + '!');
+    } else if (anchor.length === 1) {
+      return anchor[0];
+    } else {
+      return null;
+    }
+  };
+
+  TimelineManager.prototype._addAnchor = function (name, time) {
+    var existingAnchor = this._getAnchor(time);
+    if (existingAnchor === null) {
+      existingAnchor = {
+        'time': time,
+        'key': {}
+      };
+      Repr.workspace.animation.anchors.push(existingAnchor);
+    }
+    if (!(name in existingAnchor.key)) {
+      existingAnchor.key[name] = {
+        'linear': {},
+        'none': {}
+      }
+    }
+  };
+
+  TimelineManager.prototype._removeAnchor = function (name, time) {
+    var existingAnchor = this._getAnchor(time);
+    if (existingAnchor !== null) {
+      if (name in existingAnchor.key) {
+        delete existingAnchor.key[name];
+      }
+    }
+    for (var anchorName in existingAnchor.key) {
+      return;
+    }
+    var idx = Repr.workspace.animation.anchors.indexOf(existingAnchor);
+    if (idx >= 0) {
+      Repr.workspace.animation.anchors.splice(idx, 1);
+    }
+    return;
+  };
+
   TimelineManager.prototype._firstGap = function (name, time) {
     //
+  };
+
+  /** Track Related **/
+  TimelineManager.prototype._createTrack = function (P, name, spec) {
+    console.log('Created track for ' + name);
+    var label = _Create('div',{
+        'className': 'row-label',
+        'tabindex': 3,
+      }, [_CreateP(name)]);
+    var track = _Create('div',{
+        'className': 'track',
+      });
+    var objRow = _Create('div', {
+        'className': 'row',
+        'ide-object-name': name,
+        'style': {
+          'width': this._playback.offsetTimeToPixels(
+            this._playback.getDuration()) + 'px'
+        }
+      }, [
+        label,
+        track
+    ]);
+
+    // Bind actions
+    P.bind(label, 'mousedown', 'track.' + name + '.click');
+    P.bind(label, 'dblclick', 'track.' + name + '.dblclick');
+
+    var binding = {
+      'name': name,
+      'row': objRow,
+      'label': label,
+      'labelText': label.firstChild,
+      'track': track,
+      'pins': []
+    };
+
+    this._timeline.insertBefore(objRow, this._timeline.firstChild);
+    this._createBinding(name, binding);
+
+    // Bind handlers
+    P.listen('track.' + name + '.click', function (e) {
+      if (e.event.ctrlKey) {
+        return P.emit('objects.select',
+          Selection.multiSelect(binding.name, 'toggle')).then(
+            P.next(e));
+      } else {
+        return P.emit('objects.select', binding.name).then(
+          P.next(e));
+      }
+    });
+    P.listen('track.' + name + '.dblclick', function (e) {
+      var name = prompt('Please input new name', binding.name);
+      if (typeof name === 'string' && name !== null && name.length > 1
+        && name != binding.name) {
+
+        console.log('Initiating rename ' + binding.name + ' to ' + name);
+        return P.emit('objects.rename', {
+          'oldName': binding.name,
+          'newName': name
+        }).catch(function (err) {
+          console.log(err);
+          alert(err);
+        }).then(P.next(e));
+      }
+    });
   };
 
   TimelineManager.prototype._renameTrack = function (P, oldName, newName) {
@@ -339,9 +344,9 @@ var TimelineManager = (function () {
 
   TimelineManager.prototype.bind = function (P) {
     // Bind object creation
-    P.listen('tracks.add', (function (spec) {
-      this._createTrack(P, spec);
-      return spec;
+    P.listen('tracks.add', (function (data) {
+      this._createTrack(P, data.name, data.spec);
+      return data;
     }).bind(this));
 
     // Bind object selection

@@ -19,6 +19,8 @@ var Editor = (function () {
       'transform.rotX': 0,
       'transform.rotY': 0,
       'transform.rotZ': 0,
+      'image.repeat': 'no-repeat',
+      'image.stretchMode': 'contain'
     },
     'button': {
       'type': 'Button',
@@ -46,13 +48,15 @@ var Editor = (function () {
       newObj[key] = _deepCopy(obj[key]);
     }
     return newObj;
-  }
+  };
 
   /*** START EDITOR CLASS ***/
-  var Editor = function (workArea, canvas, workAreaConfigButtons) {
+  var Editor = function (timer, workArea, canvas, workAreaConfigButtons) {
     if (!ReprTools || !Repr || !_Create || !Selection) {
       throw new Error('Environment not loaded correctly!');
     }
+    this.T = timer;
+
     this.tools = ['select', 'text', 'sprite', 'button', 'frame'];
     this.selectedTool = 'select';
     this._workArea = workArea;
@@ -159,7 +163,6 @@ var Editor = (function () {
         var position = this._canvasPosition(e.event.offsetX,
           e.event.offsetY, e.event.target);
         var objectBase = _deepCopy(DEFAULTS[this.selectedTool]);
-        objectBase.name = ReprTools.getUniqueName(objectBase.type);
         objectBase['position.x'] = position.x;
         objectBase['position.y'] = position.y;
 
@@ -170,7 +173,12 @@ var Editor = (function () {
             e.event.offsetX, e.event.offsetY, e.event.target);
         }
 
-        return this.P.emit('objects.add', objectBase).catch(function (err) {
+        var objectData = {
+          'name': ReprTools.getUniqueName(objectBase.type),
+          'spec': objectBase
+        };
+
+        return this.P.emit('objects.add', objectData).catch(function (err) {
             console.log(err);
             alert(err);
           }).then(this.P.next(e));
@@ -234,20 +242,20 @@ var Editor = (function () {
         // Something selected to be moved
         var deltaX = currentPosition.x - this._movingStart.x;
         var deltaY = currentPosition.y - this._movingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'move', deltaX, deltaY);
+        ReprTools.callOnGroup(Selection.get(), 'move', this.T.time(), deltaX, deltaY);
         this._movingStart = currentPosition;
       } else if (this._draggingStart !== null) {
         // Something selected to be resized
         var width = currentPosition.x - this._draggingStart.x;
         var height = currentPosition.y - this._draggingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize', width, height);
+        ReprTools.callOnGroup(Selection.get(), 'resize', this.T.time(), width, height);
       }
     } else {
       // Non-selection tool.
       if (this._draggingStart !== null) {
         var width = currentPosition.x - this._draggingStart.x;
         var height = currentPosition.y - this._draggingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize', width, height);
+        ReprTools.callOnGroup(Selection.get(), 'resize', this.T.time(), width, height);
       }
     }
   };
@@ -388,17 +396,17 @@ var Editor = (function () {
 
   Editor.prototype._bindObjectActions = function (P) {
     // Listen on add object events
-    P.listen('objects.add', (function (spec) {
-      console.log('Creating object [' + spec.type + ']' + spec.name);
+    P.listen('objects.add', (function (data) {
+      console.log('Creating object [' + data.spec.type + ']' + data.name);
       // This creates objects
-      var objInst = GFactory.createFromSpec(spec);
-      ReprTools.addObject(spec.name, objInst);
+      var objInst = GFactory.createFromSpec(data.name, data.spec);
+      ReprTools.addObject(data.name, objInst);
       this._canvas.appendChild(objInst.DOM);
 
-      return P.emit('tracks.add', spec).then(P.emit('objects.added', {
-          'name': spec.name,
+      return P.emit('tracks.add', data).then(P.emit('objects.added', {
+          'name': data.name,
           'inst': objInst
-        })).then(P.next(spec));
+        })).then(P.next(data));
     }).bind(this));
 
     P.listen('objects.remove', (function (objName) {
@@ -440,6 +448,15 @@ var Editor = (function () {
         'to': newSelection,
       }).then(P.next(objectNames));
     });
+
+    // Listen on object property updates
+    P.listen('object.setProperty', (function (spec) {
+      ReprTools.getObject(spec.objectName).setProperty(
+        this.T.time(),
+        spec.propertyName, 
+        spec.value);
+      return spec;
+    }).bind(this));
 
     // Bind post-events
     P.listen('objects.added', (function (objData) {

@@ -109,23 +109,14 @@ var AssetsLibrary = (function () {
   };
 
   AssetsLibrary.prototype._bindObjects = function (P) {
-    P.listen('object.setImage', (function (names) {
-      if (ReprTools.getObjectType(names.objectName) !== 'Sprite' &&
-        ReprTools.getObjectType(names.objectName) !== 'BinarySprite' &&
-        ReprTools.getObjectType(names.objectName) !== 'SVGSprite' &&
-        ReprTools.getObjectType(names.objectName) !== 'AnimatedSprite') {
-        return names;
-      }
-      ReprTools.getObject(names.objectName).setImage(
-        this.getAssetAsContent(names.assetName));
-      return names;
-    }).bind(this));
     P.listen('selection.setImage', (function (assetName) {
+      var asset = this.getAssetAsContent(assetName);
       return Promise.all(Selection.get().map(function (objectName) {
-        return P.emit('object.setImage', {
+        return P.emit('object.setProperty', {
           'objectName': objectName,
-          'assetName': assetName,
-        })
+          'propertyName': 'content',
+          'value': asset,
+        });
       })).then(P.next(assetName));
     }).bind(this));
   };
