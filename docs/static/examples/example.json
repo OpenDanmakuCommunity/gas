@@ -49,7 +49,7 @@
         "anchors": [
             {
                 "time": 1000,
-                "key": {
+                "objects": {
                     "group1": {
                       "linear": {
                         "position": {
