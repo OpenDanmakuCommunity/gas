@@ -5,6 +5,9 @@
 ## 项目内容
 本项目包含如下几个部分：
 - [文档](docs/)
+    - [静态语法](docs/static/)
+    - [动态语法](docs/dynamic/)
+    - [IDE设计](docs/ide/)
 - [参考实现](src/)
 - [IDE](ide/) ([在线](https://opendanmakucommunity.github.io/gas/ide/))
 
@@ -19,3 +22,4 @@
 
 - 语法定义
 - 提供参考实现
+- 提交BUG报告等
