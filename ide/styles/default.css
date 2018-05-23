@@ -117,7 +117,7 @@ select:invalid {
 
 
 #left, #center, #right {
-  position:fixed;
+  position: fixed;
   top: 1px;
   bottom: 1px;
 }
@@ -133,6 +133,7 @@ select:invalid {
 #right {
   right: 1px;
   width: 399px;
+  overflow-y: auto;
 }
 
 #timeline {
@@ -310,36 +311,45 @@ select:invalid {
 #timeline .row.selected > .row-label {
   color: #72DEC9;
 }
-#timeline .row > .track > .pin > .mark {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: -4px;
-  margin: auto;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background-color: #72DEC9;
-}
+
 #timeline .row > .track > .pin {
   position: absolute;
   top: 0;
   bottom: 0;
-  height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+#timeline .row > .track > .pin > .mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
   margin: auto;
-  border: 1px #72DEC9 solid;
-  width: 100px;
-}
-#timeline .row > .track > .pin.active {
-  border-color: #FFAF53 !important;
-}
-#timeline .row > .track > .pin.active > .mark {
+  width: 2px;
+  height: 16px;
   background-color: #FFAF53;
 }
-#timeline .row > .track > .pin.static {
-  height: 0px;
-  border: 1px #72DEC9 dotted;
-  background-color: inherit;
+#timeline .row > .track > .pin > .tail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 0;
+  width: 100%;
+  margin: auto;
+  border: 1px #FFAF53 solid;
+}
+
+#timeline .row > .track > .pin.active {
+  background-color: #586068;
+}
+#timeline .row > .track > .pin.active > .tail {
+  border-color: #72DEC9 !important;
+}
+#timeline .row > .track > .pin.active > .mark {
+  background-color: #72DEC9;
+}
+#timeline .row > .track > .pin.static > .tail {
+  border: 1px #FFAF53 dashed;
 }
 
 /** Editor Related **/

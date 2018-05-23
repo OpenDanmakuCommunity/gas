@@ -52,6 +52,7 @@ var TimelineManager = (function () {
     if (end <= start) {
       throw new Error('End time must be after start time');
     }
+    // Check if the pin can actually be inserted
     if (!this._canPin(name, start, end)) {
       throw new Error('Cannot pin ' + start + '->' + end +
         ': Overlaps existing pin.');
@@ -64,6 +65,9 @@ var TimelineManager = (function () {
         }
       }, [
         _Create('div', {
+          'className': 'tail'
+        }),
+        _Create('div', {
           'className': 'mark'
         })
       ])
@@ -73,7 +77,6 @@ var TimelineManager = (function () {
       'end': end,
       'name': 'pin-' + start + '-' + end,
     };
-    // Check if the pin can actually be inserted
     this._tracks[name].pins.push(pin);
     // Maintain the pins sorted by end time
     this._tracks[name].pins.sort(function (a, b) {
@@ -87,17 +90,25 @@ var TimelineManager = (function () {
     });
     this._tracks[name].track.appendChild(pinDom);
     // Bind the events
-    P.bind(pinDom, 'mousedown', 'track.' + name + '.pin.' + pin.name);
-    P.listen('track.' + name + '.pin.' + pin.name, (function (e) {
+    P.bind(pinDom, 'mousedown', 'track.' + name + '.pin.' + pin.name + '.click');
+    P.listen('track.' + name + '.pin.' + pin.name + '.click', (function (e) {
       var idx = {
         'pin': pin.name,
         'track': name
       };
+      var selection = null;
       if (e.event.ctrlKey) {
+        selection = this._selectedPins.slice(0).filter(function (pin){
+          return pin.pin !== idx.pin || pin.track !== idx.track;
+        });
+        selection.push(idx);
       } else {
-        this._setSelectedPins([idx]);
+        selection = [idx];
       }
-      return e;
+      // Also unset the selection of Objects
+      return P.emit('objects.select', []).then(function () {
+        return P.emit('timeline.pins.select', selection);
+      }).then(P.next(e));
     }).bind(this));
   };
 
@@ -148,6 +159,7 @@ var TimelineManager = (function () {
         }
       })
     }).bind(this));
+
     pins.forEach((function (idx) {
       this._tracks[idx.track].pins.forEach(function (pin) {
         if (pin.name === idx.pin) {
@@ -240,6 +252,13 @@ var TimelineManager = (function () {
         'track.' + newName + '.pin.' + pinName);
     }
 
+    // Rename the selected pins
+    this._selectedPins.forEach(function (pin) {
+      if (pin.track === oldName) {
+        pin.track = newName;
+      }
+    });
+
     // Rename the track binding
     this._renameBinding(oldName, newName);
     // Get the binding
@@ -257,12 +276,33 @@ var TimelineManager = (function () {
   };
 
   TimelineManager.prototype._bindPin = function (P) {
+    // Add pin action
     P.listen('timeline.rec', (function (timeObj) {
-      Selection.get().forEach((function (item) {
-        var lastPin = this._lastPin(item, timeObj.time);
-        this._insertPin(P, item, (lastPin === null ? 0 : lastPin.end),
-          timeObj.time, false);
+      var promises = Selection.get().map((function (objectName) {
+        var lastPin = this._lastPin(objectName, timeObj.time);
+        var newPin = {
+          'objectName': objectName,
+          'start': (lastPin === null ? 0 : lastPin.end),
+          'end': timeObj.time,
+          'animated': false
+        };
+        return P.emit('timeline.pins.add', newPin);
       }).bind(this));
+      return Promise.all(promises).then(P.next(timeObj));
+    }).bind(this));
+
+    P.listen('timeline.pins.add', (function (pin) {
+      this._insertPin(P, pin.objectName, pin.start, pin.end, pin.animated);
+      return pin;
+    }).bind(this));
+
+    P.listen('timeline.pins.select', (function (selection) {
+      this._setSelectedPins(selection);
+      return selection;
+    }).bind(this));
+
+    P.listen('selection.change', (function (selection) {
+      return P.emit('timeline.pins.select', []).then(P.next(selection));
     }).bind(this));
   };
 

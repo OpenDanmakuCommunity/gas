@@ -26,10 +26,17 @@ var MiniWindow = (function () {
     P.bind(this._titleBar, 'mousedown', 'miniwindow.' + this._name +
       '.title.dblclick');
     P.listen('miniwindow.' + this._name + '.title.dblclick', (function (e) {
-      _ToggleClass(this._window, 'collapse',
-        this._window.className.split(' ').indexOf('collapse') < 0);
+      this.toggleCollapse();
       return e;
     }).bind(this));
+  };
+
+  MiniWindow.prototype.toggleCollapse = function (collapse) {
+    if (typeof collapse !== 'boolean') {
+      var collapse =
+        this._window.className.split(' ').indexOf('collapse') < 0;
+    }
+    _ToggleClass(this._window, 'collapse', collapse);
   };
 
   MiniWindow.prototype.bind = function (P) {

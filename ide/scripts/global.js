@@ -48,7 +48,9 @@ var _ToggleClass = function (elem, className, enable) {
 		return;
 	}
 
-  var classes = elem.className.split(' ');
+  var classes = elem.className.split(' ').filter(function (c) {
+		return c.length > 0;
+	});
 	if (Array.isArray(className)) {
 		for (var i = 0; i < className.length; i++) {
 			_ToggleClass(elem, className[i], enable);

@@ -450,7 +450,8 @@ var PropertyManager = (function () {
   };
 
   /*********** START CODE FOR PROPERTY MANAGER *****************/
-  var PropertyManager = function (propertyBox) {
+  var PropertyManager = function (propertyWindow, propertyBox) {
+    this.propertyWindow = propertyWindow;
     this.propertyBox = propertyBox;
     this._fields = {};
 
@@ -556,6 +557,7 @@ var PropertyManager = (function () {
     }).bind(this));
 
     P.listen('properties.load', (function (objects) {
+      this.propertyWindow.toggleCollapse(objects.length === 0);
       this._updatePropertiesList(objects);
       return objects;
     }).bind(this));

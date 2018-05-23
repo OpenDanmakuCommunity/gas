@@ -6,7 +6,7 @@
 
   /** Environment Variables **/
   var PANELS = ['toolbox', 'ordering', 'playback', 'export', 'import',
-    'library', 'animation', 'properties', 'layers'];
+    'library', 'animation', 'properties', 'macros', 'layers'];
   var RESET_COMPONENTS = ['reset.editor'];
   var RENDER_COMPONENTS = ['render.editor'];
   var P = new Pettan();
@@ -15,9 +15,11 @@
   /** Initialize Reactive Environment **/
   window.addEventListener('load', function () {
     // Bind all the miniwindows
+    var panelManager = {};
     PANELS.forEach(function (name) {
       var mWin = new MiniWindow($(name));
       mWin.bind(P);
+      panelManager[name] = mWin;
     });
 
     // Bind logging actions
@@ -67,7 +69,8 @@
     assetsLibrary.bind(P);
 
     // Create and bind to the properties panel
-    var propertiesManager = new PropertyManager($('properties-inner'));
+    var propertiesManager = new PropertyManager(
+      panelManager.properties, $('properties-inner'));
     propertiesManager.bind(P);
 
     // Bind global keydown listener

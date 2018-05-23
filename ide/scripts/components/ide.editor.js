@@ -191,10 +191,7 @@ var Editor = (function () {
         return e;
     }
   };
-  Editor.prototype._onUp = function (e) {
-    if (e.event.button !== 0) {
-      return e;
-    }
+  Editor.prototype._onUnset = function () {
     // Reset moving and draggind flags
     this._movingStart = null;
     this._draggingStart = null;
@@ -205,7 +202,25 @@ var Editor = (function () {
       }
       this._selectBox = null;
     }
-    this.P.emit('properties.load', Selection.get());
+  };
+  Editor.prototype._onLeave = function (e) {
+    this._onUnset();
+    if (Selection.count() > 0) {
+      return this.P.emit('properties.load', Selection.get());
+    } else {
+      return e;
+    }
+  };
+  Editor.prototype._onUp = function (e) {
+    if (e.event.button !== 0) {
+      return e;
+    }
+    this._onUnset();
+    if (Selection.count() > 0) {
+      return this.P.emit('properties.load', Selection.get());
+    } else {
+      return e;
+    }
   };
   Editor.prototype._onMove = function (e) {
     if (e.event.buttons !== 1) {
@@ -536,7 +551,7 @@ var Editor = (function () {
 
     P.listen('editor.work-area.down', this._onDown.bind(this));
     P.listen('editor.work-area.up', this._onUp.bind(this));
-    P.listen('editor.work-area.leave', this._onUp.bind(this));
+    P.listen('editor.work-area.leave', this._onLeave.bind(this));
     P.listen('editor.work-area.move', this._onMove.bind(this));
 
     this._isBound = true;

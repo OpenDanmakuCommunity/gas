@@ -1,4 +1,8 @@
 /** Stage Related **/
+#canvas.preview {
+  overflow: hidden;
+}
+
 #canvas > * {
   margin: 0;
   border: 1px transparent solid;

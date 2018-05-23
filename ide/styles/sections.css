@@ -24,12 +24,16 @@
   height: 350px;
 }
 
+#animation {
+  height: 300px;
+}
+
 #properties {
   height: 420px;
 }
 
-#animation {
-  height: 300px;
+#macros {
+  height: 200px;
 }
 
 #layers {
