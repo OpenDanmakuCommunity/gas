@@ -6,8 +6,41 @@ var GText = (function () {
 
     this.create();
 
+    // Temporary cache of transform
+    this._transform = {
+      '_translateX': 0,
+      '_translateY': 0,
+      'rotateX': 0,
+      'rotateY': 0,
+      'rotateZ': 0,
+      'scale': 1
+    };
+
     // PropManager
     this._pm = new PropManager(spec, [], this._onPropChange.bind(this));
+  };
+
+  GText.prototype._buildTransform = function () {
+    var transforms = [];
+    if (this._transform._translateX !== 0) {
+      transforms.push('translateX(' + this._transform._translateX + '%)');
+    }
+    if (this._transform._translateY !== 0) {
+      transforms.push('translateY(' + this._transform._translateY + '%)');
+    }
+    if (this._transform.rotateX !== 0) {
+      transforms.push('rotateX(' + this._transform.rotateX + 'deg)');
+    }
+    if (this._transform.rotateY!== 0) {
+      transforms.push('rotateY(' + this._transform.rotateY + 'deg)');
+    }
+    if (this._transform.rotateZ !== 0) {
+      transforms.push('rotateZ(' + this._transform.rotateZ + 'deg)');
+    }
+    if (this._transform.scale !== 1) {
+      transforms.push('scale(' + this._transform.scale + ')');
+    }
+    this.DOM.style.transform = transforms.join(' ');
   };
 
   GText.prototype._onPropChange = function (propertyName, newValue, pm) {
@@ -31,44 +64,46 @@ var GText = (function () {
         this.DOM.style.height = newValue !== null ? (newValue + 'px') : '';
         break;
       case 'position.anchor':
-      case 'transform.rotX':
-      case 'transform.rotY':
-      case 'transform.rotZ':
-      case 'transform.scale':
-        // Build the transform
-        // Figure out the anchor
-        if (Array.isArray(pm.getProp('position.anchor'))
-          && pm.getProp('position.anchor') !== null) {
+        if (Array.isArray(newValue) && newValue !== null &&
+          newValue.length === 2) {
 
-          var anchor = pm.getProp('position.anchor').map(function (v) {
-            return (-v * 100) + '';
-          });
+          this.DOM.style.transformOrigin = newValue.map(function (v) {
+            return ((v !== null) ? (v * 100) : 0) + '%';
+          }).join(' ');
+          this._transform._translateX =
+            -((newValue[0] !== null ? newValue[0] : 0) * 100);
+          this._transform._translateY =
+            -((newValue[1] !== null ? newValue[1] : 0) * 100);
         } else {
-          var anchor = ['0', '0'];
+          this.DOM.style.transformOrigin = '';
+          this._transform._translateX = 0;
+          this._transform._translateY = 0;
         }
-        console.log(anchor);
-        var transforms = [
-          {'key': 'rotateX', 'value': pm.getProp('transform.rotX', 0), 'unit': 'deg'},
-          {'key': 'rotateY', 'value': pm.getProp('transform.rotY', 0), 'unit': 'deg'},
-          {'key': 'rotateZ', 'value': pm.getProp('transform.rotZ', 0), 'unit': 'deg'},
-          {'key': 'scale', 'value': pm.getProp('transform.scale', 1), 'unit': ''},
-          {'key': 'translateX', 'value': anchor[1], 'unit': '%'},
-          {'key': 'translateY', 'value': anchor[0], 'unit': '%'},
-        ];
-        this.DOM.style.transform = transforms.filter(function (tf) {
-          if (tf.value === null) {
-            return false;
-          } else if (tf.unit === 'deg' && tf.value === 0) {
-            return false;
-          } else if (tf.unit === 'px' && tf.value === 0) {
-            return false;
-          } else if (tf.unit === '' && tf.value === 1) {
-            return false;
-          }
-          return true;
-        }).map(function (tf) {
-          return tf.key + '(' + tf.value + tf.unit + ')';
-        }).join(' ');
+        this._buildTransform();
+        break;
+      case 'transform.rotX':
+        if (newValue !== null) {
+          this._transform.rotateX = newValue;
+        }
+        this._buildTransform();
+        break;
+      case 'transform.rotY':
+        if (newValue !== null) {
+          this._transform.rotateY = newValue;
+        }
+        this._buildTransform();
+        break;
+      case 'transform.rotZ':
+        if (newValue !== null) {
+          this._transform.rotateZ = newValue;
+        }
+        this._buildTransform();
+        break;
+      case 'transform.scale':
+        if (newValue !== null) {
+          this._transform.scale = newValue;
+        }
+        this._buildTransform();
         break;
       case 'font.color':
         this.DOM.style.color = newValue !== null ? newValue.toString() : '';

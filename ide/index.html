@@ -28,6 +28,7 @@
 	<script src="scripts/representation/repr.button.js"></script>
 	<script src="scripts/representation/repr.objects.js"></script>
 
+	<script src="scripts/components/common.miniwindow.js"></script>
 	<script src="scripts/components/ide.playback.js"></script>
 	<script src="scripts/components/ide.saveload.js"></script>
 	<script src="scripts/components/ide.timeline.js"></script>
@@ -58,7 +59,7 @@
 				<div class="tool-icon-sep"></div>
 				<div id='tool-text' class="tool-icon textbox button" tabindex="0" role="button" title="Text Object Tool"></div>
 				<div id='tool-sprite' class="tool-icon sprite button" tabindex="0" role="button" title="Sprite Tool"></div>
-				<div id='tool-button' class="tool-icon clicktarget button" tabindex="0" role="button" title="Button Tool"></div>
+				<div id='tool-button' class="tool-icon click-target button" tabindex="0" role="button" title="Button Tool"></div>
 				<div class="tool-icon-sep"></div>
 				<div id='tool-frame' class="tool-icon frame button" tabindex="0" role="button" title="Frame Tool"></div>
 			</div>
@@ -66,8 +67,8 @@
 		<div id="ordering" class="mini-window" style="height: 106px;">
 			<h1>Ordering</h1>
 			<div class="body">
-				<div id='order-up' class="tool-icon up button" tabindex="1" role="button" title="Move Up"></div>
-				<div id='order-down' class="tool-icon down button" tabindex="1" role="button" title="Move Down"></div>
+				<div id='order-up' class="tool-icon move-up button" tabindex="1" role="button" title="Move Up"></div>
+				<div id='order-down' class="tool-icon move-down button" tabindex="1" role="button" title="Move Down"></div>
 			</div>
 		</div>
 		<div id="playback" class="mini-window" style="height: 200px;">
@@ -140,6 +141,10 @@
 				</div>
 			</div>
 		</div>
+		<div id="animation" class="mini-window collapse">
+			<h1>Animation</h1>
+			<div id="animation-inner" class="body"></div>
+		</div>
 		<div id="properties" class="mini-window">
 			<h1>Properties</h1>
 			<div id="properties-inner" class="body"></div>
@@ -147,10 +152,6 @@
 		<div id="layers" class="mini-window">
 			<h1>Layers</h1>
 			<div id="layers-inner" class="body"></div>
-		</div>
-		<div id="animation" class="mini-window">
-			<h1>Animation</h1>
-			<div id="animation-inner" class="body"></div>
 		</div>
   </div>
 </body>

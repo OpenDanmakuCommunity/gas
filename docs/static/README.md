@@ -1,6 +1,6 @@
-# Generic Animation Script (Static) 通用动画语法（静态）
+# Generic Animation Script 通用动画语法
 GAS静态语法（之后称作GAS-S）为“定义型”语法，也就是说整个弹幕的生存周期的动作都是被预先定义
-的“无状态”动画。**给出静态语法的对象定义和目前生存时间可以唯一的渲染出屏幕状态。**
+的“无状态”动画。给出静态语法的对象定义和目前生存时间可以唯一的渲染出屏幕状态。
 
 大部分高级弹幕都可以通过 GAS 静态语法进行表述，包括很多本身不需要状态的 BiliScript
 （原版 Bilibili 代码弹幕语法）都可以通过运行编译到固定的静态定义。新的 BAS 语法也可以编译
@@ -51,7 +51,7 @@ Objects 区由 JSON POJO（标准Object）表示，用来存储这条弹幕会�
     - `Frame` 子舞台
     - `Reference` 公共锚点
 
-GAS-S弹幕至少应该有一个对象定义在此，否则视为空弹幕，解析器可以无视其余内容。有关 Objects 
+GAS-S弹幕至少应该有一个对象定义在此，否则视为空弹幕，解析器可以无视其余内容。有关 Objects
 特点可以参考 [Objects](Objects.md) 章节。
 
 ### `layers` 弹幕层
@@ -60,7 +60,7 @@ Layers 区由 JSON Array 表示。每一个元素都是一个“图像层”定�
 里可以定义不属于任何一层的 object 的显示模式。
 
 示例：
-````
+````JSON
 [
     {
         "name": "default",
@@ -86,7 +86,7 @@ Animation 区由 JSON POJO 表示。包括如下值段：
 - `anchors`: `[]` 关键帧锚点，具体需要参考 [Animation Anchors](Animation.md#Anchors)
   章节。
 
-Animation区可以为空，那样则表示整个 GAS-S 弹幕是静态高级弹幕。有关细节请参考 
+Animation区可以为空，那样则表示整个 GAS-S 弹幕是静态高级弹幕。有关细节请参考
 [Animation](Animation.md) 章节。
 
 ### `metadata` 元信息
@@ -106,7 +106,7 @@ Animation区可以为空，那样则表示整个 GAS-S 弹幕是静态高级弹�
 ## 拍平语法 Flat Syntax
 由于深层嵌套 JSON 对象比较尴尬，GAS-S还支持简写语法（拍平语法），比如在定义对象时，可以不用
 进行嵌套而使用类似下面的语法：
-````
+````JSON
 {
   "type": "SomeType",
   "position.x": 10,
@@ -116,9 +116,10 @@ Animation区可以为空，那样则表示整个 GAS-S 弹幕是静态高级弹�
 }
 ````
 或
-````
+
+````JSON
 {
-  "objects: {
+  "objects": {
     "MyObject.type": "text",
     "MyObject.content": "blah blah"
   }
@@ -127,10 +128,10 @@ Animation区可以为空，那样则表示整个 GAS-S 弹幕是静态高级弹�
 
 拍平语法可用于任何非四个根区域的部分（所以不会出现 `objects.a.b`），而且可以代替任何地方缩略：
 
-````
+````JSON
 {
   "a.b.c": {
-    "d.f": {}
+    "d.f": {},
     "e": 1
   }
 }

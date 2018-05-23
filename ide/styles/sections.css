@@ -25,5 +25,13 @@
 }
 
 #properties {
-  height: 450px;
+  height: 420px;
+}
+
+#animation {
+  height: 300px;
+}
+
+#layers {
+  height: 300px;
 }

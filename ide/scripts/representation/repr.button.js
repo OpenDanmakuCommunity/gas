@@ -6,8 +6,41 @@ var GButton = (function () {
 
     this.create();
 
+    // Temporary cache of transform
+    this._transform = {
+      '_translateX': 0,
+      '_translateY': 0,
+      'rotateX': 0,
+      'rotateY': 0,
+      'rotateZ': 0,
+      'scale': 1
+    };
+
     // PropManager
     this._pm = new PropManager(spec, [], this._onPropChange.bind(this));
+  };
+
+  GButton.prototype._buildTransform = function () {
+    var transforms = [];
+    if (this._transform._translateX !== 0) {
+      transforms.push('translateX(' + this._transform._translateX + '%)');
+    }
+    if (this._transform._translateY !== 0) {
+      transforms.push('translateY(' + this._transform._translateY + '%)');
+    }
+    if (this._transform.rotateX !== 0) {
+      transforms.push('rotateX(' + this._transform.rotateX + 'deg)');
+    }
+    if (this._transform.rotateY!== 0) {
+      transforms.push('rotateY(' + this._transform.rotateY + 'deg)');
+    }
+    if (this._transform.rotateZ !== 0) {
+      transforms.push('rotateZ(' + this._transform.rotateZ + 'deg)');
+    }
+    if (this._transform.scale !== 1) {
+      transforms.push('scale(' + this._transform.scale + ')');
+    }
+    this.DOM.style.transform = transforms.join(' ');
   };
 
   GButton.prototype._onPropChange = function (propertyName, newValue) {
@@ -23,6 +56,48 @@ var GButton = (function () {
         break;
       case 'position.y':
         this.DOM.style.top = newValue + 'px';
+        break;
+      case 'position.anchor':
+        if (Array.isArray(newValue) && newValue !== null &&
+          newValue.length === 2) {
+
+          this.DOM.style.transformOrigin = newValue.map(function (v) {
+            return ((v !== null) ? (v * 100) : 0) + '%';
+          }).join(' ');
+          this._transform._translateX =
+            -((newValue[0] !== null ? newValue[0] : 0) * 100);
+          this._transform._translateY =
+            -((newValue[1] !== null ? newValue[1] : 0) * 100);
+        } else {
+          this.DOM.style.transformOrigin = '';
+          this._transform._translateX = 0;
+          this._transform._translateY = 0;
+        }
+        this._buildTransform();
+        break;
+      case 'transform.rotX':
+        if (newValue !== null) {
+          this._transform.rotateX = newValue;
+        }
+        this._buildTransform();
+        break;
+      case 'transform.rotY':
+        if (newValue !== null) {
+          this._transform.rotateY = newValue;
+        }
+        this._buildTransform();
+        break;
+      case 'transform.rotZ':
+        if (newValue !== null) {
+          this._transform.rotateZ = newValue;
+        }
+        this._buildTransform();
+        break;
+      case 'transform.scale':
+        if (newValue !== null) {
+          this._transform.scale = newValue;
+        }
+        this._buildTransform();
         break;
       case 'size.width':
         this.DOM.style.width = newValue + 'px';

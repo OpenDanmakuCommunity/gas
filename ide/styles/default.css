@@ -73,7 +73,7 @@ select:invalid {
   position: relative;
   padding: 0;
   float: left;
-  min-width: 100%;
+  width: 100%;
 }
 
 .modal-group > .overlay {
@@ -188,7 +188,6 @@ select:invalid {
 
 /** Mini-window **/
 .mini-window {
-  min-height: 106px;
   overflow: hidden;
   position: relative;
 }
@@ -205,13 +204,20 @@ select:invalid {
   cursor: pointer;
   user-select: none;
 }
-.mini-window .body {
+.mini-window > .body {
   position: absolute;
   top: 38px;
   left: 0;
   right: 0;
   bottom: 0;
   overflow: auto;
+}
+.mini-window.collapse {
+  height: 40px !important;
+  background-color: #72DEC9;
+}
+.mini-window.collapse > .body {
+  display: none;
 }
 
 /** Timeline Related **/

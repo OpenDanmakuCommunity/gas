@@ -225,7 +225,7 @@ var PropertyManager = (function () {
         console.log(e);
         return null;
       }
-    } else if (this.type === 'number') {
+    } else if (this.type === 'number' || this.type === 'tuple.number') {
       if (typeof repr === 'number') {
         return repr;
       } else {
@@ -289,7 +289,7 @@ var PropertyManager = (function () {
               'value': baseProperties.values[i][j],
             }, [_Create('text', baseProperties.values[i][j])]));
         }
-        fields.push(sel);
+        fields.unshift(sel);
       }
     } else {
       for (var i = 0; i < 2; i++) {
@@ -303,7 +303,7 @@ var PropertyManager = (function () {
             }
           });
         }
-        fields.push(_Create('input', params));
+        fields.unshift(_Create('input', params));
       }
     }
     var container = _Create('div', {
@@ -382,7 +382,7 @@ var PropertyManager = (function () {
     if (this.type.indexOf('tuple.') === 0) {
       var values = [];
       for (var i = 0; i < this.DOM.children.length; i++) {
-        values.push(this._reprToValue(this.DOM.children[i].value));
+        values.unshift(this._reprToValue(this.DOM.children[i].value));
       }
       this._set(values);
     } else if (this.type === 'multiselect') {
@@ -420,7 +420,8 @@ var PropertyManager = (function () {
       // Somehow update the tuple values
       if (Array.isArray(value) && value.length >= this.DOM.children.length) {
         for (var i = 0; i < this.DOM.children.length; i++) {
-          this.DOM.children[i].value = this._valueToRepr(value[i]);
+          this.DOM.children[i].value = this._valueToRepr(
+            value[value.length - i - 1]);
         }
       }
     } else if (this.type === 'multiselect') {

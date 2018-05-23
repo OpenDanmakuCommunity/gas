@@ -10,12 +10,20 @@
   background-image: url('icons/sprite.png');
 }
 
-.tool-icon.clicktarget {
+.tool-icon.click-target {
   background-image: url('icons/clicktarget.png');
 }
 
 .tool-icon.frame {
   background-image: url('icons/frame.png');
+}
+
+.tool-icon.move-up {
+  background-image: url('icons/move-up.png');
+}
+
+.tool-icon.move-down {
+  background-image: url('icons/move-down.png');
 }
 
 .tool-icon.play {

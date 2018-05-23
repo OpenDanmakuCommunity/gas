@@ -7,7 +7,7 @@ interaction 的回退策略。
 
 ## 对象内使用 Refer From Objects
 以下为示例：
-````
+````JSON
 {
     "type":"SomeObject",
     "interaction": {
@@ -30,9 +30,9 @@ interaction 的回退策略。
 - `disable`: 显示一种“无效”的状态。按钮依然会渲染，但是会由系统定义的“无效元素”配置显示。
     （如灰色按钮等）
 
-## 在元信息内定义 Define in Metadata 
+## 在元信息内定义 Define in Metadata
 以下为示例:
-````
+````JavaScript
 {
   "interactions": {
     "vid100_Button": {
@@ -73,14 +73,14 @@ interaction 的回退策略。
 ### Hit Target 点击触发器
 点击触发器会标记当前对象为 **可点击** 对象（移动平台上为 可触摸 对象）。具体呈现方法会根据
 平台而不同，以下是一个例子：
-````
+````JavaScript
 {
-    ...
+    //...
     "interaction": [
         {
             "type": "hit-target",
             "action": "some action",
-            "parameters": { ... },
+            "parameters": { /* ... */ },
             "style": {
                 "accessible": true,
                 "outline": "always",
@@ -99,12 +99,12 @@ interaction 的回退策略。
 目前常规定义的 Action：
 - `seek`: 定位到时间
 - `open`: 打开新的页面
-- `gift`: 提交平台礼品 
+- `gift`: 提交平台礼品
 - `save`: 保存信息到服务器
 
 ### `seek`
 参数如下：
-````
+````JSON
 {
     "parameters": {
         "time": 10030,
@@ -119,7 +119,7 @@ interaction 的回退策略。
 
 ### `open`
 参数如下：
-````
+````JSON
 {
     "parameters": {
         "location": "...",
@@ -136,7 +136,7 @@ interaction 的回退策略。
 
 ### `gift`
 参数如下：
-````
+````JSON
 {
     "parameters": {
         "item": "ITEM_ID",
@@ -152,23 +152,23 @@ interaction 的回退策略。
     `[最小，最大，递进梯度]`，默认为`value`定义的附加值。可变模式下平台可以弹窗让用户选择
     数额。
 
-### `save` 
+### `save`
 参数自由定义。
 
 ## Keyboard Target 键盘触发器
-````
+````JavaScript
 {
-    ...
+    //...
     "interaction": [
         {
             "type": "keydown",
             "action": "",
-            "parameters": { ... },
+            "parameters": { /* ... */ },
             "focus": true,
         }
     ]
 }
 ````
 
-## Value Based 动态值触发器 
+## Value Based 动态值触发器
 TBD

@@ -84,25 +84,19 @@ var Editor = (function () {
     this._zoomFactor = 1;
   };
 
-  Editor.prototype._translateOffsets = function (x, y, target) {
-    var layer = target;
-    while (layer !== null && layer !== this._workArea) {
-      x += layer.offsetLeft;
-      y += layer.offsetTop;
-      layer = layer.offsetParent;
-    }
+  Editor.prototype._translateOffsets = function (x, y) {
+    var workAreaBox = this._workArea.getBoundingClientRect();
     return {
-      'x': x,
-      'y': y
-    }
+      'x': x - workAreaBox.left,
+      'y': y - workAreaBox.top,
+    };
   };
-  Editor.prototype._canvasPosition = function (x, y, item) {
-    if (item !== this._canvas && item !== this._workArea) {
-      throw new Error('Cannot decode position not in work-area');
-    }
-    x = x - (item === this._canvas ? 0 : this._canvas.offsetLeft);
-    y = y - (item === this._canvas ? 0 : this._canvas.offsetTop);
-    return {'x': x, 'y': y};
+  Editor.prototype._canvasPosition = function (x, y) {
+    var workAreaRelPos = this._translateOffsets(x, y);
+    return {
+      'x': workAreaRelPos.x - this._canvas.offsetLeft,
+      'y': workAreaRelPos.y - this._canvas.offsetTop
+    };
   };
 
   Editor.prototype._onDown = function (e) {
@@ -122,13 +116,13 @@ var Editor = (function () {
           } else {
             if (Selection.isSelected(ideName)) {
               // Don't change selection
-              this._movingStart = this._translateOffsets(
-                e.event.offsetX, e.event.offsetY, e.event.target);
+              this._movingStart = this._translateOffsets(e.event.clientX,
+                e.event.clientY);
               return e;
             } else {
               return this.P.emit('objects.select', ideName).then((function (){
-                this._movingStart = this._translateOffsets(
-                  e.event.offsetX, e.event.offsetY, e.event.target);
+                this._movingStart = this._translateOffsets(e.event.clientX,
+                  e.event.clientY);
               }).bind(this)).then(this.P.next(e));
             }
           }
@@ -146,8 +140,8 @@ var Editor = (function () {
               this._selectBox = null;
             }
             this._selectBox = {
-              'position': this._translateOffsets(
-                e.event.offsetX, e.event.offsetY, e.event.target),
+              'position': this._translateOffsets(e.event.clientX,
+                e.event.clientY),
               'size': null,
               'DOM': null,
             }
@@ -170,8 +164,7 @@ var Editor = (function () {
           }
           return e;
         }
-        var position = this._canvasPosition(e.event.offsetX,
-          e.event.offsetY, e.event.target);
+        var position = this._canvasPosition(e.event.clientX, e.event.clientY);
         var objectBase = _deepCopy(DEFAULTS[this.selectedTool]);
         objectBase['position.x'] = position.x;
         objectBase['position.y'] = position.y;
@@ -179,8 +172,8 @@ var Editor = (function () {
         if (this.selectedTool === 'sprite' ||
           this.selectedTool === 'button') {
           // Sprites are inherently resizable, allow dragsize immediately
-          this._draggingStart = this._translateOffsets(
-            e.event.offsetX, e.event.offsetY, e.event.target);
+          this._draggingStart = this._translateOffsets(e.event.clientX,
+            e.event.clientY);
         }
 
         var objectData = {
@@ -223,8 +216,8 @@ var Editor = (function () {
 
       return e; // Not not dragging anything
     }
-    var currentPosition = this._translateOffsets(
-        e.event.offsetX, e.event.offsetY, e.event.target);
+    var currentPosition = this._translateOffsets(e.event.clientX,
+      e.event.clientY);
     if (this.selectedTool === 'select') {
       if (this._selectBox !== null) {
         // Draw a select box

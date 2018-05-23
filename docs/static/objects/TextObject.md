@@ -1,9 +1,8 @@
 # Text 文字对象
 
-
 ## Text
 Example:
-````
+````JSON
 {
     "type": "Text"
 }
@@ -11,7 +10,7 @@ Example:
 
 ## RichText
 Example:
-````
+````JSON
 {
     "type": "RichText"
 }
@@ -19,7 +18,7 @@ Example:
 
 ## Button
 Example:
-````
+````JSON
 {
     "type": "Button"
 }

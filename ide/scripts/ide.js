@@ -5,6 +5,8 @@
   }
 
   /** Environment Variables **/
+  var PANELS = ['toolbox', 'ordering', 'playback', 'export', 'import',
+    'library', 'animation', 'properties', 'layers'];
   var RESET_COMPONENTS = ['reset.editor'];
   var RENDER_COMPONENTS = ['render.editor'];
   var P = new Pettan();
@@ -12,6 +14,12 @@
 
   /** Initialize Reactive Environment **/
   window.addEventListener('load', function () {
+    // Bind all the miniwindows
+    PANELS.forEach(function (name) {
+      var mWin = new MiniWindow($(name));
+      mWin.bind(P);
+    });
+
     // Bind logging actions
     var logger = new Logger($('messages'));
     logger.bind(P);

@@ -7,7 +7,7 @@ Sprite 的 `content` 字段的实现。
 
 ## 位图图形 BinarySprite
 Example 示例:
-````
+````JSON
 {
     "type": "BinarySprite",
     "content": {
@@ -17,7 +17,7 @@ Example 示例:
     }
 }
 ````
-### `content.type` 位图类型 
+### `content.type` 位图类型
 位图类型基于 MIME 文件类型，其中 BinarySprite 支持以下几种：
 - `image/png`
 - `image/jpeg`
@@ -40,7 +40,7 @@ Example 示例:
 
 ### 基于位图动图 `content.type` = `image/gif`
 Example 示例:
-````
+````JSON
 {
     "type": "AnimatedSprite",
     "content": {
@@ -64,7 +64,7 @@ Example 示例:
 
 ### 自定义位图 `content.type` = `frames/*`
 以一系列关键帧定义图像，可以参考如下示例 Example:
-````
+````JSON
 {
     "type": "AnimatedSprite",
     "content": {
@@ -73,7 +73,7 @@ Example 示例:
             {
                 "type": "image/png",
                 "data": "...",
-                "encoding": "base64"
+                "encoding": "base64",
                 "isKeyFrame": true,
             }
         ],
@@ -99,7 +99,7 @@ Example 示例:
 
 ## SVG图像 SVGSprite
 Example 示例:
-````
+````JSON
 {
     "type": "SVGSprite",
     "content": {
@@ -130,4 +130,3 @@ Example 示例:
     }
 }
 ````
-
