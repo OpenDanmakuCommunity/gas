@@ -5,6 +5,19 @@
   user-select: none;
 }
 
+#canvas .item-focus {
+  margin: 0;
+  border: 1px #72DEC9 solid;
+}
+
+#canvas .item-hidden {
+  opacity: 0.2 !important;
+}
+
+#canvas.preview .item-hidden {
+  display: none;
+}
+
 /** Text Decoration **/
 #canvas .text-decoration-outline {
   text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
@@ -26,7 +39,9 @@
   font-weight: bold;
 }
 
-#canvas .text {
+/** Objects **/
+/* TEXT */
+#canvas .text, #canvas .rich-text {
   color: #fff;
   font-family: SimHei, SimSun, Heiti, "MS Mincho", "Meiryo", "Microsoft YaHei", monospace;
   font-size: 25px;
@@ -39,10 +54,6 @@
   transform-origin: 0% 0%;
   white-space: pre;
   word-break: keep-all;
-}
-
-#canvas .frame {
-
 }
 
 #canvas .button {
@@ -60,13 +71,16 @@
   background-color: #EFAB0A;
   overflow: hidden;
 }
+
 #canvas .button:hover {
   background-color: #82EED9;
 }
+
 #canvas .button.item-focus:hover {
   background-color: #EFAB0A;
 }
 
+/* SPRITE */
 #canvas .sprite {
   position: absolute;
   border: 1px #F4652D solid;
@@ -92,7 +106,7 @@
   background-color: #82EED9;
 }
 
-#canvas .item-focus {
-  margin: 0;
-  border: 1px #72DEC9 solid;
+/* FRAME */
+#canvas .frame {
+
 }
