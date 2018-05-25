@@ -7,7 +7,7 @@ free. Because the world is more than just Bilibili.
 The project contains the following main parts:
 - [Documentation](docs/)
     - [Syntax (Static)](docs/static/)
-    - [Syntax (Dynamic)](docs/static/)
+    - [Syntax (Dynamic)](docs/dynamic/)
     - [IDE](docs/ide/)
 - [Reference Implementations](src/)
 - [IDE](ide/) ([Live](https://opendanmakucommunity.github.io/gas/ide/))

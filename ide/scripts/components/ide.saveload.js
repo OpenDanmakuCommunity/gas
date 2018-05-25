@@ -10,6 +10,13 @@ var SaveLoad = (function () {
     for (var i = 0; i < IMPORT_FORMATS.length; i++) {
       P.bind(this._importButtons[IMPORT_FORMATS[i]], 'mousedown',
         'import.' + IMPORT_FORMATS[i] + '.trigger');
+      P.listen('import.' + IMPORT_FORMATS[i] + '.trigger', (function (self, format) {
+          return function () {
+            return P.emit('export.prompt', {
+            'type': format
+          });
+        };
+      })(this, IMPORT_FORMATS[i]));
     }
   };
 
@@ -17,6 +24,13 @@ var SaveLoad = (function () {
     for (var i = 0; i < EXPORT_FORMATS.length; i++) {
       P.bind(this._exportButtons[EXPORT_FORMATS[i]], 'mousedown',
         'export.' + EXPORT_FORMATS[i] + '.trigger');
+      P.listen('export.' + EXPORT_FORMATS[i] + '.trigger', (function (self, format) {
+        return function () {
+            return P.emit('export.prompt', {
+            'type': format
+          });
+        };
+      })(this, EXPORT_FORMATS[i]));
     }
   };
 
