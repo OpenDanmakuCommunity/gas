@@ -133,6 +133,8 @@ var PropManager = (function () {
   };
 
   PropManager.prototype._applyKeyFrame = function (index) {
+    // TODO: Optimize KeyFrame stuff
+    this._keyFrameIndex = index;
     this._keyFrame = {};
     this._applyProps(this._baseSpec, true);
     // Now run through the index
@@ -152,6 +154,8 @@ var PropManager = (function () {
       return;
     }
     var frameSpec = this.anchors[this._keyFrameIndex];
+    time = Math.min(time, frameSpec.end); // Cap time
+
     for (var easing in frameSpec.spec) {
       for (var propName in frameSpec.spec[easing]) {
         var actualEasing = easing;
@@ -170,12 +174,12 @@ var PropManager = (function () {
           actualEasing = 'none';
         }
         if (actualEasing === 'none') {
-          if (time === frameSpec.end) {
+          if (time >= frameSpec.end) {
             this._setProp(propName, frameSpec.spec[easing][propName]);
           }
           // Otherwise don't bother with that value
         } else {
-          // Use non-actual easing
+          // Use actual easing for easing but original value for params
           this._setProp(propName,
             EasingFunctions[actualEasing](time - frameSpec.start,
               this._keyFrame[propName],
@@ -192,8 +196,7 @@ var PropManager = (function () {
     if (newIndex === this._keyFrameIndex && this._keyFrame !== null) {
       this._applySubframe(time);
     } else {
-      this._keyFrameIndex = newIndex;
-      this._applyKeyFrame(this._keyFrameIndex);
+      this._applyKeyFrame(newIndex);
       this._applySubframe(time);
     }
   };
@@ -252,7 +255,28 @@ var PropManager = (function () {
   };
 
   PropManager.prototype.createKeyFrame = function (start, end) {
+    if (typeof start !== 'number' || typeof end !== 'number') {
+      throw new Error('Start and end must both be numbers!');
+    }
+    if (isNaN(start) || isNaN(end)) {
+      throw new Error('Start or end cannot be NaN!');
+    }
+    var keyFrame = {
+      'start': start,
+      'end': end,
+      'spec': {
+        'none': {}
+      }
+    };
+    // Insert the keyFrame into the correct location
+    this.anchors.push(keyFrame);
+    this.anchors.sort(function (a, b) {
+      return a.end > b.end ? 1 : (a.end < b.end ? -1 : 0);
+    });
+  };
 
+  PropManager.prototype.splitKeyFrame = function (intermediate) {
+    
   };
 
   return PropManager;

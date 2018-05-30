@@ -74,7 +74,33 @@
     propertiesManager.bind(P);
 
     // Bind global keydown listener
-    P.bind(document.body, 'keydown', 'global.keydown');
+    P.bind(document.body, 'keydown', 'body.keydown');
+    P.listen('body.keydown', function (e) {
+      var key = {
+        'key': e.event.key,
+        'ctrlKey': e.event.ctrlKey,
+        'altKey': e.event.altKey,
+        'shiftKey': e.event.shiftKey
+      };
+      if (document.activeElement !== null) {
+        switch (document.activeElement.tagName.toUpperCase()) {
+            case 'INPUT':
+            case 'TEXTAREA':
+            case 'BUTTON':
+            case 'SELECT':
+              key.input = true;
+              break;
+            default:
+              key.input = false;
+              e.event.preventDefault();
+              break;
+        }
+      } else {
+        key.input = false;
+        e.event.preventDefault();
+      }
+      return P.emit('global.keydown', key).then(P.next(e));
+    });
 
     // Bind the listener for global render and reset
     P.listen('reset', function () {

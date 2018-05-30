@@ -439,11 +439,10 @@ var Editor = (function () {
     }).bind(this));
 
     P.listen('objects.remove', (function (objName) {
-      return P.emit('objects.select',
-        Selection.multiSelect(objName, 'remove')).then((function () {
-          this._canvas.removeChild(ReprTools.getObject(objName).DOM);
-          ReprTools.removeObject(objName);
-        }).bind(this)).then(P.next(objName));
+      Selection.remove(objName); // Un-select the item
+      this._canvas.removeChild(ReprTools.getObject(objName).DOM);
+      ReprTools.removeObject(objName);
+      return P.emit('objects.select', Selection.get()).then(P.next(objName));
     }).bind(this));
 
     P.listen('objects.rename', function (nameSpec) {
@@ -503,18 +502,31 @@ var Editor = (function () {
   };
 
   Editor.prototype._bindKeyboard = function (P) {
-    P.listen('global.keydown', (function (e) {
-      if (e.event.keyCode === 46 && !e.event.ctrlKey) {
+    P.listen('global.keydown', (function (key) {
+      if (key.input) {
+        return key;
+      }
+      if (key.key === 'Delete') {
         if (Selection.count() === 0) {
-          return e; // Nothing to remove
+          return key; // Nothing to remove
         }
         if (!confirm('You are about to remove ' + Selection.count() +
           ' items.\nAre you sure? (Action cannot be reversed)')) {
-          return e;
+          return key;
         }
-        return Promise.all(Selection.get().map(function (objectName) {
-          return P.emit('objects.remove', objectName);
-        })).then(P.next(e));
+        return Selection.get().reduce(function (currentValue, objectName) {
+          return currentValue.then(P.emit('objects.remove', objectName));
+        }, Promise.resolve()).then(P.next(key));
+      } else if (key.key === 'a' && key.ctrlKey) {
+        return P.emit('objects.select', 
+          ReprTools.allObjectNames()).then(P.next(key));
+      } else if (key.key === 'ArrowUp' || key.key === 'ArrowDown' ||
+        key.key === 'ArrowLeft' || key.key === 'ArrowRight') {
+
+        // TODO: allow fine grained movement
+        return key;
+      } else {
+        return key;
       }
     }).bind(this));
   };

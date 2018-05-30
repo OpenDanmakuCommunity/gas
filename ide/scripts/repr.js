@@ -1,12 +1,5 @@
-// Internal Representation for the IDE
-
+// Internal Representation for the project
 var Repr = {
-  'uiState': {
-    'config': {
-      'historyMax': 48,
-    },
-    'selectedLayer': 'default'
-  },
   'workspace': {
     'objects': {},
     'layers': {
@@ -79,6 +72,13 @@ var Selection = new function() {
   };
   this.count = function () {
     return selection.length;
+  };
+  this.remove = function (name) {
+    var index = selection.indexOf(name);
+    if (index >= 0) {
+      selection.splice(index, 1);
+    }
+    return;
   };
 };
 
@@ -215,6 +215,13 @@ var ReprTools = new function() {
     }
     return true;
   }
+  this.allObjectNames = function () {
+    var names = [];
+    for (var name in Repr.workspace.objects) {
+      names.push(name);
+    }
+    return names;
+  };
   /** Layer Stuff **/
   this.layerExists = function (name) {
     return name in Repr.workspace.layers;

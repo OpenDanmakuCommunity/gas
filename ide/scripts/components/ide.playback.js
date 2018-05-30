@@ -21,6 +21,10 @@ var Playback = (function () {
     return ReprTools.duration();
   };
 
+  Playback.prototype.setDuration = function (duration) {
+    Repr.workspace.metadata.animation.duration = duration;
+  };
+
   Playback.prototype.offsetTimeToPixels = function (time) {
     return this.timeToPixels(time) + TIMELINE_LABEL_OFFSET;
   };
@@ -36,8 +40,18 @@ var Playback = (function () {
   Playback.prototype.bindAnimation = function (P) {
     P.listen('timeline.update', function (time) {
       // Animate all the things
-
+      for (var name in Repr.workspace.objects) {
+        var obj = Repr.workspace.objects[name];
+        if ('_pm' in obj) {
+          obj._pm.time(time);
+        }
+      }
+      return time;
     });
+    P.listen('timeline.duration.set', (function (duration) {
+      this.setDuration(duration);
+      return duration;
+    }).bind(this));
   };
 
   Playback.prototype.bindTimer = function (P) {
@@ -106,6 +120,7 @@ var Playback = (function () {
       }).then(P.next(e));
     }).bind(this));
 
+    // Bind to the slider bar
     P.bind(this._ruler, 'mousedown', 'playback.seek');
     P.bind(this._ruler, 'mousemove', 'playback.scrub');
     P.listen('playback.seek', (function (e) {
@@ -124,6 +139,18 @@ var Playback = (function () {
       this._slider.style.left = this.offsetTimeToPixels(time) + 'px';
       this._sliderValue.innerText = (time / 1000).toFixed(3);
       return time;
+    }).bind(this));
+
+    // Bind to the keyboard
+    P.listen('global.keydown', (function (key) {
+      if (!key.input && key.key === ' ') {
+        if (this.T.isRunning) {
+          return P.emit('timer.stop').then(P.next(key));
+        } else {
+          return P.emit('timer.start').then(P.next(key));
+        }
+      }
+      return key;
     }).bind(this));
 
     this.bindTimer(P);

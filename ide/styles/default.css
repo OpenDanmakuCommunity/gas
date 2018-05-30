@@ -73,7 +73,7 @@ select:invalid {
   position: relative;
   padding: 0;
   float: left;
-  width: 100%;
+  min-width: 100%;
 }
 
 .modal-group > .overlay {

@@ -97,18 +97,22 @@ var TimelineManager = (function () {
         'track': name
       };
       var selection = null;
+      var currentPinSelected = this._selectedPins.some(function (item) {
+        return item.pin === idx.pin && item.track === idx.track; 
+      });
       if (e.event.ctrlKey) {
         selection = this._selectedPins.slice(0).filter(function (pin){
           return pin.pin !== idx.pin || pin.track !== idx.track;
         });
-        selection.push(idx);
+        if (!currentPinSelected) {
+          selection.push(idx);
+        }
       } else {
-        selection = [idx];
+        selection = (currentPinSelected && this._selectedPins.length === 1) ?
+          [] : [idx];
       }
       // Also unset the selection of Objects
-      return P.emit('objects.select', []).then(function () {
-        return P.emit('timeline.pins.select', selection);
-      }).then(P.next(e));
+      return P.emit('timeline.pins.select', selection).then(P.next(e));
     }).bind(this));
   };
 
@@ -299,10 +303,6 @@ var TimelineManager = (function () {
     P.listen('timeline.pins.select', (function (selection) {
       this._setSelectedPins(selection);
       return selection;
-    }).bind(this));
-
-    P.listen('selection.change', (function (selection) {
-      return P.emit('timeline.pins.select', []).then(P.next(selection));
     }).bind(this));
   };
 
