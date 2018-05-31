@@ -68,6 +68,11 @@
       $('library-inner'));
     assetsLibrary.bind(P);
 
+    // Create and bind to the Animations Manager
+    var animationManager = new AnimationManager(panelManager.animation,
+      $('animation-inner'));
+    animationManager.bind(P);
+
     // Create and bind to the properties panel
     var propertiesManager = new PropertyManager(
       panelManager.properties, $('properties-inner'));

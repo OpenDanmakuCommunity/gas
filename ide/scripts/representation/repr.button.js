@@ -105,6 +105,21 @@ var GButton = (function () {
       case 'size.height':
         this.DOM.style.height = newValue + 'px';
         break;
+      case 'opacity':
+        _ToggleClass(this.DOM , 'item-almost-hidden', false);
+        if (newValue === null || newValue >= 1) {
+          this.DOM.style.opacity = '';
+        } else if (newValue < 1 && newValue >= 0) {
+          this.DOM.style.opacity = newValue + '';
+          if (newValue < 0.2) {
+            // Low opacity, add a special class
+            _ToggleClass(this.DOM , 'item-almost-hidden', true);
+          }
+        }
+        break;
+      case 'visible':
+        _ToggleClass(this.DOM, 'item-hidden', newValue === 'false');
+        break;
       case 'font.family':
         this.DOM.style.fontFamily = newValue + '';
         break;

@@ -492,6 +492,11 @@ select:invalid {
   user-select: none;
   cursor: pointer;
 }
+.fixed-group > .group-button:hover,
+.input-group > .group-button:hover {
+  background-color: #72DEC9;
+  color:#424242;
+}
 .input-group > label,
 .fixed-group > label {
   display: block;
@@ -528,16 +533,17 @@ select:invalid {
   margin: 0;
 }
 
-/** Properties panel **/
-#properties-inner > .input-group > label,
-#properties-inner > .fixed-group > label {
+/** Animations and Properties panel **/
+.wide-labels > .input-group > label,
+.wide-labels > .fixed-group > label {
   width: 44%;
 }
-#properties-inner > .input-group > input,
-#properties-inner > .input-group > textarea,
-#properties-inner > .input-group > select,
-#properties-inner > .fixed-group > input,
-#properties-inner > .input-group > .tuple {
+
+.wide-labels > .input-group > input,
+.wide-labels > .input-group > textarea,
+.wide-labels > .input-group > select,
+.wide-labels > .fixed-group > input,
+.wide-labels > .input-group > .tuple {
   width: 50%;
 }
 

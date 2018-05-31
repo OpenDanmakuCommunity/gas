@@ -39,10 +39,16 @@ Y 轴旋转。单位 `deg`。
 ### `transform.rotZ` &lt;number&gt; = `0`
 Z 轴旋转。单位 `deg`。
 
-### `interaction.list` &lt;string.list&lt; = `""`
+### `opacity` &lt;number&gt; = `1`
+不透明度。无单位。取值 `0-1`。
+
+### `visible` &lt;enum&gt; = `false`
+对象是否可见。单选enum。取值 `true` 或 `false`
+
+### `interaction.list` &lt;string.list&gt; = `""`
 交互模式，参考 [InteractionHints章节](../InteractionHints.md)
 
-### `interaction.fallback` &lt;string.list&lt; = `""`
+### `interaction.fallback` &lt;string.list&gt; = `""`
 交互模式回退，参考 [InteractionHints章节](../InteractionHints.md)
 
 ## 类型可变 Variable Type
@@ -52,7 +58,7 @@ Z 轴旋转。单位 `deg`。
 - `Text`, `Button`: string 类型。其中输入 `\n` 会被替换成换行。
 - `RichText`: list<text>。定义为一个数组，其中可以放 string （会变成 text node）或者
 类似 Text对象的定义（只包括 `font.*, content`，会变成 `span`）和 `{}` 会变成 `br`。
-- `BinarySprite`, `AnimatedSprite`: image 对象。参考 
+- `BinarySprite`, `AnimatedSprite`: image 对象。参考
 [SpriteObject](SpriteObject.md)
 - `SVGSprite`: svg 对象。参考 [SpriteObject](SpriteObject.md)
 - `Frame`, `Reference`: 不可用。会被无视。
@@ -76,7 +82,7 @@ Z 轴旋转。单位 `deg`。
 
 ### `font.family` &lt;string&gt; = `""`
 字体名称。多个字体可以用 `,` 分隔。默认未给出时采取平台默认值
-（在 IDE 里面平台默认为 `SimHei, SimSun, Heiti, "MS Mincho", "Meiryo", 
+（在 IDE 里面平台默认为 `SimHei, SimSun, Heiti, "MS Mincho", "Meiryo",
 "Microsoft YaHei", monospace`）
 
 ### `font.color` &lt;color&gt; = `rgb(0xff, 0xff, 0xff)`
@@ -102,7 +108,7 @@ Z 轴旋转。单位 `deg`。
 适用于 `SVGSprite`。
 
 ### `image.position` &lt;tuple.enum&gt; = `(center, center)`
-图像位置对齐。双单选enum定义锚点，分别为 
+图像位置对齐。双单选enum定义锚点，分别为
 (`top | bottom | center`, `right | left | center`)。
 
 默认图像居中。此属性参考 CSS 的 `background-position` 用法。

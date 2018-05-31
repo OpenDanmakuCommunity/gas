@@ -2,46 +2,59 @@ var Editor = (function () {
   var DEFAULTS = {
     'text': {
       'type': 'Text',
-      'content': '(Text Here)',
-      'font.decoration': ['outline'],
       'position.axis': 'top-left',
-      'font.color': 0xffffff,
-      'font.orientation': 'horizontal-tb',
       'transform.scale': 1,
       'transform.rotX': 0,
       'transform.rotY': 0,
       'transform.rotZ': 0,
+      'opacity': 1,
+      'visible': 'true',
+      'font.decoration': ['outline'],
+      'font.color': 0xffffff,
+      'font.orientation': 'horizontal-tb',
+      'content': '(Text Here)',
     },
     'sprite': {
       'type': 'Sprite',
+      'position.axis': 'top-left',
       'size.width': 1,
       'size.height': 1,
-      'position.axis': 'top-left',
       'transform.scale': 1,
       'transform.rotX': 0,
       'transform.rotY': 0,
       'transform.rotZ': 0,
+      'opacity': 1,
+      'visible': 'true',
       'image.repeat': 'no-repeat',
       'image.stretchMode': 'contain',
     },
     'button': {
       'type': 'Button',
-      'content': 'Button Label',
+      'position.axis': 'top-left',
       'size.width': 1,
       'size.height': 1,
-      'font.decoration': ['outline'],
-      'font.color': 0xffffff,
-      'font.orientation': 'horizontal-tb',
-      'position.axis': 'top-left',
       'transform.scale': 1,
       'transform.rotX': 0,
       'transform.rotY': 0,
       'transform.rotZ': 0,
+      'opacity': 1,
+      'visible': 'true',
+      'font.decoration': ['outline'],
+      'font.color': 0xffffff,
+      'font.orientation': 'horizontal-tb',
+      'content': 'Button Label',
     },
     'frame': {
       'type': 'Frame',
+      'position.axis': 'top-left',
       'size.width': 1,
       'size.height': 1,
+      'transform.scale': 1,
+      'transform.rotX': 0,
+      'transform.rotY': 0,
+      'transform.rotZ': 0,
+      'opacity': 1,
+      'visible': 'true',
     },
   }
 
@@ -522,7 +535,7 @@ var Editor = (function () {
           return currentValue.then(P.emit('objects.remove', objectName));
         }, Promise.resolve()).then(P.next(key));
       } else if (key.key === 'a' && key.ctrlKey) {
-        return P.emit('objects.select', 
+        return P.emit('objects.select',
           ReprTools.allObjectNames()).then(P.next(key));
       } else if (key.key === 'ArrowUp' || key.key === 'ArrowDown' ||
         key.key === 'ArrowLeft' || key.key === 'ArrowRight') {

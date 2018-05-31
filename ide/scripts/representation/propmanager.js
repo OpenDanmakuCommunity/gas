@@ -193,9 +193,20 @@ var PropManager = (function () {
   PropManager.prototype.time = function (time) {
     // Figure out if the time requires a change in index
     var newIndex = this._getSpecIndex(time);
-    if (newIndex === this._keyFrameIndex && this._keyFrame !== null) {
-      this._applySubframe(time);
+    if (newIndex === this._keyFrameIndex) {
+      // We are still on the same old frame
+      if (this._keyFrameIndex < 0) {
+        // We are before the first keyFrame
+        if (this._keyFrame === null) {
+          // Initialize the frame
+          this._applyKeyFrame(newIndex);
+        }
+      } else {
+        // Apply the subframes
+        this._applySubframe(time);
+      }
     } else {
+      // Setup the new frame
       this._applyKeyFrame(newIndex);
       this._applySubframe(time);
     }
@@ -276,7 +287,7 @@ var PropManager = (function () {
   };
 
   PropManager.prototype.splitKeyFrame = function (intermediate) {
-    
+
   };
 
   return PropManager;

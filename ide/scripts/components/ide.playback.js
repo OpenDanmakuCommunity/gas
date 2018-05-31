@@ -1,5 +1,5 @@
 var Playback = (function () {
-  var PIXEL_CONVERSION = 10;
+  var DEFAULT_PIXEL_CONVERSION = 10;
   var TIMELINE_LABEL_OFFSET = 200;
 
   var Playback = function (timer, playbackControls, timelineIndicators) {
@@ -8,7 +8,7 @@ var Playback = (function () {
     }
     this.T = timer;
 
-    this.PIXEL_CONVERSION = 10;
+    this._scale = DEFAULT_PIXEL_CONVERSION;
     this._playBtn = playbackControls.playBtn;
     this._stopBtn = playbackControls.stopBtn;
     this._recBtn = playbackControls.recBtn;
@@ -30,11 +30,11 @@ var Playback = (function () {
   };
 
   Playback.prototype.timeToPixels = function (time) {
-    return Math.floor(time / PIXEL_CONVERSION);
+    return Math.floor(time / this._scale);
   };
 
   Playback.prototype.pixelsToTime = function (pixel) {
-    return Math.floor(pixel * PIXEL_CONVERSION);
+    return Math.floor(pixel * this._scale);
   }
 
   Playback.prototype.bindAnimation = function (P) {
@@ -51,6 +51,10 @@ var Playback = (function () {
     P.listen('timeline.duration.set', (function (duration) {
       this.setDuration(duration);
       return duration;
+    }).bind(this));
+    P.listen('timeline.scale.set', (function (scale) {
+      this._scale = Math.max(Math.round(scale), 1);
+      return scale;
     }).bind(this));
   };
 
@@ -154,6 +158,7 @@ var Playback = (function () {
     }).bind(this));
 
     this.bindTimer(P);
+    this.bindAnimation(P);
   };
 
   return Playback;

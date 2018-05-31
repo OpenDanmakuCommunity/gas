@@ -3,6 +3,7 @@ var TimelineManager = (function () {
     this._timeline = timeline;
     this._playback = playback;
 
+    this.trackBuffer = 100;
     this._tracks = {};
     this._selectedPins = [];
   };
@@ -42,7 +43,6 @@ var TimelineManager = (function () {
       } catch (e) {}
     }
   };
-
 
   /** Pin Related **/
   TimelineManager.prototype._insertPin = function (P, name, start, end, isAnimated) {
@@ -98,7 +98,7 @@ var TimelineManager = (function () {
       };
       var selection = null;
       var currentPinSelected = this._selectedPins.some(function (item) {
-        return item.pin === idx.pin && item.track === idx.track; 
+        return item.pin === idx.pin && item.track === idx.track;
       });
       if (e.event.ctrlKey) {
         selection = this._selectedPins.slice(0).filter(function (pin){
@@ -188,8 +188,8 @@ var TimelineManager = (function () {
         'className': 'row',
         'ide-object-name': name,
         'style': {
-          'width': this._playback.offsetTimeToPixels(
-            this._playback.getDuration()) + 'px'
+          'width': (this._playback.offsetTimeToPixels(
+            this._playback.getDuration()) + this.trackBuffer) + 'px'
         }
       }, [
         label,
@@ -279,6 +279,15 @@ var TimelineManager = (function () {
     this._removeBinding(name);
   };
 
+
+  TimelineManager.prototype._rescaleTracks = function (duration) {
+    for (var track in this._tracks) {
+      this._tracks[track].row.style.width = (this._playback.offsetTimeToPixels(
+        this._playback.duration()) + this.trackBuffer) + 'px';
+    }
+  };
+
+  /** Binding related **/
   TimelineManager.prototype._bindPin = function (P) {
     // Add pin action
     P.listen('timeline.rec', (function (timeObj) {
@@ -331,6 +340,16 @@ var TimelineManager = (function () {
 
     // Bind pin controls
     this._bindPin(P);
+
+    // Bind rescaling of the timeline
+    P.listen('timeline.duration.set', (function (newDuration) {
+      this._rescaleTracks();
+      return newDuration;
+    }).bind(this));
+    P.listen('timeline.scale.set', (function (scale) {
+      this._rescaleTracks();
+      return scale;
+    }).bind(this));
   };
 
   return TimelineManager;

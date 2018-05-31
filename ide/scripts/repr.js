@@ -210,7 +210,10 @@ var ReprTools = new function() {
     }
     return names;
   };
-  /** Layer Stuff **/
+
+}
+
+var LayerTools = new function () {
   this.layerExists = function (name) {
     return name in Repr.workspace.layers.defs;
   };
@@ -237,11 +240,11 @@ var ReprTools = new function() {
     if (!this.layerExists(layerName)) {
       return;
     }
-    // Layer cannot be deleted if its not empty 
+    // Layer cannot be deleted if its not empty
     if (!this.getLayer(layerName).components.length > 0) {
       throw new Error('Layer cannot be deleted unless it is empty!');
     }
-    Repr.workspace.layers.order = 
+    Repr.workspace.layers.order =
       Repr.workspace.layers.order.filter(function (name) {
         return name !== layerName;
       });
@@ -252,7 +255,7 @@ var ReprTools = new function() {
       throw new Error('Layer "' + oldName + '" does not exist');
     }
     if (this.layerExists(newName)) {
-      throw new Error('Naming Conflict: Layer "' + newName + 
+      throw new Error('Naming Conflict: Layer "' + newName +
         '" already exists');
     }
     Repr.workspace.layers.defs[newName] = Repr.workspace.layers.defs[oldName];
@@ -280,20 +283,28 @@ var ReprTools = new function() {
     newOrder.splice(itemIndex + 1, 0, name);
     Repr.workspace.layers.order = newOrder;
   };
-  this.objectLower = function (name, layerName) {
-    if(!this.objectExists(name)) {
+  this.objectHigher = function (name, layerName) {
+    if(!ReprTools.objectExists(name)) {
       throw new Error('Object does not exist');
     }
     var layer = this.getLayer(layerName);
     var index = layer.components.indexOf(name) + 1;
     return index < layer.components.length ? layer.components[index] : null;
   };
+  this.objectLower = function (name, layerName) {
+    if(!ReprTools.objectExists(name)) {
+      throw new Error('Object does not exist');
+    }
+    var layer = this.getLayer(layerName);
+    var index = layer.components.indexOf(name) - 1;
+    return index >= 0 ? layer.components[index] : null;
+  };
   this.findLayer = function (name) {
-    
+
   };
   this.assignLayer = function (name, layerName) {
     // Assigns a layer to the object
-    if (!this.objectExists(name)) {
+    if (!ReprTools.objectExists(name)) {
       throw new Error('Object does not exist');
     }
     if (!this.layerExists(layerName)) {
@@ -303,9 +314,9 @@ var ReprTools = new function() {
     layer.components.push(name);
   };
   this.unassignLayer = function (name, layerName) {
-    // Removes item from layer. Can only be done when the object is not 
+    // Removes item from layer. Can only be done when the object is not
     // registered anymore
-    if (this.objectExists(name)) {
+    if (ReprTools.objectExists(name)) {
       throw new Error('Object still exists. Can\'t detach! Please use move.');
     }
     var layer = this.getLayer(layerName);
@@ -313,16 +324,24 @@ var ReprTools = new function() {
       return n !== name;
     });
   };
-  this.moveObject = function (layerName, name, targetLayerName, target) {
+  this.moveObject = function (name, layerName, target, targetLayerName) {
     // Move the object in a layer after some other object
     if (!this.layerExists(layerName) || !this.layerExists(targetLayerName)) {
       throw new Error('Layer does not exist!');
     }
-    if (!this.objectExists(name) || 
-      (target !== null && !this.objectExists(target))) {
+    if (!ReprTools.objectExists(name) ||
+      (target !== null && !ReprTools.objectExists(target))) {
       throw new Error('Object does not exist!');
     }
-    this.unassignLayer(name, layerName);
-    this.assignLayer(name, targetLayerName);
+    var sourceLayer = this.getLayer(layerName);
+    var targetLayer = this.getLayer(targetLayerName);
+    var idxSource = sourceLayer.components.indexOf(name);
+    sourceLayer.components.splice(idxSource, 1); // Remove from sourceLayer
+    if (target === null) {
+      targetLayer.components.push(name);
+    } else {
+      var idxTarget = targetLayer.components.indexOf(target);
+      targetLayer.components.splice(idxTarget, 0, name);
+    }
   };
-}
+};

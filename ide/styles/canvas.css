@@ -3,7 +3,7 @@
   overflow: hidden;
 }
 
-#canvas > * {
+#canvas * {
   margin: 0;
   border: 1px transparent solid;
   user-select: none;
@@ -16,7 +16,8 @@
   border: 1px #72DEC9 solid !important;
 }
 
-#canvas .item-hidden {
+#canvas .item-hidden,
+#canvas:not(.preview) .item-almost-hidden {
   opacity: 0.2 !important;
 }
 

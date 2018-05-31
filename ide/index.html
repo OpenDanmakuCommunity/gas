@@ -28,13 +28,16 @@
 	<script src="scripts/representation/repr.button.js"></script>
 	<script src="scripts/representation/repr.objects.js"></script>
 
+	<script src="scripts/components/common.primitives.js"></script>
 	<script src="scripts/components/common.miniwindow.js"></script>
+	<script src="scripts/components/common.properties.js"></script>
 	<script src="scripts/components/ide.playback.js"></script>
 	<script src="scripts/components/ide.saveload.js"></script>
 	<script src="scripts/components/ide.timeline.js"></script>
 	<script src="scripts/components/ide.editor.js"></script>
 	<script src="scripts/components/ide.trace.js"></script>
 	<script src="scripts/components/ide.library.js"></script>
+	<script src="scripts/components/ide.animation.js"></script>
 	<script src="scripts/components/ide.properties.js"></script>
 	<script src="scripts/components/ide.macros.js"></script>
 	<script src="scripts/components/ide.layers.js"></script>
@@ -145,17 +148,11 @@
 		</div>
 		<div id="animation" class="mini-window collapse">
 			<h1>Animation</h1>
-			<div id="animation-inner" class="body">
-			<div class="input-group" style="">
-				<label for="animation-position-x">position.x</label>
-				<input id="animation-position-x" value="0" type="number" placeholder="(Undefined)">
-				<div class="clearfix"></div>
-			</div>
-			</div>
+			<div id="animation-inner" class="body wide-labels"></div>
 		</div>
 		<div id="properties" class="mini-window">
 			<h1>Properties</h1>
-			<div id="properties-inner" class="body"></div>
+			<div id="properties-inner" class="body wide-labels"></div>
 		</div>
 		<div id="macros" class="mini-window collapse">
 			<h1>Macros</h1>
