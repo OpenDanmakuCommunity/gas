@@ -36,6 +36,8 @@
 	<script src="scripts/components/ide.trace.js"></script>
 	<script src="scripts/components/ide.library.js"></script>
 	<script src="scripts/components/ide.properties.js"></script>
+	<script src="scripts/components/ide.macros.js"></script>
+	<script src="scripts/components/ide.layers.js"></script>
 	<script src="scripts/ide.js"></script>
 </head>
 <body>
@@ -161,7 +163,14 @@
 		</div>
 		<div id="layers" class="mini-window collapse">
 			<h1>Layers</h1>
-			<div id="layers-inner" class="body"></div>
+			<div class="body">
+				<div class="fixed-group">
+					<div id="layers-add" class="group-button pull-right">+</div>
+					<div class="clearfix"></div>
+				</div>
+				<div id="layers-inner">
+				</div>
+			</div>
 		</div>
   </div>
 </body>

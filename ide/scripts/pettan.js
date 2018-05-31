@@ -48,7 +48,12 @@ var Pettan = (function () {
 
   // Drop all bindings for event
   Pettan.prototype.drop = function (eventName) {
-    this.bindings[eventName] = [];
+    if (eventName in this.bindings) {
+      delete this.bindings[eventName];
+    }
+    if (eventName in this.nativeBindings) {
+      delete this.nativeBindings[eventName];
+    }
   };
 
   Pettan.prototype.rename = function (eventOldName, eventNewName) {
@@ -72,8 +77,10 @@ var Pettan = (function () {
       this.nativeBindings[eventNewName] = this.nativeBindings[eventOldName];
       delete this.nativeBindings[eventOldName];
     }
-    this.bindings[eventNewName] = this.bindings[eventOldName];
-    delete this.bindings[eventOldName];
+    if (eventOldName in this.bindings) {
+      this.bindings[eventNewName] = this.bindings[eventOldName];
+      delete this.bindings[eventOldName];
+    }
   };
 
   Pettan.prototype.next = function (value) {

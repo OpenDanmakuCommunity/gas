@@ -71,6 +71,7 @@ var Editor = (function () {
 
     this.tools = ['select', 'text', 'sprite', 'button', 'frame'];
     this.selectedTool = 'select';
+
     this._workArea = workArea;
     this._canvas = canvas;
     this._workAreaConfigButtons = workAreaConfigButtons;
@@ -87,8 +88,8 @@ var Editor = (function () {
   Editor.prototype._translateOffsets = function (x, y) {
     var workAreaBox = this._workArea.getBoundingClientRect();
     return {
-      'x': x - workAreaBox.left,
-      'y': y - workAreaBox.top,
+      'x': x - workAreaBox.left + this._workArea.scrollLeft,
+      'y': y - workAreaBox.top + this._workArea.scrollTop,
     };
   };
   Editor.prototype._canvasPosition = function (x, y) {
@@ -442,12 +443,15 @@ var Editor = (function () {
       Selection.remove(objName); // Un-select the item
       this._canvas.removeChild(ReprTools.getObject(objName).DOM);
       ReprTools.removeObject(objName);
-      return P.emit('objects.select', Selection.get()).then(P.next(objName));
+      return P.emit('objects.select', Selection.get()).then(
+        P.emit('objects.removed', {
+          'name': objName
+        })).then(P.next(objName));
     }).bind(this));
 
     P.listen('objects.rename', function (nameSpec) {
       ReprTools.renameObject(nameSpec.oldName, nameSpec.newName);
-      return nameSpec;
+      return P.emit('objects.renamed', nameSpec).then(P.next(nameSpec));
     });
 
     // Listen on select object events

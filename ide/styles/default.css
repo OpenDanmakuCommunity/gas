@@ -395,6 +395,7 @@ select:invalid {
 #editor-tools .micro-button {
   width: 14px;
   height: 14px;
+  line-height: 14px;
   border: 1px #636363 dotted;
   text-align: center;
 }
@@ -447,7 +448,7 @@ select:invalid {
   background-color: #363636;
 }
 
-/** Left Sidebar Related **/
+/** Right Sidebar Related **/
 .input-group,
 .image-group {
   position: relative;
@@ -479,6 +480,17 @@ select:invalid {
 .input-group:hover > .tuple > input,
 .input-group:hover > .tuple > select {
   background-color: #363636;
+}
+.fixed-group > .group-button,
+.input-group > .group-button {
+  width: 14px;
+  height: 14px;
+  padding: 1px;
+  border: 1px #636363 dotted;
+  text-align: center;
+  line-height: 14px;
+  user-select: none;
+  cursor: pointer;
 }
 .input-group > label,
 .fixed-group > label {
@@ -578,4 +590,23 @@ select:invalid {
 .image-group:hover > .description {
   max-height: 88px;
   overflow: auto;
+}
+
+/** Layers Related **/
+#layers-inner {
+  position: absolute;
+  top: 43px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+}
+
+#layers-inner > .input-group > div.text {
+  float: left;
+  padding-left: 14px;
+}
+
+#layers-inner > .input-group.layer > div.text {
+  padding-left: 0;
 }

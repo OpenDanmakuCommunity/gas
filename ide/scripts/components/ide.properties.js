@@ -557,7 +557,7 @@ var PropertyManager = (function () {
     }).bind(this));
 
     P.listen('properties.load', (function (objects) {
-      this.propertyWindow.toggleCollapse(objects.length === 0);
+      this.propertyWindow.autoToggleCollapse(objects.length === 0);
       this._updatePropertiesList(objects);
       return objects;
     }).bind(this));

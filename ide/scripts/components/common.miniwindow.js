@@ -2,6 +2,7 @@ var MiniWindow = (function () {
   var MiniWindow = function (mWindow, name) {
     this._window = mWindow;
     this._titleBar = null;
+    this._hasUserInteracted = false;
 
     var headings = this._window.getElementsByTagName('h1');
     if (headings.length >= 0) {
@@ -26,9 +27,16 @@ var MiniWindow = (function () {
     P.bind(this._titleBar, 'mousedown', 'miniwindow.' + this._name +
       '.title.dblclick');
     P.listen('miniwindow.' + this._name + '.title.dblclick', (function (e) {
+      this._hasUserInteracted = true;
       this.toggleCollapse();
       return e;
     }).bind(this));
+  };
+
+  MiniWindow.prototype.autoToggleCollapse = function (collapse) {
+    if (!this._hasUserInteracted) {
+      this.toggleCollapse(collapse);
+    }
   };
 
   MiniWindow.prototype.toggleCollapse = function (collapse) {

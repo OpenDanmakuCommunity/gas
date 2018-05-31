@@ -73,6 +73,18 @@
       panelManager.properties, $('properties-inner'));
     propertiesManager.bind(P);
 
+    // Create and bind the layer panel
+    var layerManager = new LayerManager($('layers-inner'), {
+      'add': $('layers-add'),
+      'orderUp': $('order-up'),
+      'orderDown': $('order-down')
+    });
+    layerManager.bind(P);
+
+    // Create and bind the macros panel
+    var macroManager = new MacroManager($('macros-inner'));
+    macroManager.bind(P);
+
     // Bind global keydown listener
     P.bind(document.body, 'keydown', 'body.keydown');
     P.listen('body.keydown', function (e) {

@@ -3,8 +3,11 @@ var Repr = {
   'workspace': {
     'objects': {},
     'layers': {
-      'default': {
-        'components': []
+      'order': ['default'],
+      'defs': {
+        'default': {
+          'components': []
+        }
       }
     },
     'metadata': {
@@ -166,29 +169,13 @@ var ReprTools = new function() {
     if (this.objectExists(name)) {
       throw new Error('Object with ' + name + ' already exists.');
     }
-    if (typeof layer !== 'string' || layer === null || layer === '') {
-      layer = 'default';
-    }
-    if (!this.layerExists(layer)) {
-      this.addLayer(layer);
-    }
     Repr.workspace.objects[name] = object;
-    var layerRef = Repr.workspace.layers[layer];
-    layerRef.components.push(name);
   };
   this.removeObject = function (name) {
     if (!this.objectExists(name)) {
       return false;
     }
     delete Repr.workspace.objects[name];
-    // Delete reference from layers
-    var _fnFilter = function (objName) {
-      return objName !== name;
-    };
-    for (var layer in Repr.workspace.layers) {
-      Repr.workspace.layers[layer].components =
-        Repr.workspace.layers[layer].components.filter(_fnFilter);
-    }
     return true;
   };
   this.renameObject = function (oldName, newName) {
@@ -202,16 +189,17 @@ var ReprTools = new function() {
     objRef.rename(newName);
     delete Repr.workspace.objects[oldName];
     Repr.workspace.objects[newName] = objRef;
+
     // Now scan the workspace and figure out if anything references the old name
     var _fnRemap = function (objName) {
       return objName === oldName ? newName : objName;
     };
     Selection.set(Selection.get().map(_fnRemap));
 
-    // Update references in layers
-    for (var layer in Repr.workspace.layers) {
-      Repr.workspace.layers[layer].components =
-        Repr.workspace.layers[layer].components.map(_fnRemap);
+    // Update any references in layers
+    for (var layer in Repr.workspace.layers.defs) {
+      Repr.workspace.layers.defs[layer].components =
+        Repr.workspace.layers.defs[layer].components.map(_fnRemap);
     }
     return true;
   }
@@ -224,15 +212,117 @@ var ReprTools = new function() {
   };
   /** Layer Stuff **/
   this.layerExists = function (name) {
-    return name in Repr.workspace.layers;
+    return name in Repr.workspace.layers.defs;
+  };
+  this.getLayer = function (layerName) {
+    if (!this.layerExists(layerName)) {
+      throw new Error('Layer ' + layerName + ' does not exist!');
+    }
+    return Repr.workspace.layers.defs[layerName];
   };
   this.addLayer = function (layerName) {
     if (this.layerExists(layerName)) {
       return false; // Do nothing. This is not fatal.
     }
-    Repr.workspace.layers[layerName] = {
+    Repr.workspace.layers.defs[layerName] = {
       'components': []
     };
+    Repr.workspace.layers.order.push(layerName);
     return true;
+  };
+  this.removeLayer = function (layerName) {
+    if (layerName === 'default') {
+      throw new Error('Cannot remove the default layer!');
+    }
+    if (!this.layerExists(layerName)) {
+      return;
+    }
+    // Layer cannot be deleted if its not empty 
+    if (!this.getLayer(layerName).components.length > 0) {
+      throw new Error('Layer cannot be deleted unless it is empty!');
+    }
+    Repr.workspace.layers.order = 
+      Repr.workspace.layers.order.filter(function (name) {
+        return name !== layerName;
+      });
+    delete Repr.workspace.layers.defs[layerName];
+  };
+  this.renameLayer = function (oldName, newName) {
+    if (!this.layerExists(oldName)) {
+      throw new Error('Layer "' + oldName + '" does not exist');
+    }
+    if (this.layerExists(newName)) {
+      throw new Error('Naming Conflict: Layer "' + newName + 
+        '" already exists');
+    }
+    Repr.workspace.layers.defs[newName] = Repr.workspace.layers.defs[oldName];
+    Repr.workspace.layers.order = Repr.workspace.layers.order.map(
+      function (name) {
+        return name === oldName ? newName : name;
+      });
+  };
+  this.moveLayer = function (name, after) {
+    // Moves the layer in the ordering. Note, after indicates order in array
+    // which is opposite of display order
+    if (name === 'default') {
+      throw new Error('Cannot move the default layer!');
+    }
+    if (name === after) {
+      throw new Error('Cannot move a layer after itself!');
+    }
+    if (!this.layerExists(name) || !this.layerExists(after)) {
+      throw new Error('Layer does not exist.');
+    }
+    var newOrder = Repr.workspace.layers.order.filter(function (name) {
+        return name !== layerName;
+      });
+    var itemIndex = newOrder.indexOf(after);
+    newOrder.splice(itemIndex + 1, 0, name);
+    Repr.workspace.layers.order = newOrder;
+  };
+  this.objectLower = function (name, layerName) {
+    if(!this.objectExists(name)) {
+      throw new Error('Object does not exist');
+    }
+    var layer = this.getLayer(layerName);
+    var index = layer.components.indexOf(name) + 1;
+    return index < layer.components.length ? layer.components[index] : null;
+  };
+  this.findLayer = function (name) {
+    
+  };
+  this.assignLayer = function (name, layerName) {
+    // Assigns a layer to the object
+    if (!this.objectExists(name)) {
+      throw new Error('Object does not exist');
+    }
+    if (!this.layerExists(layerName)) {
+      this.addLayer(layerName);
+    }
+    var layer = this.getLayer(layerName);
+    layer.components.push(name);
+  };
+  this.unassignLayer = function (name, layerName) {
+    // Removes item from layer. Can only be done when the object is not 
+    // registered anymore
+    if (this.objectExists(name)) {
+      throw new Error('Object still exists. Can\'t detach! Please use move.');
+    }
+    var layer = this.getLayer(layerName);
+    layer.components = layer.components.filter(function (n) {
+      return n !== name;
+    });
+  };
+  this.moveObject = function (layerName, name, targetLayerName, target) {
+    // Move the object in a layer after some other object
+    if (!this.layerExists(layerName) || !this.layerExists(targetLayerName)) {
+      throw new Error('Layer does not exist!');
+    }
+    if (!this.objectExists(name) || 
+      (target !== null && !this.objectExists(target))) {
+      throw new Error('Object does not exist!');
+    }
+    this.unassignLayer(name, layerName);
+    this.assignLayer(name, targetLayerName);
   };
 }
