@@ -176,7 +176,6 @@ var Editor = (function () {
             return this.P.emit('objects.select', objName).then(
               this.P.next(e));
           }
-          return e;
         }
         var position = this._canvasPosition(e.event.clientX, e.event.clientY);
         var objectBase = _deepCopy(DEFAULTS[this.selectedTool]);
@@ -493,6 +492,18 @@ var Editor = (function () {
         'to': newSelection,
       }).then(P.next(objectNames));
     });
+
+    // Listen on reorder events
+    P.listen('objects.reflow', (function (spec) {
+      if (spec.sourceLayer === spec.targetLayer) {
+        var source = ReprTools.getObject(spec.source);
+        var sourceParent = source.DOM.parentElement;
+        sourceParent.insertBefore(source.DOM, 
+          spec.target === null ? null : 
+            ReprTools.getObject(spec.target).DOM);
+      }
+      return spec;
+    }).bind(this));
 
     // Listen on object property updates
     P.listen('object.setProperty', (function (spec) {
