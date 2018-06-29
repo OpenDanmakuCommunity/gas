@@ -204,9 +204,27 @@ var Editor = (function () {
         return e;
     }
   };
-  Editor.prototype._onUnset = function () {
+  Editor.prototype._onUnset = function (e) {
     // Reset moving and draggind flags
-    this._movingStart = null;
+    if (this._movingStart !== null) {
+      // Move finished
+      var time = this.T.time();
+      Promise.all(Selection.get().map((function (object) {
+        return this.P.emit('object.setProperty', {
+          'objectName': object,
+          'time': time,
+          'propertyName': 'position.x',
+          'value': ReprTools.getObject(object)._pm.getProp('position.x')
+        }).then(
+          this.P.emit('object.setProperty', {
+            'objectName': object,
+            'time': time,
+            'propertyName': 'position.y',
+            'value': ReprTools.getObject(object)._pm.getProp('position.y')
+          }));
+      }).bind(this)));
+      this._movingStart = null;
+    }
     this._draggingStart = null;
 
     if (this._selectBox !== null) {
@@ -217,7 +235,7 @@ var Editor = (function () {
     }
   };
   Editor.prototype._onLeave = function (e) {
-    this._onUnset();
+    this._onUnset(e);
     if (Selection.count() > 0) {
       return this.P.emit('properties.load', Selection.get());
     } else {
@@ -228,7 +246,7 @@ var Editor = (function () {
     if (e.event.button !== 0) {
       return e;
     }
-    this._onUnset();
+    this._onUnset(e);
     if (Selection.count() > 0) {
       return this.P.emit('properties.load', Selection.get());
     } else {
@@ -432,7 +450,7 @@ var Editor = (function () {
 
   Editor.prototype._bindPlayback = function (P) {
     P.listen('timeline.update', (function (time) {
-
+      return time;
     }).bind(this));
   };
 

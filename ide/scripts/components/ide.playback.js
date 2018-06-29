@@ -12,17 +12,20 @@ var Playback = (function () {
     this._playBtn = playbackControls.playBtn;
     this._stopBtn = playbackControls.stopBtn;
     this._recBtn = playbackControls.recBtn;
+    this._ffBtn = playbackControls.ffBtn;
+    this._rwBtn = playbackControls.rwBtn;
+
     this._ruler = timelineIndicators.ruler;
     this._slider = timelineIndicators.slider;
     this._sliderValue = timelineIndicators.sliderValue;
   };
 
   Playback.prototype.getDuration = function () {
-    return ReprTools.duration();
+    return ReprTools.getDuration();
   };
 
   Playback.prototype.setDuration = function (duration) {
-    Repr.workspace.metadata.animation.duration = duration;
+    ReprTools.setDuration(duration);
   };
 
   Playback.prototype.offsetTimeToPixels = function (time) {
@@ -35,17 +38,48 @@ var Playback = (function () {
 
   Playback.prototype.pixelsToTime = function (pixel) {
     return Math.floor(pixel * this._scale);
-  }
+  };
+
+  Playback.prototype.findNextKeyFrame = function (objects, time) {
+    var nearestTimes = objects.map(function (name) {
+      return ReprTools.getObject(name)._pm.getKeyTime(time, 'after');
+    }).filter(function (t) {
+      return t >= 0;
+    }).sort(function (a, b) {
+      return a - b;
+    });
+    if (nearestTimes.length === 0) {
+      return time;
+    } else {
+      return nearestTimes[0];
+    }
+  };
+
+  Playback.prototype.findPreviousKeyFrame = function (objects, time) {
+    var nearestTimes = objects.map(function (name) {
+      return ReprTools.getObject(name)._pm.getKeyTime(time, 'before');
+    }).filter(function (t) {
+      return t >= 0;
+    }).sort(function (a, b) {
+      return b - a;
+    });
+    console.log(nearestTimes);
+    if (nearestTimes.length === 0) {
+      return time;
+    } else {
+      return nearestTimes[0];
+    }
+  };
 
   Playback.prototype.bindAnimation = function (P) {
     P.listen('timeline.update', function (time) {
       // Animate all the things
-      for (var name in Repr.workspace.objects) {
-        var obj = Repr.workspace.objects[name];
+      ReprTools.allObjectNames().forEach(function (name) {
+        var obj = ReprTools.getObject(name);
         if ('_pm' in obj) {
           obj._pm.time(time);
         }
-      }
+      });
       return time;
     });
     P.listen('timeline.duration.set', (function (duration) {
@@ -122,6 +156,26 @@ var Playback = (function () {
       }).catch(function (err) {
         alert(err);
       }).then(P.next(e));
+    }).bind(this));
+    P.bind(this._ffBtn, 'click', 'playback.fastforward');
+    P.listen('playback.fastforward', (function (e) {
+      try {
+        e.event.target.blur();
+      } catch (err) {}
+      var time = this.findNextKeyFrame(
+          Selection.count() > 0 ? Selection.get() : ReprTools.allObjectNames(),
+          this.T.time());
+      return P.emit('timer.seek', time).then(P.next(e));
+    }).bind(this));
+    P.bind(this._rwBtn, 'click', 'playback.rewind');
+    P.listen('playback.rewind', (function (e) {
+      try {
+        e.event.target.blur();
+      } catch (err) {}
+      var time = this.findPreviousKeyFrame(
+          Selection.count() > 0 ? Selection.get() : ReprTools.allObjectNames(),
+          this.T.time());
+      return P.emit('timer.seek', time).then(P.next(e));
     }).bind(this));
 
     // Bind to the slider bar

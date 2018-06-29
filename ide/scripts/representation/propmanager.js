@@ -75,7 +75,7 @@ var PropManager = (function () {
   };
 
   // Pins are associated with region (startTime, endTime]
-  PropManager.prototype._getSpecIndex = function (time) {
+  PropManager.prototype._getKeyFrameIndex = function (time) {
     if (time <= 0) {
       return -1;
     }
@@ -103,12 +103,14 @@ var PropManager = (function () {
   };
 
   PropManager.prototype._isConfigurable = function (time) {
-    var recIdx = this._getSpecIndex(time);
+    var recIdx = this._getKeyFrameIndex(time);
     if (recIdx === -1) {
       return true; // Configures the base time
     } else {
       if (this.anchors[recIdx].end === time) {
         return true; // The time is exactly at the end marker
+      } else if (recIdx === this.anchors.length - 1 && this.anchors[recIdx].end < time) {
+        return true;
       } else {
         return false;
       }
@@ -192,7 +194,10 @@ var PropManager = (function () {
 
   PropManager.prototype.time = function (time) {
     // Figure out if the time requires a change in index
-    var newIndex = this._getSpecIndex(time);
+    if (typeof time !== 'number' || isNaN(time)) {
+      throw new Error('PropManager.time expects a non-NaN number!');
+    }
+    var newIndex = this._getKeyFrameIndex(time);
     if (newIndex === this._keyFrameIndex) {
       // We are still on the same old frame
       if (this._keyFrameIndex < 0) {
@@ -233,7 +238,7 @@ var PropManager = (function () {
 
   PropManager.prototype.getPropAtTime = function (time, propName, def) {
     // Get the latest key
-    var index = this._getSpecIndex(time);
+    var index = this._getKeyFrameIndex(time);
     var property = this._getPropKeyByIndex(index, propName, def);
     // Apply the micro time
   };
@@ -247,7 +252,7 @@ var PropManager = (function () {
       throw new Error('Time ' + time + ' is in the middle of an animation!');
     }
     // Figure out what to update
-    var index = this._getSpecIndex(time);
+    var index = this._getKeyFrameIndex(time);
     if (index < 0) {
       // Update the base
       this._baseSpec[propertyName] = value;
@@ -263,6 +268,49 @@ var PropManager = (function () {
       this.anchors[index].spec[easing][propertyName] = value;
       this._setProp(propertyName, value);
     }
+  };
+
+  PropManager.prototype.getKeyTime = function (time, mode) {
+    if (mode !== 'before' && mode !== 'after') {
+      throw new Error('Mode must be one of before, after');
+    }
+    var ends = this.anchors.map(function (a) { 
+      return a.end;
+    }).sort(function (a, b) {
+      return a - b;
+    });
+    for (var i = 0; i < ends.length; i++) {
+      if (mode === 'after') {
+        if (ends[i] > time) {
+          return ends[i];
+        }
+      } else {
+        if (ends[i] >= time) { 
+          if (i === 0) {
+            return 0;
+          } else {
+            return ends[i - 1];
+          }
+        }
+      }
+    }
+    return mode === 'before' ? (ends.length > 0 ? ends[ends.length - 1]: 0)
+      : -1;
+  };
+
+  PropManager.prototype.getKeyFrame = function (time) {
+    if (typeof time !== 'number') {
+      throw new Error('Time must be a number!');
+    }
+    if (isNaN(time)) {
+      throw new Error('Time cannot be NaN!');
+    }
+    for (var i = 0; i < this.anchors.length; i++) {
+      if (this.anchors[i].start < time && this.anchors[i].end >= time) {
+        return this.anchors[i];
+      }
+    }
+    return null;
   };
 
   PropManager.prototype.createKeyFrame = function (start, end) {

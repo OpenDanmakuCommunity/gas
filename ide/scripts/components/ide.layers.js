@@ -24,11 +24,19 @@ var LayerManager = (function () {
       downBtn,
       _Create('div', {'className': 'clearfix'})
     ]);
-    this._layers[name] = {
+    var layerItem = {
+      'layerName': name,
       'listItem': listItem,
       'label': label
     };
+    this._layers[name] = layerItem;
     this._layerList.appendChild(listItem);
+    upBtn.addEventListener('mousedown', function () {
+      P.emit('layers.btn.layerUp', layerItem.layerName);
+    });
+    downBtn.addEventListener('mousedown', function () {
+      P.emit('layers.btn.layerDown', layerItem.layerName);
+    });
   };
 
   LayerManager.prototype._removeLayerItem = function (P, name) {
@@ -41,6 +49,7 @@ var LayerManager = (function () {
   LayerManager.prototype._renameLayerItem = function (P, oldName, newName) {
     this._layers[newName] = this._layers[oldName];
     delete this._layers[oldName];
+    this._layers[newName].layerName = newName;
     this._layers[newName].label.innerText = newName;
   };
 
@@ -58,11 +67,13 @@ var LayerManager = (function () {
       downBtn,
       _Create('div', {'className': 'clearfix'})
     ]);
-    this._mapping[name] = {
+    var itemMapping = {
+      'itemName': name,
       'listItem': listItem,
       'label': label,
       'layer': layer
     };
+    this._mapping[name] = itemMapping;
     P.bind(listItem, 'mousedown', 'layers.object.' + name + '.click');
     var objectAfter = LayerTools.objectLower(name, 'default');
 
@@ -70,6 +81,12 @@ var LayerManager = (function () {
       this._layers[layer].listItem.nextSibling :
         this._mapping[objectAfter].listItem;
     this._layerList.insertBefore(listItem, listItemAfter);
+    upBtn.addEventListener('mousedown', function () {
+      P.emit('layers.btn.objectUp', itemMapping.itemName);
+    });
+    downBtn.addEventListener('mousedown', function () {
+      P.emit('layers.btn.objectDown', itemMapping.itemName);
+    });
   };
 
   LayerManager.prototype._removeMapping = function (P, name) {
@@ -83,6 +100,7 @@ var LayerManager = (function () {
     this._mapping[newName] = this._mapping[oldName];
     delete this._mapping[oldName];
     // Rename the label
+    this._mapping[newName].itemName = newName;
     this._mapping[newName].label.innerText = newName;
 
     // Change all the event bindings
@@ -182,6 +200,35 @@ var LayerManager = (function () {
           }
         });
       }).bind(this), Promise.resolve()).then(P.next(e));
+    }).bind(this));
+    
+    P.listen('layers.btn.objectUp', (function (objectName) {
+      var higher = LayerTools.objectHigher(objectName,
+        this._mapping[objectName].layer);
+      if (higher === null) {
+        return Promise.resolve(objectName);
+      }
+      return P.emit('objects.reflow', {
+        'source': objectName,
+        'sourceLayer': this._mapping[objectName].layer,
+        'target': LayerTools.objectHigher(higher,
+          this._mapping[objectName].layer),
+        'targetLayer': this._mapping[objectName].layer,
+      });
+    }).bind(this));
+    P.listen('layers.btn.objectDown', (function (objectName) {
+      var lower = LayerTools.objectLower(objectName,
+        this._mapping[objectName].layer);
+      if (lower === null) {
+        return Promise.resolve(objectName);
+      } else {
+        return P.emit('objects.reflow', {
+          'source': objectName,
+          'sourceLayer': this._mapping[objectName].layer,
+          'target': lower,
+          'targetLayer': this._mapping[objectName].layer,
+        }).then(P.next(objectName));
+      }
     }).bind(this));
   };
 

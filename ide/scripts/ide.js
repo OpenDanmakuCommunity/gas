@@ -41,7 +41,9 @@
     var playback = new Playback(T, {
         'playBtn': $('playback-play-pause'),
         'stopBtn': $('playback-stop'),
-        'recBtn': $('playback-rec')
+        'recBtn': $('playback-rec'),
+        'ffBtn': $('playback-ff-pin'),
+        'rwBtn': $('playback-rw-pin'),
       }, {
         'ruler': $('ruler'),
         'slider': $('slider'),

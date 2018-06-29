@@ -94,6 +94,7 @@ var TimelineManager = (function () {
     P.listen('track.' + name + '.pin.' + pin.name + '.click', (function (e) {
       var idx = {
         'pin': pin.name,
+        'time': pin.end,
         'track': name
       };
       var selection = null;
@@ -283,7 +284,7 @@ var TimelineManager = (function () {
   TimelineManager.prototype._rescaleTracks = function (duration) {
     for (var track in this._tracks) {
       this._tracks[track].row.style.width = (this._playback.offsetTimeToPixels(
-        this._playback.duration()) + this.trackBuffer) + 'px';
+        this._playback.getDuration()) + this.trackBuffer) + 'px';
     }
   };
 
@@ -311,6 +312,7 @@ var TimelineManager = (function () {
 
     P.listen('timeline.pins.select', (function (selection) {
       this._setSelectedPins(selection);
+      P.emit('timeline.pins.selected', selection);
       return selection;
     }).bind(this));
   };

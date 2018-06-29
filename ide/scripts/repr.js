@@ -122,12 +122,14 @@ var ReprTools = new function() {
   };
 
   /** Timeline and animation related **/
-  this.duration = function () {
+  this.getDuration = function () {
     return Repr.workspace.metadata.animation.duration;
   };
-  this.getKeyFrames = function (objName) {
-    // Figure out the key frame for an object
-    return;
+  this.setDuration = function (duration) {
+    if (typeof duration !== 'number' || isNaN(duration)) {
+      throw new Error('Duration must be a non-NaN number!');
+    }
+    Repr.workspace.metadata.animation.duration = duration;
   };
 
   /** Workspace related **/

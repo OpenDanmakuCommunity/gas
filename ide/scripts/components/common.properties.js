@@ -17,10 +17,6 @@ var Properties = (function () {
       'font.orientation', 'font.color', 'content', 'interaction']
   };
 
-  var COLOR_EASABLE = [
-    'font.color'
-  ];
-
   var PARAMETERS = {
     'select': ['values'],
     'number': ['min', 'max', 'step'],
@@ -28,18 +24,28 @@ var Properties = (function () {
     'color': []
   };
 
-  var EASABLE_PROPERTIES = [
-    'position.x',
-    'position.y',
-    'size.width',
-    'size.height',
-    'transform.scale',
-    'transform.rotX',
-    'transform.rotY',
-    'transform.rotZ',
-    'opacity',
-    'font.size'
+  var DEFAULT_EASING = [
+    'linear',
+    'quadriatic',
+    'cubic',
+    'circular',
+    'sine',
+    'exponential'
   ];
+
+  var EASABLE_PROPERTIES = {
+    'position.x': DEFAULT_EASING,
+    'position.y': DEFAULT_EASING,
+    'size.width': DEFAULT_EASING,
+    'size.height': DEFAULT_EASING,
+    'transform.scale': DEFAULT_EASING,
+    'transform.rotX': DEFAULT_EASING,
+    'transform.rotY': DEFAULT_EASING,
+    'transform.rotZ': DEFAULT_EASING,
+    'opacity': DEFAULT_EASING,
+    'font.size': DEFAULT_EASING,
+    'font.color': ['rgb:linear', 'hsv:linear']
+  };
 
   var SPECS = {
     'position.x': {
@@ -196,6 +202,16 @@ var Properties = (function () {
     intersection.forEach(function (prop) {
       base.push(prop);
     });
+    return base;
+  }
+
+  Properties.prototype.getAvailableEasing = function (propName) {
+    var base = ['none'];
+    if (propName in EASABLE_PROPERTIES) {
+      for (var i = 0; i < EASABLE_PROPERTIES[propName].length; i++) {
+        base.push(EASABLE_PROPERTIES[propName][i]);
+      }
+    }
     return base;
   }
 
