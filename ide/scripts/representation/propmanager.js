@@ -260,7 +260,7 @@ var PropManager = (function () {
     } else {
       // Update the pin in time
       if (typeof easing !== 'string' || easing === null) {
-        easing = 'linear';
+        easing = 'none';
       }
       if (!(easing in this.anchors[index].spec)) {
         this.anchors[index].spec[easing] = {};

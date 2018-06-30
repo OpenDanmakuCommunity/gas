@@ -7,11 +7,16 @@ var AnimationManager = (function () {
       'step': 1
     },
   };
+  var ANIMATION_GLOBAL_NOTIFY = {
+    'global.duration': 'timeline.duration.set'
+  }
   var AnimationManager = function (animationWindow, animationInner) {
     this._window = animationWindow;
     this._inner = animationInner;
     this._fields = {};
     this._visible = [];
+    
+    this._selectedPins = [];
   };
 
   AnimationManager.prototype._buildField = function (P, propertyName, spec, show) {
@@ -43,8 +48,30 @@ var AnimationManager = (function () {
     });
   };
 
-  AnimationManager.prototype._collectiveValues = function (items, prop) {
-    return 'none';
+  AnimationManager.prototype._updateAnimationSettings = function (pins, change) {
+    for (var i = 0; i < pins.length; i++) {
+      var key = ReprTools.getObject(pins[i].track)._pm.getKeyFrame(pins[i].end);
+      var originalEasing = null;
+      for (var easing in key.spec) {
+        if (change.propertyName in key.spec[easing]) {
+          originalEasing = easing;
+          break;
+        }
+      }
+      // Found the source easing, maybe
+      if (originalEasing === null) {
+        continue; // Does not apply to this pin
+      }
+      if (originalEasing === change.value) {
+        continue; // Already set to correct value
+      }
+      if (!(change.value in key.spec)) {
+        key.spec[change.value] = {};
+      }
+      key.spec[change.value][change.propertyName] =
+        key.spec[originalEasing][change.propertyName];
+      delete key.spec[originalEasing][change.propertyName];
+    }
   };
 
   AnimationManager.prototype._updateAnimationPropertiesList = function (pins) {
@@ -87,8 +114,27 @@ var AnimationManager = (function () {
     }).bind(this));
 
     // Listen for the object selection events to adjust the fields shown
-    P.listen('timeline.pins.selected.change', (function (items) {
-      return P.emit('animation.properties.load', items).then(P.next(items));
+    P.listen('timeline.pins.selected', (function (items) {
+      this._selectedPins = items;
+      return P.emit('animation.properties.load').then(P.next(items));
+    }).bind(this));
+    P.listen('object.setProperty', (function (e) {
+      P.emit('animation.properties.load');
+      return e;
+    }).bind(this));
+  };
+
+  AnimationManager.prototype._bindSettingChangeEvents = function (P) {
+    P.listen('animation.setting.change', (function (change) {
+      if (change.propertyName in ANIMATION_GLOBAL_NOTIFY) {
+        // This is a global setting
+        return P.emit(ANIMATION_GLOBAL_NOTIFY[change.propertyName],
+            change.value).then(P.next(change));
+      } else {
+        // Hmm
+        this._updateAnimationSettings(this._selectedPins, change);
+        return change;
+      }
     }).bind(this));
   };
 
@@ -104,12 +150,12 @@ var AnimationManager = (function () {
       }, false);
     }).bind(this));
 
-    P.listen('animation.properties.load', (function (pins) {
-      this._updateAnimationPropertiesList(pins);
-      return pins;
+    P.listen('animation.properties.load', (function () {
+      this._updateAnimationPropertiesList(this._selectedPins);
     }).bind(this));
 
     this._bindPinEvents(P);
+    this._bindSettingChangeEvents(P);
   };
 
   return AnimationManager;

@@ -94,7 +94,7 @@ var TimelineManager = (function () {
     P.listen('track.' + name + '.pin.' + pin.name + '.click', (function (e) {
       var idx = {
         'pin': pin.name,
-        'time': pin.end,
+        'end': pin.end,
         'track': name
       };
       var selection = null;
@@ -314,6 +314,10 @@ var TimelineManager = (function () {
       this._setSelectedPins(selection);
       P.emit('timeline.pins.selected', selection);
       return selection;
+    }).bind(this));
+
+    P.listen('timeline.pins.notify.selected', (function () {
+      P.emit('timeline.pins.selected', this._selectedPins);
     }).bind(this));
   };
 

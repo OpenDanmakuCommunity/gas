@@ -26,7 +26,7 @@ var Properties = (function () {
 
   var DEFAULT_EASING = [
     'linear',
-    'quadriatic',
+    'quadratic',
     'cubic',
     'circular',
     'sine',
