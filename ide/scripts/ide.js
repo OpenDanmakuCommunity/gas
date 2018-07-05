@@ -52,12 +52,22 @@
     playback.bind(P);
 
     var saveLoad = new SaveLoad({
+      'gas': $('io-import-gas'),
+    }, {
       'gas': $('io-export-gas'),
       'mode7': $('io-export-mode7'),
       'bas': $('io-export-bas'),
       'htmlcss': $('io-export-htmlcss')
     }, {
-      'gas': $('io-import-gas'),
+      'container': $('import-ui'),
+      'prompt': $('import-ui-prompt'),
+      'progress': $('import-ui-progress'),
+      'progressBar': $('import-ui-progress-bar'),
+      'progressLabel': $('import-ui-progress-label'),
+      'btnCancel': $('import-ui-btn-cancel'),
+      'btnImport': $('import-ui-btn-import')
+    }, {
+      
     });
     saveLoad.bind(P);
 

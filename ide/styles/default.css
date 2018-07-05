@@ -84,24 +84,44 @@ select:invalid {
  bottom: 0;
  left: 0;
  right: 0;
- opacity: 0.8;
+ opacity: 0.7;
 }
-
-.modal-group > .modal {
+.modal-group > .modal,
+.modal-group > .modal-top,
+.modal-group > .modal-bottom {
   position: absolute;
-  top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
   width: 360px;
   height: 240px;
   padding: 10px;
   margin: auto;
   background-color: #262626;
+  border: 1px #72DEC9 solid;
+  color: #ffffff;
   z-index: 9999;
+}
+.modal-group > .modal {
+  top: 0;
+  bottom: 0;
+}
+.modal-group > .modal-top {
+  top: 10%;
+}
+.modal-group > .modal-bottom {
+  bottom: 10%;
+}
+.modal-group h1, 
+.modal-group h2,
+.modal-group h3 {
+  color: #72DEC9;
 }
 .modal-group.error > .modal {
   border: 1px #d02626 solid;
+}
+.modal-group.error h1, 
+.modal-group.error h2,
+.modal-group.error h3 {
   color: #d02626;
 }
 .modal-group.error > .overlay {
@@ -115,7 +135,90 @@ select:invalid {
   );
 }
 
+/** Buttons **/
+.button {
+  cursor: pointer;
+  border: 1px #323232 solid;
+  user-select: none;
+}
+.button:hover {
+  background-color: #636363;
+  color: #323232;
+}
+.button.selected {
+  color: #72DEC9;
+  border: 1px #72DEC9 solid;
+}
+.button:focus {
+  border: 1px #72DEC9 dashed;
+  outline: none;
+}
+.button.btn-padded {
+  padding: 10px;
+}
 
+.checkerboard, #canvas.checkered {
+  background-image: url('checkerboard.png');
+  background-repeat: repeat;
+}
+
+/** Progress bars **/
+div.progress {
+  height: 20px;
+  overflow: hidden;
+  background-color: #363636;
+}
+div.progress div.bar {
+  height: 20px;
+  left: 0px;
+  top: 0px;
+  background-color: #72DEC9;
+}
+
+/** Mini-window **/
+.mini-window {
+  overflow: hidden;
+  position: relative;
+}
+.mini-window > h1:first-child {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  font-size: 1em;
+  background-color: #363636;
+  color: #72DEC9;
+  padding: 10px;
+  height: 18px;
+  cursor: pointer;
+  user-select: none;
+}
+.mini-window > .body {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+}
+.mini-window.collapse {
+  height: 40px !important;
+  background-color: #72DEC9;
+}
+.mini-window.collapse > .body {
+  display: none;
+}
+
+/** MODALS **/
+#import-ui {
+}
+#import-ui-textarea {
+  display: block;
+  min-height: 150px;
+  width: 100%;
+}
+
+/** LAYOUT **/
 #left, #center, #right {
   position: fixed;
   top: 1px;
@@ -161,64 +264,6 @@ select:invalid {
   position: absolute;
   overflow-y: auto;
   overflow-x: hidden;
-}
-
-/** General **/
-.button {
-  cursor: pointer;
-  border: 1px #323232 solid;
-  user-select: none;
-}
-.button:hover {
-  background-color: #636363;
-  color: #323232;
-}
-.button.selected {
-  color: #72DEC9;
-  border: 1px #72DEC9 solid;
-}
-.button:focus {
-  border: 1px #72DEC9 dashed;
-  outline: none;
-}
-
-.checkerboard, #canvas.checkered {
-  background-image: url('checkerboard.png');
-  background-repeat: repeat;
-}
-
-/** Mini-window **/
-.mini-window {
-  overflow: hidden;
-  position: relative;
-}
-.mini-window > h1:first-child {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  font-size: 1em;
-  background-color: #363636;
-  color: #72DEC9;
-  padding: 10px;
-  height: 18px;
-  cursor: pointer;
-  user-select: none;
-}
-.mini-window > .body {
-  position: absolute;
-  top: 38px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: auto;
-}
-.mini-window.collapse {
-  height: 40px !important;
-  background-color: #72DEC9;
-}
-.mini-window.collapse > .body {
-  display: none;
 }
 
 /** Timeline Related **/

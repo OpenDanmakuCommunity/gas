@@ -56,8 +56,31 @@
 			</div>
 		</div>
 	</noscript>
+	<!-- Below is for the import UI -->
+	<div id="import-ui" class="modal-group" style="display: none;">
+		<div class="overlay"></div>
+		<div id="import-ui-prompt" class="modal" style="width: 640px; height: 360px; display: none;">
+			<h2>Import File</h2>
+			<p>
+				Please select a file:<br><br>
+				<input type="file" id="import-ui-file" accept=".txt,.json,.gascript"/>
+			</p>
+			<p>
+				Or paste the contents here:<br><br>
+				<textarea id="import-ui-textarea"></textarea>
+			</p>
+			<div id="import-ui-btn-cancel" class="button btn-padded pull-right">Cancel</div>
+			<div id="import-ui-btn-import" class="button btn-padded pull-right">Import</div>
+		</div>
+		<div id="import-ui-progress" class="modal-bottom" style="width: 360px; height: 60px; display: none;">
+				<p>Importing <span id="import-ui-progress-label">...</span></p>
+				<div class="progress">
+					<div id="import-ui-progress-bar" class="bar" style="width: 0%"></div>
+				</div>
+		</div>
+	</div>
   <div id="left" class="container" draggable="false">
-		<div id="toolbox" class="mini-window" style="height: 360px;">
+		<div id="toolbox" class="mini-window" style="height: 306px;">
 			<h1>Toolbox</h1>
 			<div class="body">
 				<div id='tool-select' class="tool-icon cursor button" tabindex="0" role="button" title="Select Tool"></div>
@@ -76,7 +99,7 @@
 				<div id='order-down' class="tool-icon move-down button" tabindex="1" role="button" title="Move Down"></div>
 			</div>
 		</div>
-		<div id="playback" class="mini-window" style="height: 200px;">
+		<div id="playback" class="mini-window" style="height: 170px;">
 			<h1>Playback</h1>
 			<div class="body">
 				<div id='playback-play-pause' class="tool-icon play button" tabindex="1" role="button" title="Play/Pause"></div>
