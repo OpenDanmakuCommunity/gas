@@ -165,6 +165,15 @@ var GSprite = (function () {
     _ToggleClass(this.DOM, 'item-focus', hasFocus);
   };
 
+  /** Functions to serialize everything **/
+  GSprite.prototype.serialize = function () {
+    var data = {
+      'type': this.type
+    };
+    this._pm.serializeBase(data);
+    return data;
+  };
+
   /** Below are edit functions **/
   GSprite.prototype.setProperty = function (time, propName, value) {
     this._pm.saveProp(time, propName, value);

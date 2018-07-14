@@ -10,7 +10,7 @@ var Editor = (function () {
       'opacity': 1,
       'visible': 'true',
       'font.decoration': ['outline'],
-      'font.color': 0xffffff,
+      'font.color': Primitives.Color.fromNumber(0xffffff),
       'font.orientation': 'horizontal-tb',
       'content': '(Text Here)',
     },
@@ -40,7 +40,7 @@ var Editor = (function () {
       'opacity': 1,
       'visible': 'true',
       'font.decoration': ['outline'],
-      'font.color': 0xffffff,
+      'font.color': Primitives.Color.fromNumber(0xffffff),
       'font.orientation': 'horizontal-tb',
       'content': 'Button Label',
     },
@@ -57,23 +57,6 @@ var Editor = (function () {
       'visible': 'true',
     },
   }
-
-  var _deepCopy = function (obj) {
-    if (Array.isArray(obj)) {
-      return obj.slice(0).map(function (item) {
-        return _deepCopy(item);
-      });
-    }
-    if (typeof obj === 'number' || typeof obj === 'string' ||
-      typeof obj === 'boolean' || obj === null) {
-      return obj;
-    }
-    var newObj = {};
-    for (var key in obj) {
-      newObj[key] = _deepCopy(obj[key]);
-    }
-    return newObj;
-  };
 
   /*** START EDITOR CLASS ***/
   var Editor = function (timer, workArea, canvas, workAreaConfigButtons) {
@@ -154,9 +137,9 @@ var Editor = (function () {
               this._selectBox = null;
             }
             this._selectBox = {
-              'position': this._translateOffsets(e.event.clientX,
+              'anchor': this._translateOffsets(e.event.clientX,
                 e.event.clientY),
-              'size': null,
+              'drag': null,
               'DOM': null,
             }
           }).bind(this)).then(this.P.next(e));
@@ -267,24 +250,30 @@ var Editor = (function () {
     if (this.selectedTool === 'select') {
       if (this._selectBox !== null) {
         // Draw a select box
-        this._selectBox.size = {
-          'width': Math.max(currentPosition.x - this._selectBox.position.x, 1),
-          'height': Math.max(currentPosition.y - this._selectBox.position.y, 1),
+        this._selectBox.drag = {
+          'x': currentPosition.x,
+          'y': currentPosition.y,
         }
+        var tx = Math.min(this._selectBox.drag.x, this._selectBox.anchor.x);
+        var ty = Math.min(this._selectBox.drag.y, this._selectBox.anchor.y);
+        var bx = Math.max(this._selectBox.drag.x, this._selectBox.anchor.x);
+        var by = Math.max(this._selectBox.drag.y, this._selectBox.anchor.y);
         if (this._selectBox.DOM === null) {
           this._selectBox.DOM = _Create('div', {
             'className': 'selection',
             'style': {
-              'top':  this._selectBox.position.y + 'px',
-              'left': this._selectBox.position.x + 'px',
-              'width': this._selectBox.size.width + 'px',
-              'height': this._selectBox.size.height + 'px'
+              'top':  ty + 'px',
+              'left': tx + 'px',
+              'width': (bx - tx) + 'px',
+              'height': (by - ty) + 'px'
             }
           });
           this._workArea.appendChild(this._selectBox.DOM);
         } else {
-          this._selectBox.DOM.style.width = this._selectBox.size.width + 'px';
-          this._selectBox.DOM.style.height = this._selectBox.size.height + 'px';
+          this._selectBox.DOM.style.top =  ty + 'px';
+          this._selectBox.DOM.style.left =  tx + 'px';
+          this._selectBox.DOM.style.width =  (bx - tx) + 'px';
+          this._selectBox.DOM.style.height = (by - ty) + 'px';
         }
         return e;
       } else if (this._movingStart !== null) {

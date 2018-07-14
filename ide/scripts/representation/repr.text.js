@@ -151,7 +151,7 @@ var GText = (function () {
         }
         break;
       case 'content':
-        this.DOM.innerText = newValue.replace('\\n', '\n');
+        this.DOM.innerText = newValue.replace(new RegExp('\\\\n', 'g'), '\n');
         break;
       default:
         console.warn('Property ' + propertyName + ' changed to ' + newValue +
@@ -180,6 +180,15 @@ var GText = (function () {
 
   GText.prototype.setFocus = function (hasFocus) {
     _ToggleClass(this.DOM, 'item-focus', hasFocus);
+  };
+
+  /** Functions to serialize everything **/
+  GText.prototype.serialize = function () {
+    var data = {
+      'type': this.type
+    };
+    this._pm.serializeBase(data);
+    return data;
   };
 
   /** Below are edit functions **/

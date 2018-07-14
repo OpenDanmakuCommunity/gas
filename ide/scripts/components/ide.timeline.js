@@ -280,7 +280,6 @@ var TimelineManager = (function () {
     this._removeBinding(name);
   };
 
-
   TimelineManager.prototype._rescaleTracks = function (duration) {
     for (var track in this._tracks) {
       this._tracks[track].row.style.width = (this._playback.offsetTimeToPixels(

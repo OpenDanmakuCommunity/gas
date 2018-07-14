@@ -8,9 +8,13 @@ var GFactory = new function () {
       case 'Button':
         return new GButton(name, spec);
       case 'Sprite':
+      case 'SVGSprite':
+      case 'AnimatedSprite':
+      case 'BinarySprite':
         return new GSprite(name, spec);
       default:
-        throw new Error('Spec had type ' + spec.type + ' but it was not recognized.');
+        throw new Error('Spec had type ' + spec.type +
+          ' but it was not recognized.');
     }
   };
 };

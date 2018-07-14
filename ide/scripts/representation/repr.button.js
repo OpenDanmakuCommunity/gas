@@ -120,6 +120,9 @@ var GButton = (function () {
       case 'visible':
         _ToggleClass(this.DOM, 'item-hidden', newValue === 'false');
         break;
+      case 'font.color':
+        this.DOM.style.color = newValue !== null ? newValue.toString() : '';
+        break;
       case 'font.family':
         this.DOM.style.fontFamily = newValue + '';
         break;
@@ -176,6 +179,15 @@ var GButton = (function () {
 
   GButton.prototype.setFocus = function (hasFocus) {
     _ToggleClass(this.DOM, 'item-focus', hasFocus);
+  };
+
+  /** Functions to serialize everything **/
+  GButton.prototype.serialize = function () {
+    var data = {
+      'type': this.type
+    };
+    this._pm.serializeBase(data);
+    return data;
   };
 
   /** Below are edit functions **/

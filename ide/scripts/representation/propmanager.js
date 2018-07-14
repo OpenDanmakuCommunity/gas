@@ -41,22 +41,20 @@ var EasingFunctions = {
 };
 
 var PropManager = (function () {
-  var _deepCopy = function (obj) {
-    if (Array.isArray(obj)) {
-      return obj.slice(0).map(function (item) {
-        return _deepCopy(item);
-      });
+  var _setNested = function (object, nested, value) {
+    var nested = nested.slice(0);
+    var key = nested.shift();
+    if (nested.length === 0) {
+      object[key] = value;
+      return;
     }
-    if (typeof obj === 'number' || typeof obj === 'string' ||
-      typeof obj === 'boolean' || obj === null) {
-      return obj;
+    if (key in object) {
+      return _setNested(object[key], nested, value);
+    } else {
+      object[key] = {};
+      return _setNested(object[key], nested, value);
     }
-    var newObj = {};
-    for (var key in obj) {
-      newObj[key] = _deepCopy(obj[key]);
-    }
-    return newObj;
-  };
+  }
 
   var PropManager = function (base, anchorsInst, onChange) {
     // This is the base spec (0-th key frame)
@@ -336,6 +334,23 @@ var PropManager = (function () {
 
   PropManager.prototype.splitKeyFrame = function (intermediate) {
 
+  };
+
+  PropManager.prototype.serializeBase = function (src) {
+    var baseObj = (typeof src === 'object' && src !== null) ? src : {};
+    for (var keyName in this._baseSpec) {
+      if (typeof this._baseSpec[keyName].serialize === 'function') {
+        _setNested(baseObj, keyName.split('.'),
+          this._baseSpec[keyName].serialize());
+      } else {
+        _setNested(baseObj, keyName.split('.'), this._baseSpec[keyName]);
+      }
+    }
+    return baseObj;
+  };
+
+  PropManager.prototype.serialize = function () {
+    
   };
 
   return PropManager;

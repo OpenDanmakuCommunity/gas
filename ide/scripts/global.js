@@ -1,6 +1,23 @@
 /** Global Helpers **/
 var $ = function (e) { return document.getElementById(e);};
 
+var _deepCopy = function (obj) {
+  if (Array.isArray(obj)) {
+    return obj.slice(0).map(function (item) {
+      return _deepCopy(item);
+    });
+  }
+  if (typeof obj === 'number' || typeof obj === 'string' ||
+    typeof obj === 'boolean' || obj === null) {
+    return obj;
+  }
+  var newObj = {};
+  for (var key in obj) {
+    newObj[key] = _deepCopy(obj[key]);
+  }
+  return newObj;
+};
+
 var _Create = function (type, props, children, callback) {
 	var elem = null;
 	if (type === "text") {

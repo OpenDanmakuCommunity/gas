@@ -2,6 +2,30 @@ var SaveLoad = (function () {
   var EXPORT_FORMATS = ['gas', 'mode7', 'bas', 'htmlcss'];
   var IMPORT_FORMATS = ['gas'];
 
+  var _flattenObject = function (object, excludeKeys) {
+    var flat = {};
+    var exclude = Array.isArray(excludeKeys) ? excludeKeys.slice(0) : [];
+    for (var key in object) {
+      if (typeof object[key] === 'string' || typeof object[key] === 'number' ||
+        typeof object[key] === 'boolean' || object[key] === null ||
+        exclude.indexOf(key) >= 0) {
+        flat[key] = object[key];
+      } else if (typeof object[key] === 'undefined') {
+        // Do nothing
+      } else if (typeof object[key] === 'object') {
+        if (Array.isArray(object[key])) {
+          flat[key] = object[key].slice(0);
+        } else {
+          var flattened = _flattenObject(object[key]);
+          for (var flatkey in flattened) {
+            flat[key + '.' + flatkey] = flattened[flatkey];
+          }
+        }
+      }
+    }
+    return flat;
+  };
+
   var Importer = function (spec, P, reporter) {
     this._spec = spec;
     this._P = P;
@@ -35,6 +59,17 @@ var SaveLoad = (function () {
     if (this._objQueue.length > 0) {
       var objName = this._objQueue.shift();
       this._progress += 1;
+      var obj = this._spec.objects[objName];
+      // Flatten the object
+      var objSpec = _flattenObject(obj, ['content']);
+      // Fix the color
+      if ('font.color' in objSpec) {
+        objSpec['font.color'] = Primitives.Color.from(objSpec['font.color']);
+      }
+      this._P.emit('objects.add', {
+        'name': objName,
+        'spec': objSpec
+      });
       return objName;
     } else if (this._layerQueue.length > 0) {
       
@@ -57,6 +92,64 @@ var SaveLoad = (function () {
     }).bind(this), 100);
   };
 
+  var Exporter = function (format) {
+      this._format = format;
+  };
+
+  Exporter.prototype.exportGasScript = function () {
+    var base = {
+      'objects': {},
+      'layers': [],
+      'animation': {},
+      'metadata': {}
+    };
+    // Populate the objects
+    ReprTools.allObjectNames().forEach(function (objName) {
+      base.objects[objName] = ReprTools.getObject(objName).serialize();
+    });
+    // Populate the layers
+    LayerTools.allLayerNamesOrdered().forEach(function (layerName) {
+      base.layers.push({
+        'name': layerName,
+        'components': LayerTools.getLayer(layerName).components.slice(0)
+      });
+    });
+    // Populate the animations
+    // TODO: Write this
+    // Populate the metadata
+    base.metadata = _deepCopy(Repr.workspace.metadata);
+    return base;
+  };
+
+  Exporter.prototype.exportBasScript = function () {
+    // First get the GAS Script
+    var raw = this.exportGasScript();
+    return BasTranslator.toBas(raw);
+  };
+
+  Exporter.prototype.export = function () {
+    switch(this._format) {
+      case 'mode7':
+      case 'htmlcss':
+        throw new Error('Not implemented');
+      case 'bas':
+        return this.exportBasScript();
+      case 'gas':
+      default:
+        return JSON.stringify(this.exportGasScript());
+    }
+  };
+
+  Exporter.prototype.name = function () {
+    var extension = '.txt';
+    if (this._format === 'mode7') {
+      extension = '.xml';
+    } else if (this._format === 'htmlcss') {
+      extension = '.html';
+    }
+    return 'exported-' + this._format + '-' + Date.now() + extension;
+  };
+
   var SaveLoad = function (importButtons, exportButtons, modalImport, modalExport) {
     this._importButtons = importButtons;
     this._exportButtons = exportButtons;
@@ -76,6 +169,9 @@ var SaveLoad = (function () {
           return function () {
             return P.emit('import.prompt', {
             'type': format
+          }).catch(function (e) {
+            console.error(e);
+            alert(e);
           });
         };
       })(this, IMPORT_FORMATS[i]));
@@ -85,29 +181,54 @@ var SaveLoad = (function () {
       this._modalImport.prompt.style.display = '';
       return format;
     }).bind(this));
+    
+    // Bind to stuff in the prompt
+    var _importCache = null;
+    P.bind(this._modalImport.filePicker, 'change', 'import.prompt.pick');
+    P.listen('import.prompt.pick', (function (e) {
+      var files = e.event.target.files;
+      if (files.length > 0) {
+        // Disable the text area
+        this._modalImport.textArea.setAttribute('disabled', 'disabled');
+      } else {
+        this._modalImport.textArea.deleteAttribute('disabled');
+      }
+      var fr = new FileReader();
+      fr.addEventListener('load', function (event) {
+        _importCache = event.target.result;
+      });
+      fr.addEventListener('error', function () {
+        _importCache = null;
+      })
+      fr.readAsText(files[0]);
+      return e;
+    }).bind(this));
+    P.bind(this._modalImport.textArea, 'change', 'import.prompt.entry');
+    P.listen('import.prompt.entry', (function (e) {
+      _importCache = this._modalImport.textArea.value;
+      return e;
+    }).bind(this));
+
+    // Bind to bottom buttons in prompt
     P.bind(this._modalImport.btnCancel, 'click', 'import.prompt.cancel');
     P.listen('import.prompt.cancel', (function (e) {
       this._modalImport.container.style.display = 'none';
       this._modalImport.prompt.style.display = 'none';
       return e;
     }).bind(this));
-
     P.bind(this._modalImport.btnImport, 'click', 'import.prompt.start');
     P.listen('import.prompt.start', (function (e) {
       this._modalImport.container.style.display = '';
       this._modalImport.prompt.style.display = 'none';
       this._modalImport.progress.style.display = '';
-      return P.emit('import.start', {
-        'objects': {
-          'foo': {},
-          'bar': {},
-          'baz': {},
-          'baza': {},
-          'bazb': {},
-          'bazc': {},
-          'bazd': {},
-        }
-      }).then(P.next(e));
+      try {
+        var data = JSON.parse(_importCache);
+        return P.emit('import.start', data).then(P.next(e));
+      }
+      catch (e) {
+        alert('Malformed input file!');
+        return e;
+      }
     }).bind(this));
   };
 
@@ -119,11 +240,22 @@ var SaveLoad = (function () {
         return function () {
             return P.emit('export.prompt', {
             'type': format
+          }).catch(function (e) {
+            console.error(e);
+            alert(e);
           });
         };
       })(this, EXPORT_FORMATS[i]));
     }
     P.listen('export.prompt', (function (format) {
+      var exporter = new Exporter(format.type);
+      var data = exporter.export();
+      var blob = new Blob([data], {type: 'text/plain'});
+      var a = _Create('a', {
+        'href': URL.createObjectURL(blob),
+        'download': exporter.name()
+      });
+      a.click();
       return format;
     }).bind(this));
   };

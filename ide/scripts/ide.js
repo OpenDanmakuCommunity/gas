@@ -65,7 +65,9 @@
       'progressBar': $('import-ui-progress-bar'),
       'progressLabel': $('import-ui-progress-label'),
       'btnCancel': $('import-ui-btn-cancel'),
-      'btnImport': $('import-ui-btn-import')
+      'btnImport': $('import-ui-btn-import'),
+      'filePicker': $('import-ui-file'),
+      'textArea': $('import-ui-textarea'),
     }, {
       
     });

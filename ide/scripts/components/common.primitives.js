@@ -19,6 +19,7 @@ var Primitives = (function () {
     this.r = (rgb>>16) &0x0ff;
     this.g = (rgb>>8)  &0x0ff;
     this.b = (rgb)     &0x0ff;
+    this.a = 1;
   };
 
   Color.prototype.fromString = function (rgbStr) {
@@ -67,6 +68,31 @@ var Primitives = (function () {
     }
   };
 
+  Color.prototype.serialize = function () {
+    return this.toNumber();
+  };
+
+  Color.fromNumber = function (num) {
+    var color = new Color();
+    color.fromNumber(num);
+    return color;
+  };
+
+  Color.fromString = function (str) {
+    var color = new Color();
+    color.fromString(str);
+    return color;
+  };
+
+  Color.from = function (thing) {
+    if (typeof thing === 'string') {
+      return Color.fromString(thing);
+    } else if (typeof thing === 'number') {
+      return Color.fromNumber(thing);
+    } else {
+      throw new Error('Unknown color format');
+    }
+  };
 
   Primitives.Color = Color;
   return Primitives;

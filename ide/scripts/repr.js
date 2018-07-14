@@ -212,10 +212,12 @@ var ReprTools = new function() {
     }
     return names;
   };
-
 }
 
 var LayerTools = new function () {
+  this.allLayerNamesOrdered = function () {
+    return Repr.workspace.layers.order.slice(0);
+  }
   this.layerExists = function (name) {
     return name in Repr.workspace.layers.defs;
   };
