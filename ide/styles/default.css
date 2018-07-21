@@ -40,11 +40,15 @@ select:invalid {
   color: #ED5276;
 }
 
+.clickable, .clickable > * {
+  cursor: pointer;
+}
+
 .pull-left {
-  float: left;
+  float: left !important;
 }
 .pull-right {
-  float: right;
+  float: right !important;
 }
 .clearfix {
   clear: both;
@@ -509,11 +513,17 @@ div.progress div.bar {
   padding: 10px;
   border-bottom: 1px #636363 dotted;
 }
+.input-group > .onhover {
+  display: none;
+}
 .input-group:hover,
 .image-group:hover,
 .fixed-group:hover {
   background-color: #424242;
   color: #72DEC9;
+}
+.input-group:hover > .onhover {
+  display: block;
 }
 .input-group:hover > label,
 .fixed-group:hover > label,
@@ -526,6 +536,13 @@ div.progress div.bar {
 .input-group:hover > .tuple > select {
   background-color: #363636;
 }
+
+.input-group > .button,
+.fixed-group > .button {
+  margin-top: 6px;
+  padding: 2px;
+}
+
 .fixed-group > .group-button,
 .input-group > .group-button {
   width: 14px;
@@ -538,7 +555,9 @@ div.progress div.bar {
   cursor: pointer;
 }
 .fixed-group > .group-button:hover,
-.input-group > .group-button:hover {
+.fixed-group > .button:hover,
+.input-group > .group-button:hover,
+.input-group > .button:hover {
   background-color: #72DEC9;
   color:#424242;
 }
@@ -561,10 +580,18 @@ div.progress div.bar {
 .input-group > input,
 .input-group > textarea,
 .input-group > select,
+.input-group > .tuple,
 .fixed-group > input,
-.input-group > .tuple {
+.fixed-group > select {
   width: 64%;
   float: left;
+}
+.input-group:hover > .microtext {
+  font-size: 0.9em;
+  margin-top: 2px;
+  margin-left: 36%;
+  float: left;
+  user-select: none;
 }
 
 .input-group > .tuple > input,

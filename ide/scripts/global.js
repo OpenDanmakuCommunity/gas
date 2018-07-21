@@ -11,6 +11,9 @@ var _deepCopy = function (obj) {
     typeof obj === 'boolean' || obj === null) {
     return obj;
   }
+  if ('clone' in obj && typeof obj['clone'] === 'function') {
+    return obj.clone();
+  }
   var newObj = {};
   for (var key in obj) {
     newObj[key] = _deepCopy(obj[key]);

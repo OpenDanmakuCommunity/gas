@@ -72,6 +72,12 @@ var Primitives = (function () {
     return this.toNumber();
   };
 
+  Color.prototype.clone = function () {
+    var color = new Color();
+    color.fromRgba(this.r, this.g, this.b, this.a);
+    return color;
+  };
+
   Color.fromNumber = function (num) {
     var color = new Color();
     color.fromNumber(num);

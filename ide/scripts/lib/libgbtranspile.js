@@ -2,6 +2,11 @@
  * libGAS2BAS - exports GAS scripts to BAS
  */
 var BasTranslator = (function () {
+  var PROPERTIES = {
+    'text': ['content', 'x', 'y', 'anchorX', 'anchorY', 'color', 'fontSize', 'fontFamily', 'scale'],
+    'button': ['content'],
+    'path': [],
+  }
   var _timeToString = function (t) {
     var timeComponents = [];
     var units = ['ms', 's', 'm', 'h', 'd'];
@@ -47,15 +52,96 @@ var BasTranslator = (function () {
     }
   };
 
+  Script.prototype.copyProperties = function (properties, spec) {
+    var props = {};
+    if (!Array.isArray(properties)) {
+      return props;
+    }
+    for (var i = 0; i < properties.length; i++) {
+      switch(properties[i]) {
+        case 'content':
+          props['content'] = {
+              'type': 'string',
+              'value': spec['content'].toString()
+          };
+          break;
+        case 'anchorX':
+          if ('position' in spec && 'anchor' in spec.position &&
+            Array.isArray(spec.position.anchor)) {
+            props['anchorX'] = {
+              'type': 'number',
+              'value': spec.position.anchor[0]
+            };
+          }
+          break;
+        case 'anchorY':
+          if ('position' in spec && 'anchor' in spec.position &&
+            Array.isArray(spec.position.anchor)) {
+            props['anchorY'] = {
+              'type': 'number',
+              'value': spec.position.anchor[1]
+            };
+          }
+          break;
+        case 'x':
+          if ('position' in spec && 'x' in spec.position) {
+            props['x'] = {
+              'type': 'number', 
+              'value': spec.position.x
+            };
+          }
+          break;
+        case 'y':
+          if ('position' in spec && 'x' in spec.position) {
+            props['y'] = {
+              'type': 'number', 
+              'value': spec.position.y
+            };
+          }
+          break;
+        case 'color':
+          if ('font' in spec && 'color' in spec.font) {
+            props['color'] = {
+              'type': 'number', 
+              'value': spec.font.color
+            };
+          }
+          break;
+        case 'fontFamily':
+          if ('font' in spec && 'family' in spec.font) {
+            props['fontFamily'] = {
+              'type': 'string', 
+              'value': spec.font.family.toString()
+            };
+          }
+          break;
+        case 'fontSize':
+          if ('font' in spec && 'size' in spec.font) {
+            props['fontSize'] = {
+              'type': 'number', 
+              'value': spec.font.size
+            };
+          }
+          break;
+        default:
+          break; // Do nothing
+      }
+    }
+    return props;
+  };
+
   Script.prototype.fromGas = function (gasSpec) {
     this._gasSpec = gasSpec;
-    for (var objName in this._gasSpec) {
+    for (var objName in this._gasSpec['objects']) {
       try {
-        var type = this.typeToBas(this._gasSpec[objName].type);
+        var type = this.typeToBas(this._gasSpec['objects'][objName].type);
         this._basSpec.defs[objName] = {
           'type': type,
-          'properties': {}
+          'properties': this.copyProperties(
+            PROPERTIES[type],
+            this._gasSpec['objects'][objName])
         };
+        // Copy the properties
       } catch (e) {
         console.log(e);
       }
@@ -66,9 +152,12 @@ var BasTranslator = (function () {
     throw new Error('Not implemented');
   };
 
-  Script.prototype._outputDefProperties = function (obj) {
+  Script.prototype._outputDefProperties = function (obj, indent) {
     var propText = [];
-    for (var propName in obj) {
+    if (typeof indent !== 'number' || indent < 0) {
+      indent = 1;
+    }
+    for (var propName in obj.properties) {
       var prop = obj.properties[propName];
       switch (prop.type) {
         case 'number':
@@ -83,18 +172,33 @@ var BasTranslator = (function () {
           break;
         case 'named':
           propText.push(propName + ' = ' + prop.value.type + '{' + 
-            this._outputDefProperties(prop.value) + '}');
+            this._outputDefProperties(prop.value, indent + 1) + '}');
           break;
       }
     }
-    return propText.join('\n');
+    var prefix = '';
+    while(indent > 0) {
+      prefix += '  ';
+      indent --;
+    }
+    if (propText.length > 0) {
+      return propText.map(function (v) {return prefix + v;}).join('\n') + '\n';
+    } else {
+      return '';
+    }
+  };
+
+  Script.prototype.basVariableName = function (name) {
+    return name.replace(new RegExp('[^a-zA-Z0-9]', 'g'), '_');
   };
 
   Script.prototype.toBas = function () {
     var output = [];
-    for (var key in this._basSpec) {
-      var defData = 'def ' + this._basSpec[key].type + ' ' + key + ' {\n' +
-        this._outputDefProperties(this._basSpec[key]) + '}';
+    for (var key in this._basSpec.defs) {
+      var defData = 'def ' + this._basSpec.defs[key].type + ' ' + 
+        this.basVariableName(key) + ' {\n' +
+          this._outputDefProperties(this._basSpec.defs[key], 1) + 
+        '}';
       output.push(defData);
     }
     return output.join('\n');
@@ -109,6 +213,10 @@ var BasTranslator = (function () {
     
   };
   BasTranslator.toBas = function(spec) {
-    
+    var script = new Script();
+    script.fromGas(spec);
+    return script.toBas();
   };
+  
+  return BasTranslator;
 })();
