@@ -37,3 +37,11 @@
 .tool-icon.rec {
   background-image: url('icons/rec.png');
 }
+
+.tool-icon.rw {
+  background-image: url('icons/rw.png');
+}
+
+.tool-icon.ff {
+  background-image: url('icons/ff.png');
+}
