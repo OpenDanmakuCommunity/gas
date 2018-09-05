@@ -222,6 +222,19 @@ div.progress div.bar {
   width: 100%;
 }
 
+#commandline-ui {}
+#commandline-ui-prompt {
+  width: 640px;
+  height: 60px;
+}
+#commandline-ui-prompt input[type="text"] {
+  font-family: monospace;
+  width: 95%;
+  height: 100%;
+  padding: 0 2.5% 0 2.5%;
+  font-size: 30px;
+}
+
 /** LAYOUT **/
 #left, #center, #right {
   position: fixed;
@@ -489,12 +502,20 @@ div.progress div.bar {
 /** Messages Related **/
 #messages p {
   padding: 5px 10px 5px 10px;
+  font-family: monospace;
+  white-space: pre;
   cursor: pointer;
   user-select: none;
 }
 #messages p:hover {
   color: #72DEC9;
   background-color: #363636;
+}
+#messages p.warning {
+  color: #FFAF53;
+}
+#messages p.error {
+  color: #ED5276;
 }
 
 /** Right Sidebar Related **/

@@ -26,6 +26,12 @@
     var logger = new Logger($('messages'));
     logger.bind(P);
 
+    // Bind the commandline
+    var commandLine = new CommandLine($('commandline-ui'),
+      $('commandline-ui-text'),
+      logger);
+    commandLine.bind(P);
+
     // Create and bind to Editor
     var editor = new Editor(T, $('work-area'), $('canvas'), {
       'bgBlack': $('editor-bg-black'),

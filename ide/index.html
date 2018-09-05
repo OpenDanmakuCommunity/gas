@@ -32,6 +32,7 @@
 	<script src="scripts/components/common.primitives.js"></script>
 	<script src="scripts/components/common.miniwindow.js"></script>
 	<script src="scripts/components/common.properties.js"></script>
+	<script src="scripts/components/ide.command.js"></script>
 	<script src="scripts/components/ide.playback.js"></script>
 	<script src="scripts/components/ide.saveload.js"></script>
 	<script src="scripts/components/ide.timeline.js"></script>
@@ -80,6 +81,14 @@
 				</div>
 		</div>
 	</div>
+	<!-- Below is for the commandline -->
+	<div id="commandline-ui" class="modal-group" style="display: none;">
+		<div class="overlay"></div>
+		<div id="commandline-ui-prompt" class="modal-bottom">
+				<input id="commandline-ui-text" type="text"/>
+		</div>
+	</div>
+
 	<!-- Below is the main IDE -->
   <div id="left" class="container" draggable="false">
 		<div id="toolbox" class="mini-window" style="height: 306px;">
