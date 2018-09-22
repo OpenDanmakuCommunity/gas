@@ -57,6 +57,8 @@ var PropManager = (function () {
   }
 
   var PropManager = function (base, anchorsInst, onChange) {
+    // Configuration
+    this._withinKeyFrameBehavior = 'split';
     // This is the base spec (0-th key frame)
     this._baseSpec = base;
     // Anchors is a list of key frames
@@ -97,6 +99,22 @@ var PropManager = (function () {
     } else {
       // Blank range so use last pin
       return this.anchors.length - 1;
+    }
+  };
+
+  PropManager.prototype._getNextKeyFrameIndex = function (index) {
+    if (index + 1 < this.anchors.length) {
+      return index + 1;
+    } else {
+      return -1;
+    }
+  };
+
+  PropManager.prototype._getPrevKeyFrameIndex = function (index) {
+    if (index < 0) {
+      return -1;
+    } else {
+      return index - 1;
     }
   };
 
@@ -145,6 +163,25 @@ var PropManager = (function () {
     }
   };
 
+  PropManager.prototype._inferEasing = function (easing, current, final) {
+    var actualEasing = easing;
+    // Unsupported
+    if (!(actualEasing in EasingFunctions)) {
+      console.log('Selected easing ' + easing + ' not available. ' + 
+        'Defaulting to linear.');
+      actualEasing = 'linear';
+    }
+    // Cannot ease due to value type
+    if (easing !== 'none' && (typeof current !== 'number' ||
+        typeof final !== 'number')) {
+
+      console.warn('Easing cannot be performed. start/end not a number.' +
+        'Static easing (none) automatically enforced.');
+      actualEasing = 'none';
+    }
+    return actualEasing;
+  };
+
   PropManager.prototype._applySubframe = function (time) {
     if (this._keyFrameIndex < 0) {
       if (time !== 0) {
@@ -158,21 +195,8 @@ var PropManager = (function () {
 
     for (var easing in frameSpec.spec) {
       for (var propName in frameSpec.spec[easing]) {
-        var actualEasing = easing;
-        if (!(actualEasing in EasingFunctions)) {
-          console.log('Selected easing ' + easing +
-            ' not available. Defaulting to linear.');
-          actualEasing = 'linear';
-        }
-        // Cannot ease due to value type
-        if (easing !== 'none' &&
-          (typeof this._keyFrame[propName] !== 'number' ||
-          typeof frameSpec.spec[easing][propName] !== 'number')) {
-
-          console.warn('Type ' + propName + ' cannot be eased. Not a number.' +
-            'Static easing (none) automatically enforced.');
-          actualEasing = 'none';
-        }
+        var actualEasing = this._inferEasing(easing, this._keyFrame[propName],
+          frameSpec.spec[easing][propName]);
         if (actualEasing === 'none') {
           if (time >= frameSpec.end) {
             this._setProp(propName, frameSpec.spec[easing][propName]);
@@ -215,7 +239,16 @@ var PropManager = (function () {
     }
   };
 
-  PropManager.prototype._getPropKeyByIndex = function (index, propName, def) {
+  PropManager.prototype._getPropEasingAtIndex = function (index, propName) {
+    for (var easing in this.anchors[index].spec) {
+      if (propName in this.anchors[index].spec[easing]) {
+        return easing;
+      }
+    }
+    return null;
+  };
+
+  PropManager.prototype._getPropValueAtIndex = function (index, propName, def) {
     if (index === -1) {
       if (propName in this._baseSpec) {
         return this._baseSpec[propName];
@@ -223,22 +256,40 @@ var PropManager = (function () {
         return def;
       }
     } else {
-      // Figure out if this is in the specified prop region
-      for (var easing in this.anchors[index].spec) {
-        if (propName in this.anchors[index].spec[easing]) {
-          return this.anchors[index].spec[easing][propName];
-        }
+      var easing = this._getPropEasingAtIndex(index, propName);
+      if (easing !== null) {
+        return this.anchors[index].spec[easing][propName];
       }
-      // Did not find anything,
-      return this._getPropByIndex(index - 1, propName, def);
+      // Did not find anything, move to last index
+      return this._getPropValueAtIndex(index - 1, propName, def);
     }
   };
 
   PropManager.prototype.getPropAtTime = function (time, propName, def) {
     // Get the latest key
     var index = this._getKeyFrameIndex(time);
-    var property = this._getPropKeyByIndex(index, propName, def);
-    // Apply the micro time
+    var value = this._getPropValueAtIndex(index, propName, def);
+    var easing = this._getPropEasingAtIndex(index, propName);
+    if (easing === null) {
+      // No need to apply microtime
+      return value;
+    } else {
+      // Apply the micro time easing
+      var actualEasing = this._inferEasing(easing, value,
+        this.anchors[index].spec[easing][propName]);
+      if (actualEasing === 'none') {
+        if (time >= this.anchors[index].end) {
+          return this.anchors[index].spec[actualEasing][propName];
+        } else {
+          return value;
+        }
+      } else {
+        return EasingFunctions[actualEasing](time - this.anchors[index].start,
+          value,
+          this.anchors[index].spec[easing][propName] - value,
+          this.anchors[index].end - this.anchors[index].start);
+      }
+    }
   };
 
   PropManager.prototype.getProp = function (propName, def) {
@@ -247,22 +298,52 @@ var PropManager = (function () {
 
   PropManager.prototype.saveProp = function (time, propertyName, value, easing) {
     if (!this._isConfigurable(time)) {
-      throw new Error('Time ' + time + ' is in the middle of an animation!');
+      if (this._withinKeyFrameBehavior === 'split') {
+        this.splitKeyFrame(time);
+      } else {
+        throw new Error('Time ' + time +
+          ' is in the middle of an animation frame!');
+      }
     }
     // Figure out what to update
     var index = this._getKeyFrameIndex(time);
+    // Figure out if there's a frame after
+    var nextIndex = this._getNextKeyFrameIndex(index);
+
     if (index < 0) {
+      // Update the next frame if it exists and doesnt have this property
+      if (nextIndex >= 0 &&
+        this._getPropEasingAtIndex(nextIndex, propertyName) === null) {
+        this.anchors[nextIndex].spec['none'][propertyName] =
+          this._baseSpec[propertyName];
+      }
       // Update the base
       this._baseSpec[propertyName] = value;
       this._setProp(propertyName, value);
     } else {
-      // Update the pin in time
+      // Figure out the easing
       if (typeof easing !== 'string' || easing === null) {
         easing = 'none';
       }
+      // Make sure the easing mode exists
       if (!(easing in this.anchors[index].spec)) {
         this.anchors[index].spec[easing] = {};
       }
+      // Figure out if this property exists in different easing in current pin
+      var currentEasing = this._getPropEasingAtIndex(index, propertyName);
+      if (currentEasing !== easing && currentEasing !== null) {
+        // Move old value over if it exists
+        this.anchors[index].spec[easing][propertyName] = 
+          this.anchors[index].spec[currentEasing][propertyName];
+        delete this.anchors[index].spec[currentEasing][propertyName];
+      }
+      // Update the next frame if it exists and doesnt have this property
+      if (nextIndex >= 0 &&
+        this._getPropEasingAtIndex(nextIndex, propertyName) === null) {
+        this.anchors[nextIndex].spec['none'][propertyName] = 
+          this.anchors[index].spec[easing][propertyName];
+      }
+      // Update the current frame
       this.anchors[index].spec[easing][propertyName] = value;
       this._setProp(propertyName, value);
     }
@@ -318,6 +399,9 @@ var PropManager = (function () {
     if (isNaN(start) || isNaN(end)) {
       throw new Error('Start or end cannot be NaN!');
     }
+    if (end <= start) {
+      throw new Error('KeyFrame end must be greater than start');
+    }
     var keyFrame = {
       'start': start,
       'end': end,
@@ -332,8 +416,47 @@ var PropManager = (function () {
     });
   };
 
-  PropManager.prototype.splitKeyFrame = function (intermediate) {
+  PropManager.prototype.splitKeyFrame = function (time) {
+    if (typeof time !== 'number' || isNaN(time)) {
+      throw new Error('Invalid time');
+    }
+    // Figure out the KeyFrame's location
+    var index = this._getKeyFrameIndex(time);
+    // Save the current spec
+    var snapshotSpec = {};
+    if (index >= 0) {
+      for (var easing in this.anchors[index].spec) {
+        if (!(easing in snapshotSpec)) {
+          snapshotSpec[easing] = {};
+        }
+        for (var propName in this.anchors[index].spec[easing]) {
+          snapshotSpec[easing][propName] = this.getPropAtTime(
+            time, 
+            propName,
+            this.anchors[index].spec[easing][propName]);
+        }
+      }
+    }
 
+    if (index >= 0) {
+      var oldEnd = this.anchors[index].end;
+      this.anchors[index].end = time;
+      // Insert a new KeyFrame
+      this.createKeyFrame(time, oldEnd);
+      // Find the new keyFrame
+      var indexOld = this._getKeyFrameIndex(time);
+      var indexNew = this._getNextKeyFrameIndex(indexOld);
+      if (indexOld < 0) {
+        throw new Error('Split keyframe failed.');
+      }
+      this.anchors[indexNew].spec = this.anchors[indexOld].spec;
+      this.anchors[indexOld].spec = snapshotSpec;
+    } else {
+      var next = this._getNextKeyFrameIndex(index);
+      if (next >= 0) {
+        this.createKeyFrame(time, this.anchors[next].start);
+      }
+    }
   };
 
   PropManager.prototype.serializeBase = function (src) {

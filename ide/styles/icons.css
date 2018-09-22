@@ -2,6 +2,11 @@
   background-image: url('icons/cursor.png');
 }
 
+.tool-icon.pen {
+  background-image: url('icons/pen.png');
+}
+
+
 .tool-icon.textbox {
   background-image: url('icons/textbox.png');
 }

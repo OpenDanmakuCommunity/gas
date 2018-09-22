@@ -47,6 +47,9 @@ var Logger = (function () {
       this.error(message);
       return message;
     }).bind(this));
+    P.setUncaughtHandler((function (e) {
+      this.error(e);
+    }).bind(this));
   };
 
   return Logger;

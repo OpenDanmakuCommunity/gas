@@ -8,6 +8,7 @@ var Properties = (function () {
     'RichText': ['content'],
     'Sprite': ['image.position', 'image.repeat', 'image.stretchMode',
       'content'],
+    'SVGSprite': [],
     'BinarySprite': ['image.position', 'image.repeat', 'image.stretchMode',
       'content'],
     'AnimatedSprite': ['image.position', 'image.repeat', 'image.stretchMode',

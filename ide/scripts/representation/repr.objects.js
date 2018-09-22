@@ -12,6 +12,8 @@ var GFactory = new function () {
       case 'AnimatedSprite':
       case 'BinarySprite':
         return new GSprite(name, spec);
+      case 'Frame':
+        return new GFrame(name, spec);
       default:
         throw new Error('Spec had type ' + spec.type +
           ' but it was not recognized.');

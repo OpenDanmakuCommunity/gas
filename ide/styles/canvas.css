@@ -100,5 +100,10 @@
 
 /* FRAME */
 #canvas .frame {
+  position: absolute;
+  border: 1px #7A3F7F dashed;
+}
 
+#canvas.preview .frame {
+  border: 1px transparent solid;
 }

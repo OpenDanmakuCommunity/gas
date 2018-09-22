@@ -234,7 +234,6 @@ var TimelineManager = (function () {
           'oldName': binding.name,
           'newName': name
         }).catch(function (err) {
-          console.log(err);
           alert(err);
         }).then(P.next(e));
       }

@@ -65,20 +65,26 @@ var Editor = (function () {
     }
     this.T = timer;
 
-    this.tools = ['select', 'text', 'sprite', 'button', 'frame'];
+    this.tools = ['select', 'draw', 'text', 'sprite', 'button', 'frame'];
     this.selectedTool = 'select';
 
     this._workArea = workArea;
     this._canvas = canvas;
     this._workAreaConfigButtons = workAreaConfigButtons;
 
-    this._isPreviewMode = false;
-
-    this._draggingStart = null;
-    this._movingStart = null;
-    this._selectBox = null;
     this._isBound = false;
+    this._isPreviewMode = false;
     this._zoomFactor = 1;
+
+    // Generate the tool _toolStates
+    this._toolStates = {}
+    for (var i = 0; i < this.tools.length; i++) {
+      this._toolStates[this.tools[i]] = {
+        'dragging': null,
+        'moving': null,
+        'box': null
+      };
+    }
   };
 
   Editor.prototype._translateOffsets = function (x, y) {
@@ -100,26 +106,59 @@ var Editor = (function () {
     if (e.event.button !== 0) {
       return e;
     }
+    // General parameters for the event
+    var cursor = this._translateOffsets(e.event.clientX, e.event.clientY);
+    var targetName = null;
+    if (e.event.target !== this._canvas && e.event.target !== this._workArea) {
+      targetName = e.event.target.getAttribute('ide-object-name');
+    }
+    var toolState = this._toolStates[this.selectedTool];
+    
+    // Tool specific items.
     switch (this.selectedTool) {
-      case 'select':
-        if (e.event.target !== this._canvas &&
-          e.event.target !== this._workArea) {
+      case 'draw':
+        if (targetName !== null) {
+          var type = ReprTools.getObjectType(targetName);
+          if (type !== 'Sprite' && type !== 'SVGSprite') {
+            return; // Can't draw on non-sprite
+          }
+          var sprite = ReprTools.getObject(targetName);
+          var drawContext = sprite.getContext();
 
-          var ideName = e.event.target.getAttribute('ide-object-name');
+          if (drawContext !== null) {
+            toolState.drawContext = drawContext;
+            toolState.taget = targetName;
+            var canvasPos =
+              this._canvasPosition(e.event.clientX, e.event.clientY);
+            toolState.dragging = canvasPos;
+            drawContext.initiate(
+              canvasPos.x - sprite._pm.getProp('position.x'),
+              canvasPos.y - sprite._pm.getProp('position.y'));
+            return this.P.emit('object.setProperty', {
+                'objectName': targetName,
+                'time': this.T.time(),
+                'propertyName': 'content',
+                'value': drawContext,
+              }).then(this.P.next(e));
+          }
+        }
+        return e;
+      case 'select':
+        if (targetName !== null) {
           if (e.event.ctrlKey) {
-            var newSelection = Selection.multiSelect(ideName, 'toggle');
+            var newSelection = Selection.multiSelect(targetName, 'toggle');
             return this.P.emit('objects.select', newSelection).then(
               this.P.next(e));
           } else {
-            if (Selection.isSelected(ideName)) {
+            if (Selection.isSelected(targetName)) {
               // Don't change selection
-              this._movingStart = this._translateOffsets(e.event.clientX,
-                e.event.clientY);
+              toolState.moving = cursor;
               return e;
             } else {
-              return this.P.emit('objects.select', ideName).then((function (){
-                this._movingStart = this._translateOffsets(e.event.clientX,
-                  e.event.clientY);
+              return this.P.emit(
+                'objects.select',
+                targetName).then((function (){
+                  toolState.moving = cursor;
               }).bind(this)).then(this.P.next(e));
             }
           }
@@ -130,33 +169,28 @@ var Editor = (function () {
             return;
           }
           return this.P.emit('objects.select', []).then((function() {
-            if (this._selectBox !== null) {
-              if (this._selectBox.DOM !== null) {
-                this._workArea.removeChild(this._selectBox.DOM);
-              }
-              this._selectBox = null;
+            if (toolState.box !== null && toolState.box.DOM !== null) {
+                this._workArea.removeChild(toolState.box.DOM);
             }
-            this._selectBox = {
-              'anchor': this._translateOffsets(e.event.clientX,
-                e.event.clientY),
+            toolState.box = {
+              'anchor': cursor,
               'drag': null,
               'DOM': null,
-            }
+            };
           }).bind(this)).then(this.P.next(e));
         }
       case 'text':
       case 'sprite':
       case 'button':
-        if (e.event.target !== this._canvas &&
-          e.event.target !== this._workArea) {
+      case 'frame':
+        if (targetName !== null) {
           // Clicking on existing item
-          var objName = e.event.target.getAttribute('ide-object-name');
-          if (ReprTools.objectExists(objName) &&
-            ReprTools.typeAsTool(ReprTools.getObjectType(objName),
+          if (ReprTools.objectExists(targetName) &&
+            ReprTools.typeAsTool(ReprTools.getObjectType(targetName),
               this.selectedTool)) {
             // Same type as current tool, enter move mode
 
-            return this.P.emit('objects.select', objName).then(
+            return this.P.emit('objects.select', targetName).then(
               this.P.next(e));
           }
         }
@@ -166,9 +200,10 @@ var Editor = (function () {
         objectBase['position.y'] = position.y;
 
         if (this.selectedTool === 'sprite' ||
-          this.selectedTool === 'button') {
-          // Sprites are inherently resizable, allow dragsize immediately
-          this._draggingStart = this._translateOffsets(e.event.clientX,
+          this.selectedTool === 'button' ||
+          this.selectedTool === 'frame') {
+          // Immediately resize
+          toolState.dragging = this._translateOffsets(e.event.clientX,
             e.event.clientY);
         }
 
@@ -178,43 +213,56 @@ var Editor = (function () {
         };
 
         return this.P.emit('objects.add', objectData).catch(function (err) {
-            console.log(err);
             alert(err);
           }).then(this.P.next(e));
-
-      case 'frame':
       default:
         return e;
     }
   };
   Editor.prototype._onUnset = function (e) {
-    // Reset moving and draggind flags
-    if (this._movingStart !== null) {
+    // Reset moving and dragging flags
+    var toolState = this._toolStates[this.selectedTool];
+    if (toolState.moving !== null) {
       // Move finished
       var time = this.T.time();
       Promise.all(Selection.get().map((function (object) {
+        var x = ReprTools.getObject(object)._pm.getProp('position.x');
+        var y = ReprTools.getObject(object)._pm.getProp('position.y');
+        // Round
+        x = Math.round(x);
+        y = Math.round(y);
         return this.P.emit('object.setProperty', {
           'objectName': object,
           'time': time,
           'propertyName': 'position.x',
-          'value': ReprTools.getObject(object)._pm.getProp('position.x')
+          'value': x
         }).then(
           this.P.emit('object.setProperty', {
             'objectName': object,
             'time': time,
             'propertyName': 'position.y',
-            'value': ReprTools.getObject(object)._pm.getProp('position.y')
+            'value': y 
           }));
       }).bind(this)));
-      this._movingStart = null;
+      toolState.moving = null;
     }
-    this._draggingStart = null;
-
-    if (this._selectBox !== null) {
-      if (this._selectBox.DOM !== null) {
-        this._workArea.removeChild(this._selectBox.DOM);
+    if (toolState.dragging !== null) {
+      if (this.selectedTool === 'draw') {
+        // Send the draw back into the context
+        var canvasPos =
+          this._canvasPosition(e.event.clientX, e.event.clientY);
+        toolState.drawContext.release(
+          canvasPos.x - toolState.dragging.x, 
+          canvasPos.y - toolState.dragging.y);
+        toolState.drawContext.commit();
       }
-      this._selectBox = null;
+      toolState.dragging = null;
+    }
+    if (toolState.box !== null && typeof toolState.box !== 'undefined') {
+      if (toolState.box.DOM !== null) {
+        this._workArea.removeChild(toolState.box.DOM);
+      }
+      toolState.box = null;
     }
   };
   Editor.prototype._onLeave = function (e) {
@@ -238,28 +286,25 @@ var Editor = (function () {
   };
   Editor.prototype._onMove = function (e) {
     if (e.event.buttons !== 1) {
-      return e; // Not dragging, just moving
-    }
-    if (this._draggingStart === null && this._movingStart === null &&
-      this._selectBox === null) {
-
-      return e; // Not not dragging anything
+      return e; // No button down, skip event
     }
     var currentPosition = this._translateOffsets(e.event.clientX,
       e.event.clientY);
+    var toolState = this._toolStates[this.selectedTool];
     if (this.selectedTool === 'select') {
-      if (this._selectBox !== null) {
+      if (toolState.box !== null) {
         // Draw a select box
-        this._selectBox.drag = {
+        toolState.box.drag = {
           'x': currentPosition.x,
           'y': currentPosition.y,
-        }
-        var tx = Math.min(this._selectBox.drag.x, this._selectBox.anchor.x);
-        var ty = Math.min(this._selectBox.drag.y, this._selectBox.anchor.y);
-        var bx = Math.max(this._selectBox.drag.x, this._selectBox.anchor.x);
-        var by = Math.max(this._selectBox.drag.y, this._selectBox.anchor.y);
-        if (this._selectBox.DOM === null) {
-          this._selectBox.DOM = _Create('div', {
+        };
+        
+        var tx = Math.min(toolState.box.drag.x, toolState.box.anchor.x);
+        var ty = Math.min(toolState.box.drag.y, toolState.box.anchor.y);
+        var bx = Math.max(toolState.box.drag.x, toolState.box.anchor.x);
+        var by = Math.max(toolState.box.drag.y, toolState.box.anchor.y);
+        if (toolState.box.DOM === null) {
+          toolState.box.DOM = _Create('div', {
             'className': 'selection',
             'style': {
               'top':  ty + 'px',
@@ -268,33 +313,47 @@ var Editor = (function () {
               'height': (by - ty) + 'px'
             }
           });
-          this._workArea.appendChild(this._selectBox.DOM);
+          this._workArea.appendChild(toolState.box.DOM);
         } else {
-          this._selectBox.DOM.style.top =  ty + 'px';
-          this._selectBox.DOM.style.left =  tx + 'px';
-          this._selectBox.DOM.style.width =  (bx - tx) + 'px';
-          this._selectBox.DOM.style.height = (by - ty) + 'px';
+          toolState.box.DOM.style.top =  ty + 'px';
+          toolState.box.DOM.style.left =  tx + 'px';
+          toolState.box.DOM.style.width =  (bx - tx) + 'px';
+          toolState.box.DOM.style.height = (by - ty) + 'px';
         }
         return e;
-      } else if (this._movingStart !== null) {
-        // Something selected to be moved
-        var deltaX = currentPosition.x - this._movingStart.x;
-        var deltaY = currentPosition.y - this._movingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'move', this.T.time(), deltaX, deltaY);
-        this._movingStart = currentPosition;
-      } else if (this._draggingStart !== null) {
-        // Something selected to be resized
-        var width = currentPosition.x - this._draggingStart.x;
-        var height = currentPosition.y - this._draggingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize', this.T.time(), width, height);
+      } else if (toolState.moving) {
+        var deltaX = currentPosition.x - toolState.moving.x;
+        var deltaY = currentPosition.y - toolState.moving.y;
+        ReprTools.callOnGroup(Selection.get(), 'move', 
+          this.T.time(), deltaX, deltaY);
+        toolState.moving = currentPosition;
+        return e;
+      }  else if (toolState.dragging) {
+        var width = currentPosition.x - toolState.dragging.x;
+        var height = currentPosition.y - toolState.draggingy;
+        ReprTools.callOnGroup(Selection.get(), 'resize', 
+          this.T.time(), width, height);
+        return e;
+      } else {
+        return e;
+      }
+    } else if (this.selectedTool === 'draw') {
+      if (toolState.dragging) {
+        var canvasPos =
+          this._canvasPosition(e.event.clientX, e.event.clientY);
+        toolState.drawContext.drag(
+          canvasPos.x - toolState.dragging.x, 
+          canvasPos.y - toolState.dragging.y);
+        toolState.drawContext.commit();
       }
     } else {
-      // Non-selection tool.
-      if (this._draggingStart !== null) {
-        var width = currentPosition.x - this._draggingStart.x;
-        var height = currentPosition.y - this._draggingStart.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize', this.T.time(), width, height);
+      if(toolState.dragging !== null) {
+        var width = currentPosition.x - toolState.dragging.x;
+        var height = currentPosition.y - toolState.dragging.y;
+        ReprTools.callOnGroup(Selection.get(), 'resize', 
+          this.T.time(), width, height);
       }
+      return e;
     }
   };
   Editor.prototype._onSelect = function (oldSelection, newSelection) {
@@ -514,13 +573,25 @@ var Editor = (function () {
 
     // Listen on object property updates
     P.listen('object.setProperty', (function (spec) {
-      ReprTools.getObject(spec.objectName).setProperty(
-        ('time' in spec ? spec.time : this.T.time()),
-        spec.propertyName,
-        spec.value);
+      var time = 'time' in spec ? spec.time : this.T.time();
+      var object = ReprTools.getObject(spec.objectName);
+      try {
+        object.setProperty(time, spec.propertyName, spec.value);
+      } catch (e) {
+        return P.emit('trace.error', 'Set property: ' + spec.objectName + 
+          '.' + spec.propertyName + ' = ' + spec.value + ' failed.').then(
+            function () {
+              return Promise.reject(e);
+            }).then(P.next(spec));
+      }
       return P.emit('trace.log',
         'Set property: ' + spec.objectName + '.' + spec.propertyName + ' = ' +
-          spec.value).then(P.next(spec));
+          spec.value).then(P.emit('object.propertyUpdated', {
+            'time': time,
+            'objectName': spec.objectName,
+            'propertyName': spec.propertyName,
+            'value': spec.propertyValue
+          })).then(P.next(spec));
     }).bind(this));
 
     // Bind post-events

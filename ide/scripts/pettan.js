@@ -3,6 +3,13 @@ var Pettan = (function () {
   var Pettan = function () {
     this.bindings = {};
     this.nativeBindings = {};
+    this._errorHandler = null;
+  };
+
+  Pettan.prototype.setUncaughtHandler = function (handler) {
+    if (typeof handler === 'function') {
+      this._errorHandler = handler;
+    }
   };
 
   Pettan.prototype.bind = function (item, nativeEventName, eventName) {
@@ -36,7 +43,13 @@ var Pettan = (function () {
         promise = promise.then(this.bindings[eventName][i]);
       }
     }
-    return promise;
+    return promise.catch((function (e) {
+      if (this._errorHandler !== null) {
+        this._errorHandler(e);
+      }
+      // Always rethrow
+      throw e;
+    }).bind(this));
   };
 
   Pettan.prototype.listen = function (eventName, handler) {

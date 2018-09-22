@@ -25,9 +25,9 @@ var _Create = function (type, props, children, callback) {
 	var elem = null;
 	if (type === "text") {
 		return document.createTextNode(props);
-	} else if(type === "svg"){
-		elem = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	}else {
+	} else if(type === "svg" || type === "path" || type === 'g') {
+		elem = document.createElementNS("http://www.w3.org/2000/svg", type);
+	} else {
 		elem = document.createElement(type);
 	}
 	for(var n in props){
