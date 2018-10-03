@@ -251,8 +251,12 @@ var GSprite = (function () {
     }
   };
   GSprite.prototype._setImage = function (image) {
-    if (typeof image === 'undefined' || image === null || !'type' in image) {
+    if (typeof image != 'object' || image === null || !'type' in image) {
       _ToggleClass(this.DOM, 'no-image', true);
+      this.type = 'Sprite';
+      this._pm._baseSpec['type'] = 'Sprite';
+      this.DOM.style.backgroundImage = '';
+      this.DOM.style.backgroundSize = '';
       if (this.SVGDOM !== null) {
         this.DOM.removeChild(this.SVGDOM);
         this.SVGDOM = null;
@@ -265,6 +269,7 @@ var GSprite = (function () {
       case 'image/jpeg':
       case 'image/gif':
         this.type = 'BinarySprite';
+        this._pm._baseSpec['type'] = 'BinarySprite';
         if (this.SVGDOM !== null) {
           this.DOM.removeChild(this.SVGDOM);
           this.SVGDOM = null;

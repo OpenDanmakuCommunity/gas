@@ -3,21 +3,57 @@ var DrawingContext = (function () {
     return Math.sqrt((a - x) * (a - x) + (b - y) * (b - y));
   }
 
-  var Group = function () {
-    this.children = [];
+  var NamedGroup = function (name) {
+    this.type = 'g';
+    this.name = name;
+    this._autonames = {};
+    this._children = {};
   };
-
-  Group.prototype.build = function () {
+  Object.defineProperty(NamedGroup.prototype, "children", {
+    get: function () {
+      return this.getChildren();
+    },
+    set: function (l) {
+      console.log('NamedGroup.children is read-only');
+    },
+    enumerable: true,
+    configurable: true
+  });
+  NamedGroup.prototype.getChildren = function () {
+    var children = [];
+    for (var name in this._children) {
+      children.push(this._children[name]);
+    }
+    return children;
+  };
+  NamedGroup.prototype.add = function (item) {
+    // Auto names the item
+    if (!(item.type in this._autonames)) {
+      this._autonames[item.type] = 0;
+    }
+    var name = item.type + '_' + (this._autonames[item.type] ++);
+    this.set(name, item);
+  };
+  NamedGroup.prototype.set = function (name, item) {
+    this._children[name] = item;
+  };
+  NamedGroup.prototype.unset = function (name, item) {
+    delete this._children[name];
+  };
+  NamedGroup.prototype.clear = function () {
+    this._children = {};
+  };
+  NamedGroup.prototype.build = function () {
     return {
       'type': 'g',
-      'dirty': this.children.reduce(function (acc, curr) {
-        return acc || curr.build().dirty;
-      }, false),
-      'children': this.children.map(function (item) {
+      'children': this.getChildren().map(function (item) {
         return item.build();
       })
     };
   };
+
+  var Circle = function () {};
+  var Rect = function () {};
 
   var Path = function () {
     this.control = [];
@@ -68,12 +104,14 @@ var DrawingContext = (function () {
     this._current = null;
     this._reference = null;
 
-    this._baseGroup = new Group();
-    this._referenceGroup = new Group();
+    this._baseNamedGroup = new NamedGroup('base');
+    this._referenceNamedGroup = new NamedGroup('reference');
 
-    // Put in the default groups.
-    this._children.push(this._baseGroup);
-    this._children.push(this._referenceGroup);
+    this._namedReferences = {};
+
+    // Put in the default NamedGroups.
+    this._children.push(this._baseNamedGroup);
+    this._children.push(this._referenceNamedGroup);
   };
 
   Object.defineProperty(DrawingContext.prototype, "type", {
@@ -96,17 +134,15 @@ var DrawingContext = (function () {
     configurable: true
   });
 
-  DrawingContext.prototype._drawIndicator = function (x, y) {
+  DrawingContext.prototype._drawPreview = function (x, y) {
     var last = this._current.last();
     if (last === null) {
       return;
     }
-    var indicator = new Path();
-    indicator.moveTo(last.x, last.y);
-    indicator.lineTo(x, y);
-    this._referenceGroup.children = [
-      indicator
-    ];
+    var preview = new Path();
+    preview.moveTo(last.x, last.y);
+    preview.lineTo(x, y);
+    this._referenceNamedGroup.set('preview', preview);
   };
 
   DrawingContext.prototype.load = function (svgspec) {
@@ -118,11 +154,11 @@ var DrawingContext = (function () {
     if (this._current === null) {
       this._current = new Path();
       // Add it into the queue
-      this._baseGroup.children.push(this._current);
+      this._baseNamedGroup.add(this._current);
       this._current.moveTo(x, y);
     } else {
       // Draw the indicator line
-      this._drawIndicator(x, y);
+      this._drawPreview(x, y);
     } 
   };
 
@@ -132,7 +168,7 @@ var DrawingContext = (function () {
     }
     var x = dx + this._reference.x;
     var y = dy + this._reference.y;
-    this._drawIndicator(x, y);
+    this._drawPreview(x, y);
   };
 
   DrawingContext.prototype.release = function (dx, dy) {
@@ -140,8 +176,8 @@ var DrawingContext = (function () {
       return;
     }
     // Clear the dragging
-    this._referenceGroup.children = [];
-    
+    this._referenceNamedGroup.unset('preview');
+
     var x = dx + this._reference.x;
     var y = dy + this._reference.y;
     var origin = this._current.control[0];
@@ -161,7 +197,7 @@ var DrawingContext = (function () {
   DrawingContext.prototype.serialize = function () {
     return {
       'type': 'svg',
-      'children': this._baseGroup.build().children
+      'children': this._baseNamedGroup.build().children
     };
   };
   return DrawingContext;

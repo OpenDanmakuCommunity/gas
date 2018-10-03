@@ -120,7 +120,9 @@ var Editor = (function () {
         if (targetName !== null) {
           var type = ReprTools.getObjectType(targetName);
           if (type !== 'Sprite' && type !== 'SVGSprite') {
-            return; // Can't draw on non-sprite
+            // Can't draw on non-sprite
+            return this.P.emit('trace.error', 
+              'Cannot use draw tool on non-SVG sprite!').then(this.P.next(e)); 
           }
           var sprite = ReprTools.getObject(targetName);
           var drawContext = sprite.getContext();
@@ -488,12 +490,12 @@ var Editor = (function () {
       _ToggleClass(toolTo, 'selected', true);
       return tool;
     });
-    P.listen('reset.editor.tools', function () {
-      for (var i = 0; i < tools.length; i++) {
+    P.listen('reset.editor.tools', (function () {
+      for (var i = 0; i < this.tools.length; i++) {
         _ToggleClass($('tool-' + this.tools[i]), 'selected', false);
       }
-      return P.next();
-    });
+      return;
+    }).bind(this));
   };
 
   Editor.prototype._bindPlayback = function (P) {

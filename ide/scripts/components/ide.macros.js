@@ -6,49 +6,77 @@ var MacroManager = (function () {
         'when option < 1 they move toward each other.',
       'author': 'Demo',
       'options': {'type': 'number', 'default': 1.0, 'step': 0.01},
-      'macro': function (prompter, reprTools, selectedObjects, selectedKeyframes, messenger) {
-        if (selectedObjects.length < 2) {
-          prompter.message('Please select at least 2 objects to use this macro!');
+      'macro': function (prompter,
+          reprTools,
+          selectedObjects,
+          selectedKeyframes,
+          messenger) {
+
+        if (selectedObjects.length < 1) {
+          prompter.message('Please select at least 1 object ' + 
+            'to use this macro!');
           return;
         }
-        var ratio = prompter.getOption('float', 1.0);
+        var ratio = prompter.getParam('float', 'option', 1.0);
+        // Use a user defined centroid if it's provided
         var centroidX = 0, centroidY = 0;
-        for (var i = 0; i < selectedObjects.length; i++) {
-          var obj = reprTools.getObject(selectedObjects[i]);
-          centroidX += obj._pm.getProp('position.x', 0);
-          centroidY += obj._pm.getProp('position.y', 0);
+        if (prompter.hasParam('centroid.x') &&
+          prompter.hasParam('centroid.y')) {
+          centroidX = prompter.getParam('float', 'centroid.x', 0);
+          centroidY = prompter.getParam('float', 'centroid.y', 0);
+        } else {
+          for (var i = 0; i < selectedObjects.length; i++) {
+            var obj = reprTools.getObject(selectedObjects[i]);
+            centroidX += obj._pm.getProp('position.x', 0);
+            centroidY += obj._pm.getProp('position.y', 0);
+          }
+          centroidX /= selectedObjects.length;
+          centroidY /= selectedObjects.length;
         }
-        centroidX /= selectedObjects.length;
-        centroidY /= selectedObjects.length;
+
         for (var i = 0; i < selectedObjects.length; i++) {
           var obj = reprTools.getObject(selectedObjects[i]);
-          var newX = (obj._pm.getProp('position.x', 0) - centroidX) * ratio + centroidX;
-          var newY = (obj._pm.getProp('position.y', 0) - centroidY) * ratio + centroidY;
+          var newX = (obj._pm.getProp('position.x', 0) - centroidX) * ratio +
+            centroidX;
+          var newY = (obj._pm.getProp('position.y', 0) - centroidY) * ratio +
+            centroidY;
           messenger.setProperty(selectedObjects[i], 'position.x', newX);
           messenger.setProperty(selectedObjects[i], 'position.y', newY);
         }
       }
     },
     'wiggle': {
-      'description': 'Wiggle (x,y) selected elements given a time range.',
+      'description': 'Wiggle (rotZ) selected elements given a time range.',
       'author': 'Demo',
-      'options': {'type': 'select', 'values': ['together', 'independent'], 'default': 'together'},
-      'macro': function (prompter, reprTools, selectedObjects, selectedKeyframes, messenger) {
+      'options': {'type': 'select', 'values': ['together', 'independent'], 
+        'default': 'together'},
+      'macro': function (prompter,
+        reprTools,
+        selectedObjects,
+        selectedKeyframes,
+        messenger) {
         
       }
     },
     'shake': {
-      'description': 'Shake (rotZ) the selected elements given a time range.',
+      'description': 'Shake (x,y) the selected elements given a time range.',
       'author': 'Demo',
-      'options': {'type': 'select', 'values': ['together', 'independent'], 'default': 'together'},
-      'macro': function (prompter, reprTools, selectedObjects, selectedKeyframes, messenger) {
+      'options': {'type': 'select', 'values': ['together', 'independent'], 
+        'default': 'together'},
+      'macro': function (prompter,
+        reprTools,
+        selectedObjects,
+        selectedKeyframes,
+        messenger) {
         
       }
     }
   };
 
   var Prompter = function (optionValue) {
-    this._optionValue = optionValue;
+    this._params = {
+      'option': optionValue
+    };
   };
 
   Prompter.prototype._conformType = function (type, val, defaultValue) {
@@ -69,18 +97,30 @@ var MacroManager = (function () {
     }
   };
 
-  Prompter.prototype.getOption = function (type, defaultValue) {
-    return this._conformType(type, this._optionValue, defaultValue);
+  Prompter.prototype.setParam = function (name, value) {
+    this._params[name] = value;
   };
 
-  Prompter.prototype.prompt = function (responseType, message, defaultValue) {
+  Prompter.prototype.hasParam = function (name) {
+    return name in this._params;
+  };
+
+  Prompter.prototype.getParam = function (type, name, defaultValue) {
+    if (this.hasParam(name)) {
+      return this._conformType(type, this._params[name], defaultValue);
+    }
+    return defaultValue;
+  };
+
+  Prompter.prototype.requestParam = function (name, message, defaultValue) {
     var val = prompt(message, defaultValue);
     if (typeof val === 'undefined' || val === null) {
-      return defaultValue;
+      delete this._params[name];
+    } else {
+      this._params[name] = val;
     }
-    return this._conformType(responseType, val, defaultValue);
   };
-  
+
   Prompter.prototype.message = function (message) {
     alert(message);
     return;
@@ -96,6 +136,10 @@ var MacroManager = (function () {
       'propertyName': property,
       'value': value
     });
+  };
+
+  Messenger.prototype.createObject = function (spec) {
+    
   };
 
   var MacroManager = function (macrosInner) {
@@ -139,6 +183,9 @@ var MacroManager = (function () {
   };
 
   MacroManager.prototype._listenMacro = function (P, name, spec) {
+    P.listen('macro.configure', (function (config) {
+      return config;
+    }).bind(this));
     P.listen('macro.' + name + '.activate', (function (e) {
       var prompter = new Prompter(this._macros[name].optionValue);
       var messenger = new Messenger(P);
