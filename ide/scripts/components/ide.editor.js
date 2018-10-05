@@ -109,8 +109,16 @@ var Editor = (function () {
     // General parameters for the event
     var cursor = this._translateOffsets(e.event.clientX, e.event.clientY);
     var targetName = null;
-    if (e.event.target !== this._canvas && e.event.target !== this._workArea) {
-      targetName = e.event.target.getAttribute('ide-object-name');
+    var _target = e.event.target;
+    while (_target !== this._canvas && _target !== this._workArea &&
+      _target !== null) {
+
+      if (_target.hasAttribute('ide-object-name')) {
+        targetName = _target.getAttribute('ide-object-name');
+        break;
+      } else {
+        _target = _target.parentElement;
+      }
     }
     var toolState = this._toolStates[this.selectedTool];
     
@@ -475,21 +483,23 @@ var Editor = (function () {
           return P.emit('tool.change', {
             'from': self.selectedTool,
             'to': toolName
-          }).then(function (tool) {
-            self.selectedTool = toolName;
-            return P.emit('trace.log','Change to tool ' + toolName);
-          });
+          }).then(P.next(e));
         }
       })(this, toolName));
     }
     // Add binding for changing class
-    P.listen('tool.change', function (tool) {
+    P.listen('tool.change', (function (tool) {
+      this.selectedTool = tool.to;
       var toolFrom = $('tool-' + tool.from);
       var toolTo = $('tool-' + tool.to);
       _ToggleClass(toolFrom, 'selected', false);
       _ToggleClass(toolTo, 'selected', true);
-      return tool;
-    });
+      return P.emit('trace.log','Change to tool ' + tool.to).then(
+        P.next(tool));
+    }).bind(this));
+    P.listen('tool.configure', (function () {
+      
+    }).bind(this));
     P.listen('reset.editor.tools', (function () {
       for (var i = 0; i < this.tools.length; i++) {
         _ToggleClass($('tool-' + this.tools[i]), 'selected', false);

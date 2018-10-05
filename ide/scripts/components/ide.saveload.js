@@ -29,6 +29,7 @@ var SaveLoad = (function () {
   var Importer = function (spec, P, reporter) {
     this._spec = spec;
     this._P = P;
+    this._loadedMetadata = false;
     this._objQueue = [];
     this._layerQueue = [];
     this._animationQueue = [];
@@ -40,9 +41,21 @@ var SaveLoad = (function () {
   };
 
   Importer.prototype._init = function () {
+    // Add progress total for metadata
+    this._progressTotal += 1;
     for (var objName in this._spec.objects) {
       this._objQueue.push(objName);
       this._progressTotal += 1;
+    }
+    for (var i = 0; i < this._spec.layers.length; i++) {
+      this._layerQueue.push(this._spec.layers[i].name);
+      this._progressTotal += 1;
+    }
+    if ('anchors' in this._spec.animation) {
+      for (var i = 0; i < this._spec.animation.anchors.length; i++) {
+        this._animationQueue.push(this._spec.animation.anchors[i].time);
+        this._progressTotal += 1;
+      }
     }
   };
 
@@ -51,12 +64,16 @@ var SaveLoad = (function () {
   };
 
   Importer.prototype.hasNext = function () {
-    return this._objQueue.length + this._layerQueue.length + 
-      this._animationQueue.length > 0;
+    return !this._loadedMetadata ||
+      this._objQueue.length + this._layerQueue.length + 
+        this._animationQueue.length > 0;
   };
 
   Importer.prototype.next = function () {
-    if (this._objQueue.length > 0) {
+    if (!this._loadedMetadata) {
+      this._loadedMetadata = true;
+      return 'Metadata';
+    } else if (this._objQueue.length > 0) {
       var objName = this._objQueue.shift();
       this._progress += 1;
       var obj = this._spec.objects[objName];
@@ -72,20 +89,28 @@ var SaveLoad = (function () {
       });
       return objName;
     } else if (this._layerQueue.length > 0) {
-      
+      var layerName = this._layerQueue.shift();
+      this._progress += 1;
+      return layerName;
     } else if (this._animationQueue.length > 0) {
-      // All loaded!
+      var anchorTime = this._animationQueue.shift();
+      this._progress += 1;
+      return 'Anchor @ ' + anchorTime;
     }
   };
 
   Importer.prototype.initiate = function () {
     setTimeout((function () {
       if (this.hasNext()) {
-        var output = this.next();
-        if (typeof this._reporter === 'function') {
-          this._reporter(output, this.progress());
+        try {
+          var output = this.next();
+          if (typeof this._reporter === 'function') {
+            this._reporter(output, this.progress());
+          }
+          this.initiate();
+        } catch (e) {
+          this._P.emit('import.fail', e);
         }
-        this.initiate();
       } else {
         this._P.emit('import.complete');
       }
@@ -220,14 +245,13 @@ var SaveLoad = (function () {
     P.listen('import.prompt.start', (function (e) {
       this._modalImport.container.style.display = '';
       this._modalImport.prompt.style.display = 'none';
-      this._modalImport.progress.style.display = '';
       try {
         var data = JSON.parse(_importCache);
         return P.emit('import.start', data).then(P.next(e));
       }
       catch (e) {
         alert('Malformed input file!');
-        return e;
+        return P.emit('import.prompt.cancel').then(P.next(e));
       }
     }).bind(this));
   };
@@ -265,6 +289,7 @@ var SaveLoad = (function () {
     this.bindExport(P);
 
     P.listen('import.start', (function (spec) {
+      this._modalImport.progress.style.display = '';
       var importer = new Importer(spec, P, (function (output, progress) {
         this._modalImport.progressLabel.innerText = output;
         this._modalImport.progressBar.style.width = 
@@ -279,6 +304,13 @@ var SaveLoad = (function () {
       this._modalImport.progress.style.display = 'none';
       this._modalImport.progressBar.style.width = '0%';
       this._modalImport.progressLabel.innerText = '';
+    }).bind(this));
+    P.listen('import.fail', (function (message) {
+      this._modalImport.container.style.display = 'none';
+      this._modalImport.progress.style.display = 'none';
+      this._modalImport.progressBar.style.width = '0%';
+      this._modalImport.progressLabel.innerText = '';
+      return P.emit('trace.error', message).then(P.next(message));
     }).bind(this));
   };
 

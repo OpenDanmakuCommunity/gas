@@ -23,17 +23,22 @@ var _deepCopy = function (obj) {
 
 var _Create = function (type, props, children, callback) {
 	var elem = null;
-	if (type === "text") {
+	if (type === 'text') {
 		return document.createTextNode(props);
-	} else if(type === "svg" || type === "path" || type === 'g') {
+	} else if (type === 'svg' ||
+    type === 'rect' ||
+    type === 'circle' ||
+    type === 'ellipse' ||
+    type === 'path' ||
+    type === 'g') {
 		elem = document.createElementNS("http://www.w3.org/2000/svg", type);
 	} else {
 		elem = document.createElement(type);
 	}
 	for(var n in props){
-		if(n !== "style" && n !== "className"){
+		if(n !== 'style' && n !== 'className'){
 			elem.setAttribute(n, props[n]);
-		}else if(n === "className"){
+		}else if(n === 'className'){
 			elem.className = props[n];
 		}else{
 			for(var x in props.style){
@@ -48,7 +53,7 @@ var _Create = function (type, props, children, callback) {
       }
 		}
 	}
-	if (callback && typeof callback === "function") {
+	if (callback && typeof callback === 'function') {
 		callback(elem);
 	}
 	return elem;

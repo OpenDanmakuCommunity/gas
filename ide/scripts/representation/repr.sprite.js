@@ -1,4 +1,5 @@
 var GSprite = (function () {
+
   var GSprite = function (name, spec) {
     this.DOM = null;
     this.SVGDOM = null;
@@ -216,11 +217,29 @@ var GSprite = (function () {
   /** Below are internal helper functions **/
   GSprite.prototype._drawElement = function (item) {
     var dom = _Create(item.type);
+    // Set common attributes
+    for (var i = 0; i < DrawingContext.SVG_ATTRIBUTES[''].length; i++) {
+      var attr = DrawingContext.SVG_ATTRIBUTES[''][i];
+      if ('attrs' in item && attr in item.attrs) {
+        dom.setAttribute(attr, item.attrs[attr]);
+      }
+    }
+    // Set the unique attributes
+    if (item.type in DrawingContext.SVG_ATTRIBUTES) {
+      for (var i = 0;
+          i < DrawingContext.SVG_ATTRIBUTES[item.type].length;
+          i++) {
+
+        var attr = DrawingContext.SVG_ATTRIBUTES[item.type][i];
+        if ('attrs' in item && attr in item.attrs) {
+          dom.setAttribute(attr, item.attrs[attr]);
+        }
+      }
+    }
+
+    // Special things to handle
     switch(item.type) {
       case 'path':
-        dom.setAttribute('stroke-width', item.strokeWidth);
-        dom.setAttribute('stroke', item.stroke);
-        dom.setAttribute('fill', item.fill);
         dom.setAttribute('d', item.d.map(function (d) {
           switch(d.action) {
             case 'M':
@@ -279,6 +298,8 @@ var GSprite = (function () {
         break;
       case 'svg':
         if (this.SVGDOM !== null) {
+          // Recreate the SVG DOM
+          // TODO: Support incremental changes
           this.DOM.removeChild(this.SVGDOM);
         } 
         this.SVGDOM = _Create('svg', {
