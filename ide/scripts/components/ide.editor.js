@@ -90,8 +90,8 @@ var Editor = (function () {
   Editor.prototype._translateOffsets = function (x, y) {
     var workAreaBox = this._workArea.getBoundingClientRect();
     return {
-      'x': x - workAreaBox.left + this._workArea.scrollLeft,
-      'y': y - workAreaBox.top + this._workArea.scrollTop,
+      'x': (x - workAreaBox.left + this._workArea.scrollLeft) / this._zoomFactor,
+      'y': (y - workAreaBox.top + this._workArea.scrollTop) / this._zoomFactor,
     };
   };
   Editor.prototype._canvasPosition = function (x, y) {
@@ -121,7 +121,7 @@ var Editor = (function () {
       }
     }
     var toolState = this._toolStates[this.selectedTool];
-    
+
     // Tool specific items.
     switch (this.selectedTool) {
       case 'draw':
@@ -129,8 +129,8 @@ var Editor = (function () {
           var type = ReprTools.getObjectType(targetName);
           if (type !== 'Sprite' && type !== 'SVGSprite') {
             // Can't draw on non-sprite
-            return this.P.emit('trace.error', 
-              'Cannot use draw tool on non-SVG sprite!').then(this.P.next(e)); 
+            return this.P.emit('trace.error',
+              'Cannot use draw tool on non-SVG sprite!').then(this.P.next(e));
           }
           var sprite = ReprTools.getObject(targetName);
           var drawContext = sprite.getContext();
@@ -251,7 +251,7 @@ var Editor = (function () {
             'objectName': object,
             'time': time,
             'propertyName': 'position.y',
-            'value': y 
+            'value': y
           }));
       }).bind(this)));
       toolState.moving = null;
@@ -262,7 +262,7 @@ var Editor = (function () {
         var canvasPos =
           this._canvasPosition(e.event.clientX, e.event.clientY);
         toolState.drawContext.release(
-          canvasPos.x - toolState.dragging.x, 
+          canvasPos.x - toolState.dragging.x,
           canvasPos.y - toolState.dragging.y);
         toolState.drawContext.commit();
       }
@@ -308,7 +308,7 @@ var Editor = (function () {
           'x': currentPosition.x,
           'y': currentPosition.y,
         };
-        
+
         var tx = Math.min(toolState.box.drag.x, toolState.box.anchor.x);
         var ty = Math.min(toolState.box.drag.y, toolState.box.anchor.y);
         var bx = Math.max(toolState.box.drag.x, toolState.box.anchor.x);
@@ -334,14 +334,14 @@ var Editor = (function () {
       } else if (toolState.moving) {
         var deltaX = currentPosition.x - toolState.moving.x;
         var deltaY = currentPosition.y - toolState.moving.y;
-        ReprTools.callOnGroup(Selection.get(), 'move', 
+        ReprTools.callOnGroup(Selection.get(), 'move',
           this.T.time(), deltaX, deltaY);
         toolState.moving = currentPosition;
         return e;
       }  else if (toolState.dragging) {
         var width = currentPosition.x - toolState.dragging.x;
         var height = currentPosition.y - toolState.draggingy;
-        ReprTools.callOnGroup(Selection.get(), 'resize', 
+        ReprTools.callOnGroup(Selection.get(), 'resize',
           this.T.time(), width, height);
         return e;
       } else {
@@ -352,7 +352,7 @@ var Editor = (function () {
         var canvasPos =
           this._canvasPosition(e.event.clientX, e.event.clientY);
         toolState.drawContext.drag(
-          canvasPos.x - toolState.dragging.x, 
+          canvasPos.x - toolState.dragging.x,
           canvasPos.y - toolState.dragging.y);
         toolState.drawContext.commit();
       }
@@ -360,7 +360,7 @@ var Editor = (function () {
       if(toolState.dragging !== null) {
         var width = currentPosition.x - toolState.dragging.x;
         var height = currentPosition.y - toolState.dragging.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize', 
+        ReprTools.callOnGroup(Selection.get(), 'resize',
           this.T.time(), width, height);
       }
       return e;
@@ -463,6 +463,11 @@ var Editor = (function () {
       this._canvas.style.height = height + 'px';
       return height;
     }).bind(this));
+    P.listen('editor.canvas.zoom.set', (function (zoom) {
+      this._zoomFactor = zoom;
+      this._canvas.style.zoom = '' + zoom;
+      return zoom;
+    }).bind(this));
     P.listen('editor.canvas.perspective.set', (function (perspective) {
       this._canvas.style.perspective = perspective;
       this._canvas.style.webkitPerspective = perspective;
@@ -498,7 +503,7 @@ var Editor = (function () {
         P.next(tool));
     }).bind(this));
     P.listen('tool.configure', (function () {
-      
+
     }).bind(this));
     P.listen('reset.editor.tools', (function () {
       for (var i = 0; i < this.tools.length; i++) {
@@ -576,8 +581,8 @@ var Editor = (function () {
       if (spec.sourceLayer === spec.targetLayer) {
         var source = ReprTools.getObject(spec.source);
         var sourceParent = source.DOM.parentElement;
-        sourceParent.insertBefore(source.DOM, 
-          spec.target === null ? null : 
+        sourceParent.insertBefore(source.DOM,
+          spec.target === null ? null :
             ReprTools.getObject(spec.target).DOM);
       }
       return spec;
@@ -590,7 +595,7 @@ var Editor = (function () {
       try {
         object.setProperty(time, spec.propertyName, spec.value);
       } catch (e) {
-        return P.emit('trace.error', 'Set property: ' + spec.objectName + 
+        return P.emit('trace.error', 'Set property: ' + spec.objectName +
           '.' + spec.propertyName + ' = ' + spec.value + ' failed.').then(
             function () {
               return Promise.reject(e);
