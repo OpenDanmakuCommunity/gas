@@ -201,7 +201,7 @@ var LayerManager = (function () {
         });
       }).bind(this), Promise.resolve()).then(P.next(e));
     }).bind(this));
-    
+
     P.listen('layers.btn.objectUp', (function (objectName) {
       var higher = LayerTools.objectHigher(objectName,
         this._mapping[objectName].layer);
@@ -214,7 +214,7 @@ var LayerManager = (function () {
         'target': LayerTools.objectHigher(higher,
           this._mapping[objectName].layer),
         'targetLayer': this._mapping[objectName].layer,
-      });
+      }).then(P.next(objectName));
     }).bind(this));
     P.listen('layers.btn.objectDown', (function (objectName) {
       var lower = LayerTools.objectLower(objectName,

@@ -200,7 +200,9 @@ var GSprite = (function () {
       return null; // Can't get a context
     }
     this.type = 'SVGSprite';
-    this._pm._baseSpec['type'] = 'SVGSprite';
+    if (typeof this._pm !== 'undefined' && this._pm !== null) {
+      this._pm._baseSpec['type'] = 'Sprite';
+    }
     var content = this._pm.getProp('content');
     if (content instanceof DrawingContext) {
       return content; // Get the existing context
@@ -249,7 +251,7 @@ var GSprite = (function () {
               return d.action + ' ' + d.x + ' ' + d.y;
             case 'Z':
             case 'z':
-            default: 
+            default:
               return d.action;
           }
         }).join(' '));
@@ -273,7 +275,9 @@ var GSprite = (function () {
     if (typeof image != 'object' || image === null || !'type' in image) {
       _ToggleClass(this.DOM, 'no-image', true);
       this.type = 'Sprite';
-      this._pm._baseSpec['type'] = 'Sprite';
+      if (typeof this._pm !== 'undefined' && this._pm !== null) {
+        this._pm._baseSpec['type'] = 'Sprite';
+      }
       this.DOM.style.backgroundImage = '';
       this.DOM.style.backgroundSize = '';
       if (this.SVGDOM !== null) {
@@ -288,7 +292,9 @@ var GSprite = (function () {
       case 'image/jpeg':
       case 'image/gif':
         this.type = 'BinarySprite';
-        this._pm._baseSpec['type'] = 'BinarySprite';
+        if (typeof this._pm !== 'undefined' && this._pm !== null) {
+          this._pm._baseSpec['type'] = 'BinarySprite';
+        }
         if (this.SVGDOM !== null) {
           this.DOM.removeChild(this.SVGDOM);
           this.SVGDOM = null;
@@ -301,7 +307,11 @@ var GSprite = (function () {
           // Recreate the SVG DOM
           // TODO: Support incremental changes
           this.DOM.removeChild(this.SVGDOM);
-        } 
+        }
+        this.type = 'SVGSprite';
+        if (typeof this._pm !== 'undefined' && this._pm !== null) {
+          this._pm._baseSpec['type'] = 'SVGSprite';
+        }
         this.SVGDOM = _Create('svg', {
           'width': '100%',
           'height': '100%',
