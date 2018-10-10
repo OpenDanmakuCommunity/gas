@@ -625,16 +625,22 @@ var Editor = (function () {
         return key;
       }
       if (key.key === 'Delete') {
-        if (Selection.count() === 0) {
-          return key; // Nothing to remove
-        }
-        if (!confirm('You are about to remove ' + Selection.count() +
-          ' items.\nAre you sure? (Action cannot be reversed)')) {
+        if (this.selectedTool === 'select') {
+          if (Selection.count() === 0) {
+            return key; // Nothing to remove
+          }
+          if (!confirm('You are about to remove ' + Selection.count() +
+            ' items.\nAre you sure? (Action cannot be reversed)')) {
+            return key;
+          }
+          return Selection.get().reduce(function (currentValue, objectName) {
+            return currentValue.then(P.emit('objects.remove', objectName));
+          }, Promise.resolve()).then(P.next(key));
+        } else {
+          P.emit('trace.warn', 
+            'This tool does not support the delete action.');
           return key;
         }
-        return Selection.get().reduce(function (currentValue, objectName) {
-          return currentValue.then(P.emit('objects.remove', objectName));
-        }, Promise.resolve()).then(P.next(key));
       } else if (key.key === 'a' && key.ctrlKey) {
         return P.emit('objects.select',
           ReprTools.allObjectNames()).then(P.next(key));

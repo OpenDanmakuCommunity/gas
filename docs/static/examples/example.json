@@ -66,7 +66,31 @@
         ]
     },
     "metadata": {
-        "objects": {},
+        "stage": {
+          "width": 640,
+          "height": 480,
+          "autoScale": true
+        },
+        "interactions": {
+          "sampleClickInteraction": {
+            "type": "hit-target",
+            "action": "open",
+            "parameters": {
+              "location": "video://vid100/0",
+              "window": "replace",
+              "pause": true,
+            },
+            "style": {
+              "accessible": true,
+              "outline": "always",
+              "hover": {
+                "color": 0,
+                "background": 0,
+              },
+              "touchPolicy": "default"
+            }
+          }
+        },
         "layers": {
             "orphans": "hide",
             "defaultMixing": "none"

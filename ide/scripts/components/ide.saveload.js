@@ -71,6 +71,7 @@ var SaveLoad = (function () {
 
   Importer.prototype.next = function () {
     if (!this._loadedMetadata) {
+      // Populate the global time
       this._loadedMetadata = true;
       return 'Metadata';
     } else if (this._objQueue.length > 0) {
