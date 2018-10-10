@@ -48,7 +48,7 @@ var SaveLoad = (function () {
       this._progressTotal += 1;
     }
     for (var i = 0; i < this._spec.layers.length; i++) {
-      this._layerQueue.push(this._spec.layers[i].name);
+      this._layerQueue.push(this._spec.layers[i]);
       this._progressTotal += 1;
     }
     if ('anchors' in this._spec.animation) {
@@ -65,7 +65,7 @@ var SaveLoad = (function () {
 
   Importer.prototype.hasNext = function () {
     return !this._loadedMetadata ||
-      this._objQueue.length + this._layerQueue.length + 
+      this._objQueue.length + this._layerQueue.length +
         this._animationQueue.length > 0;
   };
 
@@ -90,9 +90,24 @@ var SaveLoad = (function () {
       });
       return objName;
     } else if (this._layerQueue.length > 0) {
-      var layerName = this._layerQueue.shift();
+      var layer = this._layerQueue.shift();
+      if (layer.name !== 'default') {
+        // We need to create the layer
+        this._P.emit('layers.add', layer.name);
+      }
+      for (var i = 0; i < layer.components.length; i++) {
+        var objectName = layer.components[layer.components.length - i - 1];
+        var objectHigher = (i === 0 ? null :
+          layer.components[layer.components.length - i])
+        this._P.emit('objects.reflow', {
+          'source': objectName,
+          'target': objectHigher,
+          'sourceLayer': 'default',
+          'targetLayer': layer.name
+        });
+      }
       this._progress += 1;
-      return layerName;
+      return 'Layer:' + layer.name;
     } else if (this._animationQueue.length > 0) {
       var anchorTime = this._animationQueue.shift();
       this._progress += 1;
@@ -207,7 +222,7 @@ var SaveLoad = (function () {
       this._modalImport.prompt.style.display = '';
       return format;
     }).bind(this));
-    
+
     // Bind to stuff in the prompt
     var _importCache = null;
     P.bind(this._modalImport.filePicker, 'change', 'import.prompt.pick');
@@ -293,10 +308,10 @@ var SaveLoad = (function () {
       this._modalImport.progress.style.display = '';
       var importer = new Importer(spec, P, (function (output, progress) {
         this._modalImport.progressLabel.innerText = output;
-        this._modalImport.progressBar.style.width = 
+        this._modalImport.progressBar.style.width =
           (Math.round(progress * 1000) / 10) + '%';
       }).bind(this));
-      
+
       importer.initiate();
       return spec;
     }).bind(this));
