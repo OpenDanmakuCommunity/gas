@@ -76,6 +76,9 @@ var PropManager = (function () {
 
   // Pins are associated with region (startTime, endTime]
   PropManager.prototype._getKeyFrameIndex = function (time) {
+    if (typeof time !== 'number' || isNaN(time)) {
+      throw new Error('_getKeyFrameIndex: time must be non-NaN number');
+    }
     if (time <= 0) {
       return -1;
     }
@@ -84,6 +87,7 @@ var PropManager = (function () {
         // This record is not affected
         continue;
       }
+      // Implicit anchors[i].end >= time after this line
       if (this.anchors[i].start < time) {
         // This is exactly the range
         return i;
@@ -94,12 +98,7 @@ var PropManager = (function () {
       }
     }
     // All of the pins are before the current spec
-    if (this.anchors.length === 0) {
-      return -1;
-    } else {
-      // Blank range so use last pin
-      return this.anchors.length - 1;
-    }
+    return this.anchors.length - 1;
   };
 
   PropManager.prototype._getNextKeyFrameIndex = function (index) {
@@ -125,7 +124,8 @@ var PropManager = (function () {
     } else {
       if (this.anchors[recIdx].end === time) {
         return true; // The time is exactly at the end marker
-      } else if (recIdx === this.anchors.length - 1 && this.anchors[recIdx].end < time) {
+      } else if (recIdx === this.anchors.length - 1 &&
+          this.anchors[recIdx].end < time) {
         return true;
       } else {
         return false;
@@ -185,8 +185,7 @@ var PropManager = (function () {
   PropManager.prototype._applySubframe = function (time) {
     if (this._keyFrameIndex < 0) {
       if (time !== 0) {
-        throw new Error('Attempting to apply subframe at origin with ' +
-          'non-origin time.');
+        throw new Error('_applySubframe: non-origin time for origin subframe.');
       }
       return;
     }
@@ -217,7 +216,7 @@ var PropManager = (function () {
   PropManager.prototype.time = function (time) {
     // Figure out if the time requires a change in index
     if (typeof time !== 'number' || isNaN(time)) {
-      throw new Error('PropManager.time expects a non-NaN number!');
+      throw new Error('time: expects a non-NaN number!');
     }
     var newIndex = this._getKeyFrameIndex(time);
     if (newIndex === this._keyFrameIndex) {
@@ -301,8 +300,7 @@ var PropManager = (function () {
       if (this._withinKeyFrameBehavior === 'split') {
         this.splitKeyFrame(time);
       } else {
-        throw new Error('Time ' + time +
-          ' is in the middle of an animation frame!');
+        throw new Error('saveProp: ' + time + ' is within a frame.');
       }
     }
     // Figure out what to update
@@ -351,7 +349,7 @@ var PropManager = (function () {
 
   PropManager.prototype.getKeyTime = function (time, mode) {
     if (mode !== 'before' && mode !== 'after') {
-      throw new Error('Mode must be one of before, after');
+      throw new Error('getKeyTime: Mode must be one of "before" or "after".');
     }
     var ends = this.anchors.map(function (a) { 
       return a.end;
@@ -378,29 +376,22 @@ var PropManager = (function () {
   };
 
   PropManager.prototype.getKeyFrame = function (time) {
-    if (typeof time !== 'number') {
-      throw new Error('Time must be a number!');
+    if (typeof time !== 'number' || isNaN(time)) {
+      throw new Error('getKeyFrame: Time must be a non-NaN number!');
     }
-    if (isNaN(time)) {
-      throw new Error('Time cannot be NaN!');
-    }
-    for (var i = 0; i < this.anchors.length; i++) {
-      if (this.anchors[i].start < time && this.anchors[i].end >= time) {
-        return this.anchors[i];
-      }
-    }
-    return null;
+    var index = this._getKeyFrameIndex(time);
+    return index >= 0 ? this.anchors[index] : null;
   };
 
   PropManager.prototype.createKeyFrame = function (start, end) {
     if (typeof start !== 'number' || typeof end !== 'number') {
-      throw new Error('Start and end must both be numbers!');
+      throw new Error('createKeyFrame: Start and end must both be numbers!');
     }
     if (isNaN(start) || isNaN(end)) {
-      throw new Error('Start or end cannot be NaN!');
+      throw new Error('createKeyFrame: Start or end cannot be NaN!');
     }
     if (end <= start) {
-      throw new Error('KeyFrame end must be greater than start');
+      throw new Error('createKeyFrame: end must greater than start');
     }
     var keyFrame = {
       'start': start,
@@ -418,43 +409,46 @@ var PropManager = (function () {
 
   PropManager.prototype.splitKeyFrame = function (time) {
     if (typeof time !== 'number' || isNaN(time)) {
-      throw new Error('Invalid time');
+      throw new Error('splitKeyFrame: Time must be a non-NaN number.');
     }
     // Figure out the KeyFrame's location
     var index = this._getKeyFrameIndex(time);
-    // Save the current spec
-    var snapshotSpec = {};
-    if (index >= 0) {
-      for (var easing in this.anchors[index].spec) {
-        if (!(easing in snapshotSpec)) {
-          snapshotSpec[easing] = {};
-        }
-        for (var propName in this.anchors[index].spec[easing]) {
-          snapshotSpec[easing][propName] = this.getPropAtTime(
-            time, 
-            propName,
-            this.anchors[index].spec[easing][propName]);
-        }
-      }
+    if (index < 0) {
+      // No keyframe, so we just create a new one
+      this.createKeyFrame(0, time);
+      return;
     }
+    var frame = this.anchors[index];
+    if (frame.end === time) {
+      // Should not be splitting a 0-len frame
+      throw new Error('splitKeyFrame: Time = end for KeyFrame.');
+    } else if (frame.end < time) {
+      // In a blank, just create the frame.
+      this.createKeyFrame(frame.end, time);
+      return;
+    }
+    // Move the start time of the existing frame
+    var oldStart = frame.start;
+    frame.start = time;
+    this.createKeyFrame(oldStart, time);
+  };
 
-    if (index >= 0) {
-      var oldEnd = this.anchors[index].end;
-      this.anchors[index].end = time;
-      // Insert a new KeyFrame
-      this.createKeyFrame(time, oldEnd);
-      // Find the new keyFrame
-      var indexOld = this._getKeyFrameIndex(time);
-      var indexNew = this._getNextKeyFrameIndex(indexOld);
-      if (indexOld < 0) {
-        throw new Error('Split keyframe failed.');
-      }
-      this.anchors[indexNew].spec = this.anchors[indexOld].spec;
-      this.anchors[indexOld].spec = snapshotSpec;
-    } else {
-      var next = this._getNextKeyFrameIndex(index);
-      if (next >= 0) {
-        this.createKeyFrame(time, this.anchors[next].start);
+  PropManager.prototype.removeKeyFrame = function (time, consumeBlank) {
+    // Find the key frame
+    if (typeof time !== 'number' || isNaN(time)) {
+      throw new Error('removeKeyFrame: Time must be a non NaN number!');
+    }
+    for (var i = 0; i < this.anchors.length; i++) {
+      if (this.anchors[i].start < time && this.anchors[i].end >= time) {
+        if (i === this.anchors.length - 1) {
+          // Last frame can be removed directly
+          this.anchors.splice(i, 1);
+        } else {
+          if (consumeBlank) {
+            this.anchors[i+1].start = this.anchors[i].start;
+          }
+          this.anchors.splice(i, 1);
+        }
       }
     }
   };

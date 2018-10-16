@@ -38,64 +38,22 @@ Example 示例:
 动画绘图对象用于在Sprite里面播放动画。这样可以极大简化很多复杂的高级弹幕。不过由于安全策略，
 对这一类型的Sprite可能支持有限。
 
-### 基于位图动图 `content.type` = `image/gif`
-Example 示例:
+### 帧列表 Frame List
 ````JSON
 {
-    "type": "AnimatedSprite",
-    "content": {
-        "type": "image/gif",
-        "data": "...",
-        "encoding": "base64"
-    }
-}
-````
-类似 BinarySprite，当 MIME 是 `image/gif` 是会自动导入为 `AnimatedSprite`。其次，由于
-动画由图片控制，这种对象不支持倒放！
-
-### 基于视频 `content.type` = `video/mp4`, `video/webm`, `video/ogg`*
-类似 BinarySprite，有时可以把视频当作动画Sprite嵌入。
-
-注意：此类型可能受到很多平台限制，比如：
-- 不支持视频：安全策略禁止，不支持codec等
-- 文件大小限制：因为data字段太大而不支持
-- 倒放问题：可能不支持倒放
-- 声音：如果在 Sprite 内使用视频，平台应当禁止该视频发出声音。
-
-### 自定义位图 `content.type` = `frames/*`
-以一系列关键帧定义图像，可以参考如下示例 Example:
-````JSON
-{
-    "type": "AnimatedSprite",
-    "content": {
-        "type": "frames/bitmap",
-        "frames": [
-            {
-                "type": "image/png",
-                "data": "...",
-                "encoding": "base64",
-                "isKeyFrame": true,
-            }
-        ],
-        "fps": 10,
-        "repeat": true,
-    }
+  "type": "AnimatedSprite",
+  "content": {
+    "type": "frames",
+    "frames": [
+      {"type": "svg", "children": []},
+      {"type": "image/png", "data": "...", "encoding": ""}
+    ]
+  }
 }
 ````
 
-#### `content.fps` 帧率
-定义动画帧率，图像会根据帧率依次切换，直到序列结束。
-
-#### `content.repeat` 是否循环
-动画是否一直循环还是只播一次。注意：AnimatedSprite的动画在弹幕开始播放后就立刻开始播放
-（不管是否对象可见）。
-
-#### `content.frames[?].isKeyFrame`
-是否为关键帧。这个只在 `type = "image/x-canvas+json"` 时有效。当取 `false` 时，新的
-命令将会在旧的Canvas图像上增进绘制。注意：过多使用非 KeyFrame 会极大程度减缓倒放能力。
-
-在 `image/png` 时，KeyFrame图像和其之后非关键帧图像会一直堆砌显示，可以用透明度进行递增
-动画。达到新的关键帧，则隐藏之前图像。
+### `frame` 帧位置
+用于在时间轴里面动画使用，支持渐变。取值在 `[0, # frames]`。
 
 ## SVG图像 SVGSprite
 Example 示例:

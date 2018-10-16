@@ -1,5 +1,8 @@
 var TimelineManager = (function () {
   var TimelineManager = function (timeline, playback) {
+    if (!ReprTools || !Repr || !_Create || !Selection) {
+      throw new Error('Environment not loaded correctly!');
+    }
     this._timeline = timeline;
     this._playback = playback;
 
@@ -45,19 +48,10 @@ var TimelineManager = (function () {
   };
 
   /** Pin Related **/
-  TimelineManager.prototype._insertPin = function (P, name, start, end, isAnimated) {
-    if (!(name in this._tracks)) {
-      throw new Error('Could not find track ' + name);
-    }
-    if (end <= start) {
-      throw new Error('End time must be after start time');
-    }
-    // Check if the pin can actually be inserted
-    if (!this._canPin(name, start, end)) {
-      throw new Error('Cannot pin ' + start + '->' + end +
-        ': Overlaps existing pin.');
-    }
-    var pinDom = _Create('div', {
+  TimelineManager.prototype._createPinDom = function (
+    name, start, end, isAnimated) {
+
+    return _Create('div', {
         'className': 'pin' + (!isAnimated ? ' static' : ''),
         'style': {
           'left': this._playback.timeToPixels(start) + 'px',
@@ -70,9 +64,46 @@ var TimelineManager = (function () {
         _Create('div', {
           'className': 'mark'
         })
-      ])
+      ]);
+  };
+  TimelineManager.prototype._editPin = function (P, name, pin, start, end,
+    isAnimated) {
+
+    if (start !== pin.start || end !== pin.end) {
+      // Resizing the pin
+      var oldName = pin.name;
+      pin.start = start;
+      pin.end = end;
+      pin.name = 'pin-' + pin.start + '-' + pin.end;
+      P.rename('track.' + name + '.pin.' + oldName + '.click', 
+        'track.' + name + '.pin.' + pin.name + '.click');
+      pin.dom.style.left = this._playback.timeToPixels(pin.start) + 'px';
+      pin.dom.style.width = this._playback.timeToPixels(
+        pin.end - pin.start) + 'px';
+    }
+
+    // Update isAnimated status
+    if (isAnimated === true || isAnimated === false) {
+      pin.dom.style.className = 'pin' + (!isAnimated ? ' static' : '');
+    }
+  };
+  TimelineManager.prototype._insertPin = function (P, name, start, 
+    end, isAnimated) {
+
+    if (!(name in this._tracks)) {
+      throw new Error('Could not find track ' + name);
+    }
+    if (end <= start) {
+      throw new Error('End time must be after start time');
+    }
+    // Check if the pin can actually be inserted
+    if (!this._canPin(name, start, end)) {
+      throw new Error('Cannot pin ' + start + '->' + end +
+        ': Overlaps existing pin.');
+    }
+
     var pin = {
-      'dom': pinDom,
+      'dom': this._createPinDom(name, start, end, isAnimated),
       'start': start,
       'end': end,
       'name': 'pin-' + start + '-' + end,
@@ -88,37 +119,126 @@ var TimelineManager = (function () {
         return 0;
       }
     });
-    this._tracks[name].track.appendChild(pinDom);
+    // Figure out where to insert this DOM
+    var index = this._tracks[name].pins.indexOf(pin);
+    if (index < this._tracks[name].pins.length - 1) {
+      var nextPin = this._tracks[name].pins[index + 1];
+      this._tracks[name].track.insertBefore(pin.dom, nextPin.dom);
+    } else {
+      this._tracks[name].track.appendChild(pin.dom);
+    }
     // Bind the events
-    P.bind(pinDom, 'mousedown', 'track.' + name + '.pin.' + pin.name + '.click');
+    P.bind(pin.dom, 'mousedown', 'track.' + name + '.pin.' + pin.name +
+      '.click');
     P.listen('track.' + name + '.pin.' + pin.name + '.click', (function (e) {
       var idx = {
         'pin': pin.name,
         'end': pin.end,
         'track': name
       };
-      var selection = null;
+      var selected = null;
       var currentPinSelected = this._selectedPins.some(function (item) {
         return item.pin === idx.pin && item.track === idx.track;
       });
       if (e.event.ctrlKey) {
-        selection = this._selectedPins.slice(0).filter(function (pin){
+        selected = this._selectedPins.slice(0).filter(function (pin){
           return pin.pin !== idx.pin || pin.track !== idx.track;
         });
         if (!currentPinSelected) {
-          selection.push(idx);
+          selected.push(idx);
         }
       } else {
-        selection = (currentPinSelected && this._selectedPins.length === 1) ?
+        selected = (currentPinSelected && this._selectedPins.length === 1) ?
           [] : [idx];
       }
       // Also unset the selection of Objects
-      return P.emit('timeline.pins.select', selection).then(P.next(e));
+      return P.emit('timeline.pins.select', selected).then(P.next(e));
     }).bind(this));
   };
 
-  TimelineManager.prototype._removePin = function () {
+  TimelineManager.prototype._findPinIndex = function (name, end) {
+    if (!(name in this._tracks)) {
+      throw new Error('_findPinIndex: ' + name + ' has no track!');
+    }
+    for (var i = 0; i < this._tracks[name].pins.length; i++) {
+      var pin = this._tracks[name].pins[i];
+      if (pin.end < end) {
+        continue;
+      }
+      if (pin.start < end) {
+        return i;
+      } else {
+        return i - 1;
+      }
+    }
+    return this._tracks[name].pins.length - 1;
+  };
 
+  TimelineManager.prototype._removePin = function (P, name, end) {
+    // Find the pin in the UI, must be exact
+    var pin = null, index = null;
+    for (var i = 0; i < this._tracks[name].pins.length; i++) {
+      pin = this._tracks[name].pins[i];
+      if (pin.end === end) {
+        index = i;
+        break;
+      } else if (pin.end < end) {
+        // Past search
+        pin = null;
+        index = null;
+        break;
+      }
+    }
+    if (index === null || pin === null) {
+      throw new Error('_removePin: Could not find anchor @' + name);
+    }
+    // Find the pin in the object's own timeline
+    var object = ReprTools.getObject(name);
+    object._pm.removeKeyFrame(end, true);
+    // Remove pin from DOM
+    if (index === this._tracks[name].pins.length - 1) {
+      // Removing last pin
+      this._tracks[name].track.removeChild(pin.dom);
+    } else {
+      // Get the next pin
+      var nextPin = this._tracks[name].pins[i + 1];
+      this._editPin(P, name, nextPin, pin.start, nextPin.end);
+      // Remove this pin
+      this._tracks[name].track.removeChild(pin.dom);
+    }
+    // Debind
+    P.drop('track.' + name + '.pin.' + pin.name + '.click');
+    // Remove pin from list
+    this._tracks[name].pins.splice(index, 1);
+  };
+
+  TimelineManager.prototype._splitPin = function (P, name, end, isAnimated) {
+    // Find the pin involved
+    var index = this._findPinIndex(name, end);
+    if (index < 0) {
+      // No existing pin, we can just add but only if non-zero time
+      if (end === 0) {
+        return;
+      }
+      this._insertPin(P, name, 0, end, isAnimated);
+      return;
+    } else {
+      var pin = this._tracks[name].pins[index];
+      if (pin.end === end) {
+        // No need to do anything
+        this._editPin(P, name, pin, pin.start, pin.end, isAnimated);
+      } else if (pin.end < end) {
+        // Just create a new pin
+        this._insertPin(P, name, pin.end, end, isAnimated);
+        return;
+      } else {
+        // Need to break old pin
+        var oldStart = pin.start;
+        this._editPin(P, name, pin, end, pin.end);
+        this._insertPin(P, name, oldStart, end, isAnimated);
+      }
+    }
+    
   };
 
   TimelineManager.prototype._canPin = function (name, start, end) {
@@ -287,6 +407,14 @@ var TimelineManager = (function () {
   };
 
   /** Binding related **/
+  TimelineManager.prototype._bindMove = function (P) {
+    // Bind object movement
+    P.listen('object.propertyUpdated', (function (spec) {
+      this._splitPin(P, spec.objectName, spec.time);
+      return spec;
+    }).bind(this));
+  };
+
   TimelineManager.prototype._bindPin = function (P) {
     // Add pin action
     P.listen('timeline.rec', (function (timeObj) {
@@ -344,6 +472,7 @@ var TimelineManager = (function () {
 
     // Bind pin controls
     this._bindPin(P);
+    this._bindMove(P);
 
     // Bind rescaling of the timeline
     P.listen('timeline.duration.set', (function (newDuration) {

@@ -63,7 +63,6 @@ var Playback = (function () {
     }).sort(function (a, b) {
       return b - a;
     });
-    console.log(nearestTimes);
     if (nearestTimes.length === 0) {
       return time;
     } else {
