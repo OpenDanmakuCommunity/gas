@@ -407,6 +407,22 @@ var PropManager = (function () {
     });
   };
 
+  PropManager.prototype.resizeKeyFrame = function (time, start, end) {
+    if (typeof time !== 'number' || isNaN(time)) {
+      throw new Error('resizeKeyFrame: Time must be a non-NaN number.');
+    }
+    var index = this._getKeyFrameIndex(time);
+    if (index < 0) {
+      throw new Error('resizeKeyFrame: No frames at time ' + time);
+    }
+    var frame = this.anchors[index];
+    frame.start = start;
+    frame.end = end;
+    this.anchors.sort(function (a, b) {
+      return a.end > b.end ? 1 : (a.end < b.end ? -1 : 0);
+    });
+  };
+
   PropManager.prototype.splitKeyFrame = function (time) {
     if (typeof time !== 'number' || isNaN(time)) {
       throw new Error('splitKeyFrame: Time must be a non-NaN number.');

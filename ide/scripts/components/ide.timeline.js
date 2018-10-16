@@ -72,6 +72,7 @@ var TimelineManager = (function () {
     if (start !== pin.start || end !== pin.end) {
       // Resizing the pin
       var oldName = pin.name;
+      var oldTime = pin.end;
       pin.start = start;
       pin.end = end;
       pin.name = 'pin-' + pin.start + '-' + pin.end;
@@ -80,6 +81,12 @@ var TimelineManager = (function () {
       pin.dom.style.left = this._playback.timeToPixels(pin.start) + 'px';
       pin.dom.style.width = this._playback.timeToPixels(
         pin.end - pin.start) + 'px';
+      P.emit('timeline.pins.resized', {
+        'objectName': name,
+        'time': oldTime,
+        'start': pin.start,
+        'end': pin.end
+      });
     }
 
     // Update isAnimated status
@@ -154,6 +161,12 @@ var TimelineManager = (function () {
       // Also unset the selection of Objects
       return P.emit('timeline.pins.select', selected).then(P.next(e));
     }).bind(this));
+    // Emit a post-pin event
+    P.emit('timeline.pins.added', {
+      'objectName': name, 
+      'start': start,
+      'end': end
+    });
   };
 
   TimelineManager.prototype._findPinIndex = function (name, end) {
@@ -210,6 +223,10 @@ var TimelineManager = (function () {
     P.drop('track.' + name + '.pin.' + pin.name + '.click');
     // Remove pin from list
     this._tracks[name].pins.splice(index, 1);
+    P.emit('timeline.pins.removed', {
+      'objectName': name,
+      'end': end
+    });
   };
 
   TimelineManager.prototype._splitPin = function (P, name, end, isAnimated) {

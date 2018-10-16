@@ -107,9 +107,19 @@ var AnimationManager = (function () {
   };
 
   AnimationManager.prototype._bindPinEvents = function (P) {
-    P.listen('timeline.pins.add', (function (pin) {
+    P.listen('timeline.pins.added', (function (pin) {
       ReprTools.getObject(pin.objectName)._pm.createKeyFrame(
-          pin.start, pin.end);
+        pin.start, pin.end);
+      return pin;
+    }).bind(this));
+    P.listen('timeline.pins.removed', (function (pin) {
+      ReprTools.getObject(pin.objectName)._pm.removeKeyFrame(
+        pin.end);
+      return pin;
+    }).bind(this));
+    P.listen('timeline.pins.resized', (function (pin) {
+      ReprTools.getObject(pin.objectName)._pm.resizeKeyFrame(
+        pin.time, pin.start, pin.end);
       return pin;
     }).bind(this));
 
