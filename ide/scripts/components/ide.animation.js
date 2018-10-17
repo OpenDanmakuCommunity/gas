@@ -129,8 +129,7 @@ var AnimationManager = (function () {
       return P.emit('animation.properties.load').then(P.next(items));
     }).bind(this));
     P.listen('object.setProperty', (function (e) {
-      P.emit('animation.properties.load');
-      return e;
+      return P.emit('animation.properties.load').then(P.next(e));
     }).bind(this));
   };
 

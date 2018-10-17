@@ -195,12 +195,13 @@ var GButton = (function () {
     this._pm.saveProp(time, propName, value);
   };
 
-  GButton.prototype.move = function (time, x, y) {
-    this._pm.saveProp(time, 'position.x', this._pm.getProp('position.x', 0) + x);
-    this._pm.saveProp(time, 'position.y', this._pm.getProp('position.y', 0) + y);
+  GButton.prototype._move = function (x, y) {
+    // Don't really save the position, just move visually
+    this._pm._setProp('position.x', this._pm.getProp('position.x', 0) + x);
+    this._pm._setProp('position.y', this._pm.getProp('position.y', 0) + y);
   };
 
-  GButton.prototype.resize = function (time, width, height) {
+  GButton.prototype._resize = function (time, width, height) {
     this._pm.saveProp(time, 'size.width', Math.max(1, width));
     this._pm.saveProp(time, 'size.height', Math.max(1, height));
   };

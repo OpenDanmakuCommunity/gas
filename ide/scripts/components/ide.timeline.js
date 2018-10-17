@@ -69,6 +69,11 @@ var TimelineManager = (function () {
   TimelineManager.prototype._editPin = function (P, name, pin, start, end,
     isAnimated) {
 
+    // Update isAnimated status
+    if (isAnimated === true || isAnimated === false) {
+      pin.dom.style.className = 'pin' + (!isAnimated ? ' static' : '');
+    }
+
     if (start !== pin.start || end !== pin.end) {
       // Resizing the pin
       var oldName = pin.name;
@@ -81,17 +86,14 @@ var TimelineManager = (function () {
       pin.dom.style.left = this._playback.timeToPixels(pin.start) + 'px';
       pin.dom.style.width = this._playback.timeToPixels(
         pin.end - pin.start) + 'px';
-      P.emit('timeline.pins.resized', {
+      return P.emit('timeline.pins.resized', {
         'objectName': name,
         'time': oldTime,
         'start': pin.start,
         'end': pin.end
       });
-    }
-
-    // Update isAnimated status
-    if (isAnimated === true || isAnimated === false) {
-      pin.dom.style.className = 'pin' + (!isAnimated ? ' static' : '');
+    } else {
+      return Promise.resolve();
     }
   };
   TimelineManager.prototype._insertPin = function (P, name, start, 
@@ -162,7 +164,7 @@ var TimelineManager = (function () {
       return P.emit('timeline.pins.select', selected).then(P.next(e));
     }).bind(this));
     // Emit a post-pin event
-    P.emit('timeline.pins.added', {
+    return P.emit('timeline.pins.added', {
       'objectName': name, 
       'start': start,
       'end': end
@@ -223,7 +225,7 @@ var TimelineManager = (function () {
     P.drop('track.' + name + '.pin.' + pin.name + '.click');
     // Remove pin from list
     this._tracks[name].pins.splice(index, 1);
-    P.emit('timeline.pins.removed', {
+    return P.emit('timeline.pins.removed', {
       'objectName': name,
       'end': end
     });
@@ -235,27 +237,25 @@ var TimelineManager = (function () {
     if (index < 0) {
       // No existing pin, we can just add but only if non-zero time
       if (end === 0) {
-        return;
+        return Promise.resolve();
       }
-      this._insertPin(P, name, 0, end, isAnimated);
-      return;
+      return this._insertPin(P, name, 0, end, isAnimated);
     } else {
       var pin = this._tracks[name].pins[index];
       if (pin.end === end) {
         // No need to do anything
-        this._editPin(P, name, pin, pin.start, pin.end, isAnimated);
+        return this._editPin(P, name, pin, pin.start, pin.end, isAnimated);
       } else if (pin.end < end) {
         // Just create a new pin
-        this._insertPin(P, name, pin.end, end, isAnimated);
-        return;
+        return this._insertPin(P, name, pin.end, end, isAnimated);
       } else {
         // Need to break old pin
         var oldStart = pin.start;
-        this._editPin(P, name, pin, end, pin.end);
-        this._insertPin(P, name, oldStart, end, isAnimated);
+        return this._editPin(P, name, pin, end, pin.end).then((function () {
+          return this._insertPin(P, name, oldStart, end, isAnimated);
+        }).bind(this));
       }
     }
-    
   };
 
   TimelineManager.prototype._canPin = function (name, start, end) {
@@ -314,7 +314,6 @@ var TimelineManager = (function () {
 
   /** Track Related **/
   TimelineManager.prototype._createTrack = function (P, name, spec) {
-    console.log('Created track for ' + name);
     var label = _Create('div',{
         'className': 'row-label',
         'tabindex': 3,
@@ -425,10 +424,9 @@ var TimelineManager = (function () {
 
   /** Binding related **/
   TimelineManager.prototype._bindMove = function (P) {
-    // Bind object movement
-    P.listen('object.propertyUpdated', (function (spec) {
-      this._splitPin(P, spec.objectName, spec.time);
-      return spec;
+    // Bind provision of frame
+    P.listen('object.provisionFrame', (function (spec) {
+      return this._splitPin(P, spec.objectName, spec.time).then(P.next(spec));
     }).bind(this));
   };
 

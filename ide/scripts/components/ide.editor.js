@@ -265,6 +265,27 @@ var Editor = (function () {
           canvasPos.x - toolState.dragging.x,
           canvasPos.y - toolState.dragging.y);
         toolState.drawContext.commit();
+      } else {
+        var time = this.T.time();
+        Promise.all(Selection.get().map((function (object) {
+          var width = ReprTools.getObject(object)._pm.getProp('size.width');
+          var height = ReprTools.getObject(object)._pm.getProp('size.height');
+          // Round
+          width = Math.round(width);
+          height = Math.round(height);
+          return this.P.emit('object.setProperty', {
+            'objectName': object,
+            'time': time,
+            'propertyName': 'size.width',
+            'value': width
+          }).then(
+            this.P.emit('object.setProperty', {
+              'objectName': object,
+              'time': time,
+              'propertyName': 'size.height',
+              'value': height
+            }));
+        }).bind(this)));
       }
       toolState.dragging = null;
     }
@@ -334,14 +355,13 @@ var Editor = (function () {
       } else if (toolState.moving) {
         var deltaX = currentPosition.x - toolState.moving.x;
         var deltaY = currentPosition.y - toolState.moving.y;
-        ReprTools.callOnGroup(Selection.get(), 'move',
-          this.T.time(), deltaX, deltaY);
+        ReprTools.callOnGroup(Selection.get(), '_move', deltaX, deltaY);
         toolState.moving = currentPosition;
         return e;
       }  else if (toolState.dragging) {
         var width = currentPosition.x - toolState.dragging.x;
         var height = currentPosition.y - toolState.draggingy;
-        ReprTools.callOnGroup(Selection.get(), 'resize',
+        ReprTools.callOnGroup(Selection.get(), '_resize',
           this.T.time(), width, height);
         return e;
       } else {
@@ -360,7 +380,7 @@ var Editor = (function () {
       if(toolState.dragging !== null) {
         var width = currentPosition.x - toolState.dragging.x;
         var height = currentPosition.y - toolState.dragging.y;
-        ReprTools.callOnGroup(Selection.get(), 'resize',
+        ReprTools.callOnGroup(Selection.get(), '_resize',
           this.T.time(), width, height);
       }
       return e;
@@ -591,24 +611,30 @@ var Editor = (function () {
     // Listen on object property updates
     P.listen('object.setProperty', (function (spec) {
       var time = 'time' in spec ? spec.time : this.T.time();
-      var object = ReprTools.getObject(spec.objectName);
-      try {
-        object.setProperty(time, spec.propertyName, spec.value);
-      } catch (e) {
-        return P.emit('trace.error', 'Set property: ' + spec.objectName +
-          '.' + spec.propertyName + ' = ' + spec.value + ' failed.').then(
-            function () {
-              return Promise.reject(e);
-            }).then(P.next(spec));
-      }
-      return P.emit('trace.log',
-        'Set property: ' + spec.objectName + '.' + spec.propertyName + ' = ' +
-          spec.value).then(P.emit('object.propertyUpdated', {
-            'time': time,
-            'objectName': spec.objectName,
-            'propertyName': spec.propertyName,
-            'value': spec.propertyValue
-          })).then(P.next(spec));
+      return P.emit('object.provisionFrame', {
+        'objectName': spec.objectName,
+        'time': time
+      }).then(function () {
+        var object = ReprTools.getObject(spec.objectName);
+        try {
+          object.setProperty(time, spec.propertyName, spec.value);
+        } catch (e) {
+          return P.emit('trace.error', 'Set property: ' + spec.objectName +
+            '.' + spec.propertyName + ' = ' + spec.value.toString() +
+            ' failed.').then(
+              function () {
+                throw e;
+              }).then(P.next(spec));
+        }
+        return P.emit('trace.log',
+          'Set property: ' + spec.objectName + '.' + spec.propertyName + ' = ' +
+            spec.value.toString()).then(P.emit('object.propertyUpdated', {
+              'time': time,
+              'objectName': spec.objectName,
+              'propertyName': spec.propertyName,
+              'value': spec.propertyValue
+            }));
+      }).then(P.next(spec));
     }).bind(this));
 
     // Bind post-events

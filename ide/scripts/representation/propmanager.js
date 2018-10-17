@@ -117,22 +117,6 @@ var PropManager = (function () {
     }
   };
 
-  PropManager.prototype._isConfigurable = function (time) {
-    var recIdx = this._getKeyFrameIndex(time);
-    if (recIdx === -1) {
-      return true; // Configures the base time
-    } else {
-      if (this.anchors[recIdx].end === time) {
-        return true; // The time is exactly at the end marker
-      } else if (recIdx === this.anchors.length - 1 &&
-          this.anchors[recIdx].end < time) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-  };
-
   // Set the property RIGHT NOW
   PropManager.prototype._setProp = function (propertyName, newValue) {
     this.spec[propertyName] = newValue;
@@ -218,23 +202,46 @@ var PropManager = (function () {
     if (typeof time !== 'number' || isNaN(time)) {
       throw new Error('time: expects a non-NaN number!');
     }
-    var newIndex = this._getKeyFrameIndex(time);
-    if (newIndex === this._keyFrameIndex) {
-      // We are still on the same old frame
-      if (this._keyFrameIndex < 0) {
-        // We are before the first keyFrame
-        if (this._keyFrame === null) {
-          // Initialize the frame
-          this._applyKeyFrame(newIndex);
-        }
+    var frameIndex = this._getKeyFrameIndex(time);
+    // Figure out what this frame is 
+    if (frameIndex < 0) {
+      // We're at the start
+      if (this._keyFrameIndex === frameIndex) {
+        // Never left origin, do nothing
       } else {
-        // Apply the subframes
-        this._applySubframe(time);
+        this._applyKeyFrame(frameIndex);
       }
     } else {
-      // Setup the new frame
-      this._applyKeyFrame(newIndex);
-      this._applySubframe(time);
+      var frame = this.anchors[frameIndex];
+      if (frame.end < time) {
+        // We're in a blank region
+        if (this._keyFrameIndex === frameIndex) {
+          // Entered by playing forwards
+          this._applySubframe(frame.end);
+        } else {
+          // Entered by playing backwards
+          this._applyKeyFrame(frameIndex);
+          this._applySubframe(frame.end);
+        }
+      } else {
+        // We're in a keyFrame
+        if (this._keyFrameIndex === frameIndex) {
+          // Check if we are in the last frame
+          if (frameIndex === this.anchors.length - 1) {
+            // Entering from past the last keyframe cannot be detected so we
+            // force a safe rendering.
+            this._applyKeyFrame(frameIndex);
+            this._applySubframe(time);
+          } else {
+            // Entered by playing forwards
+            this._applySubframe(time);
+          }
+        } else {
+          // Entered by playing backwards
+          this._applyKeyFrame(frameIndex);
+          this._applySubframe(time);
+        }
+      }
     }
   };
 
@@ -295,21 +302,16 @@ var PropManager = (function () {
     return propName in this.spec ? this.spec[propName] : def;
   };
 
-  PropManager.prototype.saveProp = function (time, propertyName, value, easing) {
-    if (!this._isConfigurable(time)) {
-      if (this._withinKeyFrameBehavior === 'split') {
-        this.splitKeyFrame(time);
-      } else {
-        throw new Error('saveProp: ' + time + ' is within a frame.');
-      }
-    }
-    // Figure out what to update
+  PropManager.prototype.saveProp = function (
+    time, propertyName, value, easing) {
+
+    // Try to figure out the associated place to save the prop
     var index = this._getKeyFrameIndex(time);
     // Figure out if there's a frame after
     var nextIndex = this._getNextKeyFrameIndex(index);
-
+    
     if (index < 0) {
-      // Update the next frame if it exists and doesnt have this property
+      // If the next frame exists but doesn't have this prop, copy over current
       if (nextIndex >= 0 &&
         this._getPropEasingAtIndex(nextIndex, propertyName) === null) {
         this.anchors[nextIndex].spec['none'][propertyName] =
@@ -319,31 +321,38 @@ var PropManager = (function () {
       this._baseSpec[propertyName] = value;
       this._setProp(propertyName, value);
     } else {
-      // Figure out the easing
-      if (typeof easing !== 'string' || easing === null) {
-        easing = 'none';
+      // This is the frame time is in or the frame before it
+      var frame = this.anchors[index];
+      if (frame.end <= time) {
+        // Figure out the easing
+        if (typeof easing !== 'string' || easing === null) {
+          easing = 'none';
+        }
+        // Make sure the easing mode exists
+        if (!(easing in this.anchors[index].spec)) {
+          this.anchors[index].spec[easing] = {};
+        }
+        // Figure out if this property exists in different easing in current pin
+        var currentEasing = this._getPropEasingAtIndex(index, propertyName);
+        if (currentEasing !== easing && currentEasing !== null) {
+          // Move old value over if it exists
+          this.anchors[index].spec[easing][propertyName] = 
+            this.anchors[index].spec[currentEasing][propertyName];
+          delete this.anchors[index].spec[currentEasing][propertyName];
+        }
+        // Update the next frame if it exists and doesnt have this property
+        if (nextIndex >= 0 &&
+          this._getPropEasingAtIndex(nextIndex, propertyName) === null) {
+          this.anchors[nextIndex].spec['none'][propertyName] = 
+            this.anchors[index].spec[easing][propertyName];
+        }
+        // Update the current frame
+        this.anchors[index].spec[easing][propertyName] = value;
+        this._setProp(propertyName, value);
+      } else {
+        // We're in the middle of a frame!
+        throw new Error('saveProp: ' + time + ' is within a frame.');
       }
-      // Make sure the easing mode exists
-      if (!(easing in this.anchors[index].spec)) {
-        this.anchors[index].spec[easing] = {};
-      }
-      // Figure out if this property exists in different easing in current pin
-      var currentEasing = this._getPropEasingAtIndex(index, propertyName);
-      if (currentEasing !== easing && currentEasing !== null) {
-        // Move old value over if it exists
-        this.anchors[index].spec[easing][propertyName] = 
-          this.anchors[index].spec[currentEasing][propertyName];
-        delete this.anchors[index].spec[currentEasing][propertyName];
-      }
-      // Update the next frame if it exists and doesnt have this property
-      if (nextIndex >= 0 &&
-        this._getPropEasingAtIndex(nextIndex, propertyName) === null) {
-        this.anchors[nextIndex].spec['none'][propertyName] = 
-          this.anchors[index].spec[easing][propertyName];
-      }
-      // Update the current frame
-      this.anchors[index].spec[easing][propertyName] = value;
-      this._setProp(propertyName, value);
     }
   };
 

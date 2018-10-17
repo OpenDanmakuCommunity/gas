@@ -196,9 +196,10 @@ var GText = (function () {
     this._pm.saveProp(time, propName, value);
   };
 
-  GText.prototype.move = function (time, x, y) {
-    this._pm.saveProp(time, 'position.x', this._pm.getProp('position.x', 0) + x);
-    this._pm.saveProp(time, 'position.y', this._pm.getProp('position.y', 0) + y);
+  GText.prototype._move = function (x, y) {
+    // Don't really save the position, just move visually
+    this._pm._setProp('position.x', this._pm.getProp('position.x', 0) + x);
+    this._pm._setProp('position.y', this._pm.getProp('position.y', 0) + y);
   };
 
   return GText;
