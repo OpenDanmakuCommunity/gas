@@ -246,13 +246,15 @@ var Editor = (function () {
           'time': time,
           'propertyName': 'position.x',
           'value': x
-        }).then(
-          this.P.emit('object.setProperty', {
+        }).then((function () {
+          // only set the second after the first has completed
+          return this.P.emit('object.setProperty', {
             'objectName': object,
             'time': time,
             'propertyName': 'position.y',
             'value': y
-          }));
+          });
+        }).bind(this));
       }).bind(this)));
       toolState.moving = null;
     }
@@ -278,13 +280,14 @@ var Editor = (function () {
             'time': time,
             'propertyName': 'size.width',
             'value': width
-          }).then(
-            this.P.emit('object.setProperty', {
+          }).then((function () {
+            return this.P.emit('object.setProperty', {
               'objectName': object,
               'time': time,
               'propertyName': 'size.height',
               'value': height
-            }));
+            });
+          }).bind(this));
         }).bind(this)));
       }
       toolState.dragging = null;
@@ -613,7 +616,8 @@ var Editor = (function () {
       var time = 'time' in spec ? spec.time : this.T.time();
       return P.emit('object.provisionFrame', {
         'objectName': spec.objectName,
-        'time': time
+        'time': time,
+        'propertyName': spec.propertyName
       }).then(function () {
         var object = ReprTools.getObject(spec.objectName);
         try {

@@ -251,7 +251,9 @@ var TimelineManager = (function () {
       } else {
         // Need to break old pin
         var oldStart = pin.start;
+        console.log(JSON.stringify(this._tracks[name].pins));
         return this._editPin(P, name, pin, end, pin.end).then((function () {
+          console.log(JSON.stringify(this._tracks[name].pins));
           return this._insertPin(P, name, oldStart, end, isAnimated);
         }).bind(this));
       }
@@ -271,6 +273,7 @@ var TimelineManager = (function () {
         if (pins[i].start >= end) {
           return true;
         } else {
+          console.log([pins[i].start, pins[i].end]);
           return false;
         }
       }
@@ -426,6 +429,7 @@ var TimelineManager = (function () {
   TimelineManager.prototype._bindMove = function (P) {
     // Bind provision of frame
     P.listen('object.provisionFrame', (function (spec) {
+      console.log('Provisioning time ' + spec.time + ' ' + spec.propertyName);
       return this._splitPin(P, spec.objectName, spec.time).then(P.next(spec));
     }).bind(this));
   };
