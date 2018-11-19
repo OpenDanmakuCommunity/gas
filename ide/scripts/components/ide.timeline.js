@@ -81,7 +81,7 @@ var TimelineManager = (function () {
       pin.start = start;
       pin.end = end;
       pin.name = 'pin-' + pin.start + '-' + pin.end;
-      P.rename('track.' + name + '.pin.' + oldName + '.click', 
+      P.rename('track.' + name + '.pin.' + oldName + '.click',
         'track.' + name + '.pin.' + pin.name + '.click');
       pin.dom.style.left = this._playback.timeToPixels(pin.start) + 'px';
       pin.dom.style.width = this._playback.timeToPixels(
@@ -96,7 +96,7 @@ var TimelineManager = (function () {
       return Promise.resolve();
     }
   };
-  TimelineManager.prototype._insertPin = function (P, name, start, 
+  TimelineManager.prototype._insertPin = function (P, name, start,
     end, isAnimated) {
 
     if (!(name in this._tracks)) {
@@ -165,7 +165,7 @@ var TimelineManager = (function () {
     }).bind(this));
     // Emit a post-pin event
     return P.emit('timeline.pins.added', {
-      'objectName': name, 
+      'objectName': name,
       'start': start,
       'end': end
     });
@@ -448,6 +448,24 @@ var TimelineManager = (function () {
         return P.emit('timeline.pins.add', newPin);
       }).bind(this));
       return Promise.all(promises).then(P.next(timeObj));
+    }).bind(this));
+
+    P.listen('timeline.selectPin', (function (spec) {
+      // Find the object
+      if (!spec.objectName in this._tracks) {
+        throw new Error(spec.objectName + ' not in timeline.');
+      }
+      var pins = this._tracks[spec.objectName].pins;
+      for (var i = 0; i < pins.length; i++) {
+        if (pins[i].start < spec.time && pins[i].end >= spec.time) {
+          return P.emit('timeline.pins.select', [{
+            'pin': pins[i].name,
+            'end': pins[i].end,
+            'track': spec.objectName
+          }]).then(P.next(spec));
+        }
+      }
+      return spec;
     }).bind(this));
 
     P.listen('timeline.pins.add', (function (pin) {

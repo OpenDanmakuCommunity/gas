@@ -30,6 +30,7 @@ var SaveLoad = (function () {
     this._spec = spec;
     this._P = P;
     this._loadedMetadata = false;
+    this._closed = false;
     this._objQueue = [];
     this._layerQueue = [];
     this._animationQueue = [];
@@ -41,7 +42,10 @@ var SaveLoad = (function () {
   };
 
   Importer.prototype._init = function () {
+    this._progressTotal = 0;
     // Add progress total for metadata
+    this._progressTotal += 1;
+    // Add last progress
     this._progressTotal += 1;
     for (var objName in this._spec.objects) {
       this._objQueue.push(objName);
@@ -53,7 +57,7 @@ var SaveLoad = (function () {
     }
     if ('anchors' in this._spec.animation) {
       for (var i = 0; i < this._spec.animation.anchors.length; i++) {
-        this._animationQueue.push(this._spec.animation.anchors[i].time);
+        this._animationQueue.push(this._spec.animation.anchors[i]);
         this._progressTotal += 1;
       }
     }
@@ -64,7 +68,7 @@ var SaveLoad = (function () {
   };
 
   Importer.prototype.hasNext = function () {
-    return !this._loadedMetadata ||
+    return !this._loadedMetadata || !this._closed ||
       this._objQueue.length + this._layerQueue.length +
         this._animationQueue.length > 0;
   };
@@ -109,9 +113,58 @@ var SaveLoad = (function () {
       this._progress += 1;
       return 'Layer:' + layer.name;
     } else if (this._animationQueue.length > 0) {
-      var anchorTime = this._animationQueue.shift();
+      var anchor = this._animationQueue.shift();
+      var promise = Promise.resolve();
+      for (var objectName in anchor.objects) {
+        for (var easing in anchor.objects[objectName]) {
+          for (var propertyName in anchor.objects[objectName][easing]) {
+            var value = anchor.objects[objectName][easing][propertyName];
+            // Set the animation
+            console.log(propertyName);
+            promise = promise.then((function (self, oName, pName, time, value) {
+              return (function () {
+                return this._P.emit('object.setProperty', {
+                  'objectName': oName,
+                  'time': time,
+                  'propertyName': pName,
+                  'value':value
+                });
+              }).bind(self);
+            })(this, objectName, propertyName, anchor.time, value));
+            // Select the relevant pin
+            promise = promise.then((function (self, oName, time) {
+              return (function () {
+                return this._P.emit('timeline.selectPin', {
+                  'objectName': oName,
+                  'time': time
+                });
+              }).bind(self);
+            })(this, objectName, anchor.time));
+            // Set the animation mode
+            promise = promise.then((function (self, pName, mode) {
+              return (function () {
+                return this._P.emit('animation.setting.change', {
+                  'propertyName': pName,
+                  'value': mode
+                });
+              }).bind(self);
+            })(this, propertyName, easing));
+          }
+        }
+      }
       this._progress += 1;
-      return 'Anchor @ ' + anchorTime;
+      return 'Anchor @ ' + anchor.time;
+    } else if (!this._closed) {
+      this._closed = true;
+      this._progress += 1;
+      var promise = Promise.resolve();
+      promise = promise.then((function () {
+        return this._P.emit('timer.seek', 1);
+      }).bind(this));
+      promise = promise.then((function () {
+        return this._P.emit('timer.seek', 0);
+      }).bind(this));
+      return 'Setting up workspace';
     }
   };
 
@@ -156,7 +209,36 @@ var SaveLoad = (function () {
       });
     });
     // Populate the animations
-    // TODO: Write this
+    var animatedItemList = ReprTools.allObjectNames().map(function (objName) {
+      return {
+        'name': objName,
+        'animation': ReprTools.getObject(objName)._pm.serialize()
+      };
+    }).filter(function (item) {
+      return item.animation.keys.length > 0; // Remove items with no animation
+    });
+    var animations = [];
+    while(animatedItemList.length > 0) {
+      var minTime = animatedItemList.reduce(function (acc, current) {
+        return acc === null ? current.animation.keys[0] :
+          Math.min(acc, current.animation.keys[0]);
+      }, null);
+      var currentAnimation = {
+        'time': minTime,
+        'objects': {}
+      };
+      animatedItemList.forEach(function (item) {
+        if (item.animation.keys[0] === minTime) {
+          currentAnimation.objects[item.name] = item.animation.frames.shift();
+          item.animation.keys.shift();
+        }
+      });
+      animations.push(currentAnimation);
+      animatedItemList = animatedItemList.filter(function (item) {
+        return item.animation.keys.length > 0;
+      });
+    }
+    base.animation['anchors'] = animations;
     // Populate the metadata
     base.metadata = _deepCopy(Repr.workspace.metadata);
     return base;

@@ -15,7 +15,7 @@ var AnimationManager = (function () {
     this._inner = animationInner;
     this._fields = {};
     this._visible = [];
-    
+
     this._selectedPins = [];
   };
 

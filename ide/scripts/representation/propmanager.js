@@ -151,7 +151,7 @@ var PropManager = (function () {
     var actualEasing = easing;
     // Unsupported
     if (!(actualEasing in EasingFunctions)) {
-      console.log('Selected easing ' + easing + ' not available. ' + 
+      console.log('Selected easing ' + easing + ' not available. ' +
         'Defaulting to linear.');
       actualEasing = 'linear';
     }
@@ -203,7 +203,7 @@ var PropManager = (function () {
       throw new Error('time: expects a non-NaN number!');
     }
     var frameIndex = this._getKeyFrameIndex(time);
-    // Figure out what this frame is 
+    // Figure out what this frame is
     if (frameIndex < 0) {
       // We're at the start
       if (this._keyFrameIndex === frameIndex) {
@@ -309,7 +309,7 @@ var PropManager = (function () {
     var index = this._getKeyFrameIndex(time);
     // Figure out if there's a frame after
     var nextIndex = this._getNextKeyFrameIndex(index);
-    
+
     if (index < 0) {
       // If the next frame exists but doesn't have this prop, copy over current
       if (nextIndex >= 0 &&
@@ -336,14 +336,14 @@ var PropManager = (function () {
         var currentEasing = this._getPropEasingAtIndex(index, propertyName);
         if (currentEasing !== easing && currentEasing !== null) {
           // Move old value over if it exists
-          this.anchors[index].spec[easing][propertyName] = 
+          this.anchors[index].spec[easing][propertyName] =
             this.anchors[index].spec[currentEasing][propertyName];
           delete this.anchors[index].spec[currentEasing][propertyName];
         }
         // Update the next frame if it exists and doesnt have this property
         if (nextIndex >= 0 &&
           this._getPropEasingAtIndex(nextIndex, propertyName) === null) {
-          this.anchors[nextIndex].spec['none'][propertyName] = 
+          this.anchors[nextIndex].spec['none'][propertyName] =
             this.anchors[index].spec[easing][propertyName];
         }
         // Update the current frame
@@ -360,7 +360,7 @@ var PropManager = (function () {
     if (mode !== 'before' && mode !== 'after') {
       throw new Error('getKeyTime: Mode must be one of "before" or "after".');
     }
-    var ends = this.anchors.map(function (a) { 
+    var ends = this.anchors.map(function (a) {
       return a.end;
     }).sort(function (a, b) {
       return a - b;
@@ -371,7 +371,7 @@ var PropManager = (function () {
           return ends[i];
         }
       } else {
-        if (ends[i] >= time) { 
+        if (ends[i] >= time) {
           if (i === 0) {
             return 0;
           } else {
@@ -478,21 +478,53 @@ var PropManager = (function () {
     }
   };
 
+  PropManager.prototype._serializeProp = function (prop) {
+    if (typeof prop.serialize === 'function') {
+      return prop.serialize();
+    }
+    return prop;
+  };
+
   PropManager.prototype.serializeBase = function (src) {
     var baseObj = (typeof src === 'object' && src !== null) ? src : {};
     for (var keyName in this._baseSpec) {
-      if (typeof this._baseSpec[keyName].serialize === 'function') {
-        _setNested(baseObj, keyName.split('.'),
-          this._baseSpec[keyName].serialize());
-      } else {
-        _setNested(baseObj, keyName.split('.'), this._baseSpec[keyName]);
-      }
+      _setNested(baseObj, keyName.split('.'),
+        this._serializeProp(this._baseSpec[keyName]));
     }
     return baseObj;
   };
 
   PropManager.prototype.serialize = function () {
-    
+    // Serialize the animations involved
+    var keyframes = [];
+    var frames = [];
+    var lastFrameTime = 0;
+    var lastFrameProperties = {};
+    // Copy base
+    for (var keyName in this._baseSpec) {
+      lastFrameProperties[keyName] =
+        this._serializeProp(this._baseSpec[keyName]);
+    }
+    // Iteratively copy
+    this.anchors.forEach((function (anchor) {
+      if (anchor.start !== lastFrameTime) {
+        // We have a blank, we need to insert a reset. Should be very rare.
+        keyframes.push(anchor.start);
+        frames.push({});
+      }
+      lastFrameTime = anchor.end;
+      lastFrameProperties = {};
+      for (var keyName in anchor.spec) {
+        lastFrameProperties[keyName] =
+          this._serializeProp(anchor.spec[keyName]);
+      }
+      keyframes.push(anchor.end);
+      frames.push(lastFrameProperties);
+    }).bind(this));
+    return {
+      'keys': keyframes,
+      'frames': frames
+    };
   };
 
   return PropManager;
