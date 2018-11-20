@@ -255,7 +255,12 @@ var Editor = (function () {
             'value': y
           });
         }).bind(this));
-      }).bind(this)));
+      }).bind(this))).then((function () {
+        if (Selection.count() > 0) {
+          return this.P.emit('properties.load', Selection.get());
+        }
+        return;
+      }).bind(this));
       toolState.moving = null;
     }
     if (toolState.dragging !== null) {
@@ -288,7 +293,12 @@ var Editor = (function () {
               'value': height
             });
           }).bind(this));
-        }).bind(this)));
+        }).bind(this))).then((function () {
+          if (Selection.count() > 0) {
+            return this.P.emit('properties.load', Selection.get());
+          }
+          return;
+        }).bind(this));
       }
       toolState.dragging = null;
     }
@@ -301,22 +311,12 @@ var Editor = (function () {
   };
   Editor.prototype._onLeave = function (e) {
     this._onUnset(e);
-    if (Selection.count() > 0) {
-      return this.P.emit('properties.load', Selection.get());
-    } else {
-      return e;
-    }
   };
   Editor.prototype._onUp = function (e) {
     if (e.event.button !== 0) {
       return e;
     }
     this._onUnset(e);
-    if (Selection.count() > 0) {
-      return this.P.emit('properties.load', Selection.get());
-    } else {
-      return e;
-    }
   };
   Editor.prototype._onMove = function (e) {
     if (e.event.buttons !== 1) {
@@ -672,7 +672,7 @@ var Editor = (function () {
             return currentValue.then(P.emit('objects.remove', objectName));
           }, Promise.resolve()).then(P.next(key));
         } else {
-          P.emit('trace.warn', 
+          P.emit('trace.warn',
             'This tool does not support the delete action.');
           return key;
         }
