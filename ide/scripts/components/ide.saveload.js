@@ -117,10 +117,11 @@ var SaveLoad = (function () {
       var promise = Promise.resolve();
       for (var objectName in anchor.objects) {
         for (var easing in anchor.objects[objectName]) {
-          for (var propertyName in anchor.objects[objectName][easing]) {
-            var value = anchor.objects[objectName][easing][propertyName];
+          var spec = _flattenObject(anchor.objects[objectName][easing],
+              ['content']);
+          for (var propertyName in spec) {
+            var value = spec[propertyName];
             // Set the animation
-            console.log(propertyName);
             promise = promise.then((function (self, oName, pName, time, value) {
               return (function () {
                 return this._P.emit('object.setProperty', {
@@ -163,6 +164,12 @@ var SaveLoad = (function () {
       }).bind(this));
       promise = promise.then((function () {
         return this._P.emit('timer.seek', 0);
+      }).bind(this));
+      promise = promise.then((function () {
+        return this._P.emit('timeline.pins.select', []);
+      }).bind(this));
+      promise = promise.then((function () {
+        return this._P.emit('objects.select', []);
       }).bind(this));
       return 'Setting up workspace';
     }

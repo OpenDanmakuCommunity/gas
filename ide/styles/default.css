@@ -115,7 +115,7 @@ select:invalid {
 .modal-group > .modal-bottom {
   bottom: 10%;
 }
-.modal-group h1, 
+.modal-group h1,
 .modal-group h2,
 .modal-group h3 {
   color: #72DEC9;
@@ -123,7 +123,7 @@ select:invalid {
 .modal-group.error > .modal {
   border: 1px #d02626 solid;
 }
-.modal-group.error h1, 
+.modal-group.error h1,
 .modal-group.error h2,
 .modal-group.error h3 {
   color: #d02626;
@@ -331,7 +331,7 @@ div.progress div.bar {
 
 #timeline .row {
   height: 36px;
-  min-width: 2000px;
+  min-width: 100%;
   border-top: 1px #636363 solid;
   position: relative;
   overflow: hidden;

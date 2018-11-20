@@ -21,6 +21,13 @@ var _deepCopy = function (obj) {
   return newObj;
 };
 
+var _isEmpty = function (obj) {
+  for (var key in obj) {
+    return false;
+  }
+  return true;
+};
+
 var _Create = function (type, props, children, callback) {
 	var elem = null;
 	if (type === 'text') {

@@ -485,13 +485,17 @@ var PropManager = (function () {
     return prop;
   };
 
-  PropManager.prototype.serializeBase = function (src) {
+  PropManager.prototype._serializeSpec = function (spec, src) {
     var baseObj = (typeof src === 'object' && src !== null) ? src : {};
-    for (var keyName in this._baseSpec) {
+    for (var keyName in spec) {
       _setNested(baseObj, keyName.split('.'),
-        this._serializeProp(this._baseSpec[keyName]));
+        this._serializeProp(spec[keyName]));
     }
     return baseObj;
+  };
+
+  PropManager.prototype.serializeBase = function (src) {
+    return this._serializeSpec(this._baseSpec, src);
   };
 
   PropManager.prototype.serialize = function () {
@@ -499,12 +503,7 @@ var PropManager = (function () {
     var keyframes = [];
     var frames = [];
     var lastFrameTime = 0;
-    var lastFrameProperties = {};
-    // Copy base
-    for (var keyName in this._baseSpec) {
-      lastFrameProperties[keyName] =
-        this._serializeProp(this._baseSpec[keyName]);
-    }
+    var lastFrameProperties = this.serializeBase();
     // Iteratively copy
     this.anchors.forEach((function (anchor) {
       if (anchor.start !== lastFrameTime) {
@@ -513,12 +512,9 @@ var PropManager = (function () {
         frames.push({});
       }
       lastFrameTime = anchor.end;
-      lastFrameProperties = {};
-      for (var keyName in anchor.spec) {
-        lastFrameProperties[keyName] =
-          this._serializeProp(anchor.spec[keyName]);
-      }
-      keyframes.push(anchor.end);
+      lastFrameProperties = this._serializeSpec(anchor.spec);
+      // Add as anchor
+      keyframes.push(lastFrameTime);
       frames.push(lastFrameProperties);
     }).bind(this));
     return {
