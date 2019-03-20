@@ -1,4 +1,5 @@
 var DrawingContext = (function () {
+  var AVAILABLE_TOOLS = ['select', 'rect', 'ellipse', 'circle'];
   var SVG_ATTRIBUTES = {
     '': ['stroke', 'stroke-width', 'stroke-linecap', 'fill'],
     'path': [],
@@ -194,7 +195,7 @@ var DrawingContext = (function () {
     };
   };
 
-  var DrawingContext = function (parent) {
+  var DrawingContext = function (parent, toolAttrs) {
     this._parent = parent;
     this._children = [];
 
@@ -309,6 +310,19 @@ var DrawingContext = (function () {
     }
   };
 
+  DrawingContext.prototype.recoverToolAttrs = function (attrs) {
+    for (var key in attrs) {
+      this._toolAttrs[key] = attrs[key];
+    }
+  };
+
+  DrawingContext.prototype.recoverTool = function (toolName) {
+    if (AVAILABLE_TOOLS.indexOf(toolName) < 0) {
+      throw new Error('Tool "' + toolName + '" not supported.');
+    }
+    this._tool = toolName;
+  } 
+
   DrawingContext.prototype.load = function (svgspec) {
     
   };
@@ -341,6 +355,10 @@ var DrawingContext = (function () {
         this._setupAttrs(this._current);
         this._baseNamedGroup.add(this._current);
         break;
+      case 'select':
+        // Find the 'current'
+        this._current = null;
+        break;
       default:
         break; // Do nothing
     }
@@ -348,6 +366,10 @@ var DrawingContext = (function () {
 
   DrawingContext.prototype.drag = function (dx, dy) {
     if (this._current === null) {
+      return;
+    }
+    if (this._tool === 'select') {
+      // Move the thing
       return;
     }
     if (this._current.type !== this._tool) {

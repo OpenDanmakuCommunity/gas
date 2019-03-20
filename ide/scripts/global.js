@@ -73,6 +73,9 @@ var _CreateP = function (text, props) {
 };
 
 var _ToggleClass = function (elem, className, enable) {
+  if (typeof enable !== 'boolean') {
+    throw new Error('Expected a boolean for enable parameter');
+  }
   if (Array.isArray(elem)) {
     for (var i = 0; i < elem.length; i++) {
       _ToggleClass(elem[i], className, enable);

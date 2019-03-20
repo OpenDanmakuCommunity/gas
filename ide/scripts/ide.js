@@ -34,10 +34,21 @@
 
     // Create and bind to Editor
     var editor = new Editor(T, $('work-area'), $('canvas'), {
-      'bgBlack': $('editor-bg-black'),
-      'bgWhite': $('editor-bg-white'),
-      'bgCheckered': $('editor-bg-checkered'),
-      'configPreview': $('editor-config-preview'),
+      'display': {
+        'black': $('editor-bg-black'),
+        'white': $('editor-bg-white'),
+        'checkered': $('editor-bg-checkered'),
+        'preview': $('editor-config-preview'),
+      },
+      'drawing': {
+        'toolbar': $('drawing-toolbar'),
+        'select': $('draw-select'),
+        'path': $('draw-path'),
+        'rect': $('draw-rect'),
+        'ellipse': $('draw-ellipse'),
+        'fillColor': $('draw-fill-color'),
+        'strokeColor': $('draw-stroke-color'),
+      },
       'width': $('editor-config-width'),
       'height': $('editor-config-height'),
     });
