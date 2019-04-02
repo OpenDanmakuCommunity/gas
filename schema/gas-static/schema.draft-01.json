@@ -1,0 +1,290 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "https://opendanmakucommunity.github.io/gas/schema/gas-static/schema.draft-01.json#",
+  "definitions": {
+    "ValidVarName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9-_@]*$"
+    },
+    "ValidFreeName": {
+      "type": "string",
+      "pattern": "^[^.,:/|]+$"
+    },
+    "ValidTransitionName": {
+      "type": "string",
+      "enum": [
+        "none",
+        "linear",
+        "quadratic",
+        "cubic",
+        "circular",
+        "sine",
+        "exponential"
+      ]
+    },
+    "PropertySnapshot": {
+      "type": "object",
+      "definitions": {
+        "Position": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "anchor": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "axis": {
+              "type": "string",
+              "enum": ["top-left", "top-right", "bottom-left", "bottom-right"]
+            }
+          },
+          "additionalProperties": false,
+          "required": ["x", "y"]
+        },
+        "Size": {
+          "type": "object",
+          "properties": {
+            "width": {},
+            "height": {}
+          },
+          "additionalProperties": false,
+        },
+        "Transform": {
+          "type": "object",
+          "properties": {
+            "scale": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rotX": { "type": "number" },
+            "rotY": { "type": "number" },
+            "rotZ": { "type": "number" }
+          },
+          "additionalProperties": false
+        },
+        "Interactions": {
+          "type": "object",
+          "properties": {
+            "list": {},
+            "fallback": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "properties": {
+        "position": {
+          "$ref": "#/definitions/PropertySnapshot/definitions/Position"
+        },
+        "size": {
+          "$ref": "#/definitions/PropertySnapshot/definitions/Size"
+        },
+        "transform": {
+          "$ref": "#/definitions/PropertySnapshot/definitions/Transform"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "content": {}
+      },
+      "additionalProperties": {}
+    },
+    "DisplayObject": {
+      "definitions": {
+        "ValidObjectType": {
+          "type": "string",
+          "enum": ["Text", "RichText", "Button",
+            "BinarySprite", "AnimatedSprite", "SVGSprite",
+            "Frame"]
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/PropertySnapshot"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/DisplayObject/definitions/ValidObjectType"
+            },
+          },
+          "required": ["type"]
+        }
+      ]
+    },
+    "Layer": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/ValidFreeName"
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ValidVarName"
+          }
+        },
+        "mixing": {
+          "type": "string",
+          "enum": ["default", "normal", "multiply", "difference"]
+        }
+      },
+      "additionalProperties": false,
+      "required": ["name", "components"]
+    },
+    "Anchor": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "number",
+          "minimum": 0
+        },
+        "objects": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/definitions/ValidVarName"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/definitions/ValidTransitionName"
+            },
+            "additionalProperties": {
+              "$ref": "#/definitions/PropertySnapshot"
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["time", "objects"]
+    },
+    "Interaction": {
+      "type": "object",
+      "definitions": {
+        "Type": {
+          "type": "string",
+          "enum": ["hit-target", "keydown", "state-trigger"]
+        },
+        "Style": {
+          "type": "object",
+          "properties": {
+            "accessible": { "type": "boolean" },
+            "outline": {
+              "type": "string",
+              "enum": ["always", "never", "hover"]
+            },
+            "hover": {},
+            "touchPolicy": { "type": "string" }
+          },
+          "additionalProperties": false,
+        }
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/Interaction/definitions/Type"
+        },
+        "action": {},
+        "parameters": {},
+        "style": {
+          "$ref": "#/definitions/Interaction/definitions/Style"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["type", "action"]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "objects": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/ValidVarName"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/DisplayObject"
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Layer"
+      },
+      "minItems": 1
+    },
+    "animation": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "object"
+        },
+        "anchors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Anchor"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["anchors"]
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "number",
+              "minimum": 0
+            },
+            "height": {
+              "type": "number",
+              "minimum": 0
+            },
+            "autoScale": {
+              "type": "boolean"
+            }
+          }
+        },
+        "interactions": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/definitions/ValidVarName"
+          },
+          "additionalProperties": {
+
+          }
+        },
+        "layers": {
+          "type": "object"
+        },
+        "animation": {
+          "type": "object",
+          "properties": {
+            "duration": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": ["objects", "layers", "animation", "metadata"]
+}
