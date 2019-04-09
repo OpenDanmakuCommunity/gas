@@ -2,6 +2,10 @@
   "$schema": "http://json-schema.org/schema#",
   "$id": "https://opendanmakucommunity.github.io/gas/schema/gas-static/schema.draft-01.json#",
   "definitions": {
+    "Boolean": {
+      "type": "string",
+      "enum": ["true", "false"]
+    },
     "ValidVarName": {
       "type": "string",
       "pattern": "^[a-zA-Z_][a-zA-Z0-9-_@]*$"
@@ -51,18 +55,15 @@
         "Size": {
           "type": "object",
           "properties": {
-            "width": {},
-            "height": {}
+            "width": { "type": "number", "minimum": 0 },
+            "height": { "type": "number", "minimum": 0 }
           },
           "additionalProperties": false,
         },
         "Transform": {
           "type": "object",
           "properties": {
-            "scale": {
-              "type": "number",
-              "minimum": 0
-            },
+            "scale": { "type": "number", "minimum": 0 },
             "rotX": { "type": "number" },
             "rotY": { "type": "number" },
             "rotZ": { "type": "number" }
@@ -94,7 +95,7 @@
           "maximum": 1
         },
         "visible": {
-          "type": "boolean"
+          "$ref": "#/definitions/Boolean"
         },
         "content": {}
       },
@@ -264,7 +265,7 @@
             "$ref": "#/definitions/ValidVarName"
           },
           "additionalProperties": {
-
+            "$ref": "#/definitions/Interaction"
           }
         },
         "layers": {

@@ -85,7 +85,7 @@ var Editor = (function () {
         'box': null
       };
     }
-    
+
     // Default the drawing attributes
     this._toolStates['draw']['attrs'] = {
       'stroke': '#000000',
@@ -145,7 +145,7 @@ var Editor = (function () {
           var drawContext = sprite.getContext();
 
           if (drawContext !== null) {
-            // Pass the tool attrs into the context 
+            // Pass the tool attrs into the context
             drawContext.recoverTool(toolState.mode);
             drawContext.recoverToolAttrs(toolState.attrs);
             toolState.drawContext = drawContext;
@@ -436,9 +436,9 @@ var Editor = (function () {
             return this._workAreaConfigButtons.display[name];
           }).bind(this)), 'selected', false);
         _ToggleClass(this._canvas, type, true);
-        
+
         // Select the buttons
-        _ToggleClass(this._workAreaConfigButtons.display[type], 
+        _ToggleClass(this._workAreaConfigButtons.display[type],
           'selected', true);
         return type;
       } else {
@@ -544,10 +544,10 @@ var Editor = (function () {
       _ToggleClass(btnToolTo, 'selected', true);
       // Show or hide the drawing toolbar
       if (tool.to === 'draw') {
-        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar, 
+        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar,
           'hidden', false);
       } else {
-        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar, 
+        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar,
           'hidden', true);
       }
       return P.emit('trace.log','Change to tool ' + tool.to).then(
@@ -559,7 +559,7 @@ var Editor = (function () {
       }
       var toolConfig = this._toolStates[config.toolName];
       toolConfig[config.attrName] = config.value;
-      return P.emit('trace.log', config.toolName + '.' + config.attrName + 
+      return P.emit('trace.log', config.toolName + '.' + config.attrName +
         '=' + config.value).then(P.next(config));
     }).bind(this));
     P.listen('reset.editor.tools', (function () {
