@@ -85,7 +85,7 @@ var CommandLine = (function () {
       if (key.input) {
         return key;
       }
-      if (key.key === 'c' && key.altKey) {
+      if ((key.key === 'c' || key.key === '\xE7') && key.altKey) {
         this.show();
       }
       return key;

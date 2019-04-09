@@ -24,7 +24,8 @@ var Playback = (function () {
     return ReprTools.getDuration();
   };
 
-  Playback.prototype.setDuration = function (duration) {
+  Playback.prototype._setDuration = function (duration) {
+    // Should only be called internally through handler!
     ReprTools.setDuration(duration);
   };
 
@@ -82,7 +83,7 @@ var Playback = (function () {
       return time;
     });
     P.listen('timeline.duration.set', (function (duration) {
-      this.setDuration(duration);
+      this._setDuration(duration);
       return duration;
     }).bind(this));
     P.listen('timeline.scale.set', (function (scale) {

@@ -12,6 +12,8 @@ var Popup = (function () {
     P.listen('popup.show', (function (msg) {
       if (typeof msg === 'string') {
         this._body.innerText = msg;
+      } else if (msg === null || typeof msg === 'undefined') {
+        this._body.innerText = '';
       } else if (typeof msg === 'object') {
         this._prompt.style.width = msg.width + 'px';
         this._prompt.style.height = msg.height + 'px';

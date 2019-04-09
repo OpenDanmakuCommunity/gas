@@ -78,12 +78,18 @@ var SaveLoad = (function () {
       // Populate the global time
       if ('animation' in this._spec.metadata) {
         if ('duration' in this._spec.metadata.animation) {
-          this._P.emit();
+          this._P.emit('timeline.duration.set',
+            this._spec.metadata.animation.duration);
         }
       }
       if ('stage' in this._spec.metadata) {
         if ('width' in this._spec.metadata.stage) {
-          this._P.emit(, {});
+          this._P.emit('editor.canvas.width.set', 
+            this._spec.metadata.stage.width);
+        }
+        if ('height' in this._spec.metadata.stage) {
+          this._P.emit('editor.canvas.height.set', 
+            this._spec.metadata.stage.height);
         }
       }
       this._loadedMetadata = true;

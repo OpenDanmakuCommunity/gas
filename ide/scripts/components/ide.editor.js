@@ -476,12 +476,18 @@ var Editor = (function () {
     });
     P.listen('editor.canvas.width.set', (function (width) {
       this._canvas.style.width = width + 'px';
+      if (this._workAreaConfigButtons.width.value !== width) {
+        this._workAreaConfigButtons.width.value = '' + width;
+      }
       ReprTools.setStageSize(
         this._canvas.offsetWidth, this._canvas.offsetHeight);
       return width;
     }).bind(this));
     P.listen('editor.canvas.height.set', (function (height) {
       this._canvas.style.height = height + 'px';
+      if (this._workAreaConfigButtons.height.value !== height) {
+        this._workAreaConfigButtons.height.value = '' + height;
+      }
       ReprTools.setStageSize(
         this._canvas.offsetWidth, this._canvas.offsetHeight);
       return height;
