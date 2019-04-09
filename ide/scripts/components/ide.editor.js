@@ -480,10 +480,14 @@ var Editor = (function () {
     });
     P.listen('editor.canvas.width.set', (function (width) {
       this._canvas.style.width = width + 'px';
+      ReprTools.setStageSize(
+        this._canvas.offsetWidth, this._canvas.offsetHeight);
       return width;
     }).bind(this));
     P.listen('editor.canvas.height.set', (function (height) {
       this._canvas.style.height = height + 'px';
+      ReprTools.setStageSize(
+        this._canvas.offsetWidth, this._canvas.offsetHeight);
       return height;
     }).bind(this));
     P.listen('editor.canvas.zoom.set', (function (zoom) {

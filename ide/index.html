@@ -35,6 +35,7 @@
 	<script src="scripts/components/common.miniwindow.js"></script>
 	<script src="scripts/components/common.properties.js"></script>
 	<script src="scripts/components/ide.command.js"></script>
+	<script src="scripts/components/ide.popup.js"></script>
 	<script src="scripts/components/ide.playback.js"></script>
 	<script src="scripts/components/ide.saveload.js"></script>
 	<script src="scripts/components/ide.timeline.js"></script>
@@ -88,6 +89,17 @@
 		<div class="overlay"></div>
 		<div id="commandline-ui-prompt" class="modal-bottom">
 				<input id="commandline-ui-text" type="text"/>
+		</div>
+	</div>
+	<!-- Below is a general popup message -->
+	<div id="modal-popup" class="modal-group" style="display: none">
+		<div class="overlay"></div>
+		<div id="modal-popup-prompt" class="modal">
+				<div id="modal-popup-body">
+				</div>
+				<div id="modal-popup-btn-ok" class="button btn-padded pull-right">
+					OK
+				</div>
 		</div>
 	</div>
 

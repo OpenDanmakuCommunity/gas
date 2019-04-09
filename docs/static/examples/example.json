@@ -93,7 +93,8 @@
         },
         "layers": {
             "orphans": "hide",
-            "defaultMixing": "none"
+            "blendMode": "normal",
+            "clipMode": "",
         },
         "animation": {
             "duration": 6000,

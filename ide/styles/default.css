@@ -104,6 +104,8 @@ select:invalid {
   border: 1px #72DEC9 solid;
   color: #ffffff;
   z-index: 9999;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 .modal-group > .modal {
   top: 0;

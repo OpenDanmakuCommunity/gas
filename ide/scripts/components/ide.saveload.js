@@ -76,6 +76,16 @@ var SaveLoad = (function () {
   Importer.prototype.next = function () {
     if (!this._loadedMetadata) {
       // Populate the global time
+      if ('animation' in this._spec.metadata) {
+        if ('duration' in this._spec.metadata.animation) {
+          this._P.emit();
+        }
+      }
+      if ('stage' in this._spec.metadata) {
+        if ('width' in this._spec.metadata.stage) {
+          this._P.emit(, {});
+        }
+      }
       this._loadedMetadata = true;
       return 'Metadata';
     } else if (this._objQueue.length > 0) {

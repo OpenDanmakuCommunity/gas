@@ -11,6 +11,16 @@ var Repr = {
       }
     },
     'metadata': {
+      'stage': {
+        'width': 640,
+        'height': 480,
+        'autoScale': true
+      },
+      'interactions': {},
+      'layers': {
+        'orphans': 'hide',
+        'defaultMixing': 'none'
+      },
       'animation': {
         'duration': 12000,
       }
@@ -130,6 +140,21 @@ var ReprTools = new function() {
       throw new Error('Duration must be a non-NaN number!');
     }
     Repr.workspace.metadata.animation.duration = duration;
+  };
+
+  /** Canvas related **/
+  this.setStageSize = function (width, height) {
+    if (typeof width !== 'number' || typeof height !== 'number' || isNaN(width)
+      || isNaN(height)) {
+      throw new Error('Width and Height must be non-NaN numbers!');
+    }
+    width = Math.floor(width);
+    height = Math.floor(height);
+    if (width <= 0 || height <= 0) {
+      throw new Error('Width and height must be positive.')
+    }
+    Repr.workspace.metadata.stage.width = width;
+    Repr.workspace.metadata.stage.height = height;
   };
 
   /** Workspace related **/

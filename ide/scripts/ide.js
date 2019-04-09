@@ -32,6 +32,15 @@
       logger);
     commandLine.bind(P);
 
+    // Bind the general use modal popup
+    var popup = new Popup({
+      'group':$('modal-popup'),
+      'prompt':$('modal-popup-prompt'),
+      'body':$('modal-popup-body'),
+      'okBtn': $('modal-popup-btn-ok')
+    });
+    popup.bind(P);
+
     // Create and bind to Editor
     var editor = new Editor(T, $('work-area'), $('canvas'), {
       'bgBlack': $('editor-bg-black'),
