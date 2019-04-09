@@ -85,6 +85,15 @@ var Editor = (function () {
         'box': null
       };
     }
+
+    // Default the drawing attributes
+    this._toolStates['draw']['attrs'] = {
+      'stroke': '#000000',
+      'stroke-width': 1,
+      'stroke-linecap': '',
+      'fill': 'none'
+    };
+    this._toolStates['draw']['mode'] = 'path';
   };
 
   Editor.prototype._translateOffsets = function (x, y) {
@@ -136,6 +145,9 @@ var Editor = (function () {
           var drawContext = sprite.getContext();
 
           if (drawContext !== null) {
+            // Pass the tool attrs into the context
+            drawContext.recoverTool(toolState.mode);
+            drawContext.recoverToolAttrs(toolState.attrs);
             toolState.drawContext = drawContext;
             toolState.taget = targetName;
             var canvasPos =
@@ -402,48 +414,32 @@ var Editor = (function () {
 
 
   Editor.prototype._bindConfigButtons = function (P) {
-    P.bind(this._workAreaConfigButtons.bgBlack, 'click',
-      'editor.controls.bgBlack');
-    P.bind(this._workAreaConfigButtons.bgWhite, 'click',
-      'editor.controls.bgWhite');
-    P.bind(this._workAreaConfigButtons.bgCheckered, 'click',
-      'editor.controls.bgCheckered');
-    P.listen('editor.controls.bgBlack', function (e) {
-      return P.emit('editor.canvas.background.set', 'black').then(
-        P.next(e));
-    });
-    P.listen('editor.controls.bgWhite', function (e) {
-      return P.emit('editor.canvas.background.set', 'white').then(
-        P.next(e));
-    });
-    P.listen('editor.controls.bgCheckered', function (e) {
-      return P.emit('editor.canvas.background.set', 'checkered').then(
-        P.next(e));
-    });
+    var backgrounds = ['black', 'white', 'checkered'];
+    for (var i = 0; i < backgrounds.length; i++) {
+      var background = backgrounds[i];
+      P.bind(this._workAreaConfigButtons.display[background], 'click',
+        'editor.controls.background.' + background);
+      P.listen('editor.controls.background.' + background, (function (bg) {
+        return function (e) {
+          return P.emit('editor.canvas.background.set', bg).then(
+            P.next(e));
+        };
+      })(background));
+    }
 
     P.listen('editor.canvas.background.set', (function (type) {
-      if (type === 'black' || type === 'white' || type === 'checkered') {
+      if (backgrounds.indexOf(type) >= 0) {
         // Reset work area
-        _ToggleClass(this._canvas, ['black', 'white', 'checkered'], false);
+        _ToggleClass(this._canvas, backgrounds, false);
         // Reset buttons
-        _ToggleClass([
-          this._workAreaConfigButtons.bgBlack,
-          this._workAreaConfigButtons.bgWhite,
-          this._workAreaConfigButtons.bgCheckered
-        ], 'selected', false);
+        _ToggleClass(backgrounds.map((function (name) {
+            return this._workAreaConfigButtons.display[name];
+          }).bind(this)), 'selected', false);
         _ToggleClass(this._canvas, type, true);
 
-        switch(type) {
-          case 'black':
-            _ToggleClass(this._workAreaConfigButtons.bgBlack, 'selected', true);
-            break;
-          case 'white':
-            _ToggleClass(this._workAreaConfigButtons.bgWhite, 'selected', true);
-            break;
-          case 'checkered':
-            _ToggleClass(this._workAreaConfigButtons.bgCheckered, 'selected', true);
-            break;
-        }
+        // Select the buttons
+        _ToggleClass(this._workAreaConfigButtons.display[type],
+          'selected', true);
         return type;
       } else {
         throw new Error('Unrecognized background settings');
@@ -458,12 +454,12 @@ var Editor = (function () {
         this._canvas.offsetWidth / 2 / Math.tan(Math.PI/180 * 27.5));
     }).bind(this));
     // Bind the preview button
-    P.bind(this._workAreaConfigButtons.configPreview, 'click',
+    P.bind(this._workAreaConfigButtons.display.preview, 'click',
       'editor.canvas.previewMode.toggle');
     P.listen('editor.canvas.previewMode.toggle', (function () {
       this._isPreviewMode = !this._isPreviewMode;
       _ToggleClass(this._canvas, 'preview', this._isPreviewMode);
-      _ToggleClass(this._workAreaConfigButtons.configPreview, 'selected',
+      _ToggleClass(this._workAreaConfigButtons.display.preview, 'selected',
         this._isPreviewMode);
     }).bind(this));
 
@@ -502,6 +498,30 @@ var Editor = (function () {
     }).bind(this));
   };
 
+  Editor.prototype._bindDrawingButtons = function (P) {
+    var modes = ['select', 'path', 'rect', 'ellipse'];
+    for (var i = 0; i < modes.length; i++) {
+      var mode = modes[i];
+      P.bind(this._workAreaConfigButtons.drawing[mode], 'click',
+        'editor.drawing.mode.' + mode);
+      P.listen('editor.drawing.mode.' + mode, (function (modeName, self){
+        return function (e) {
+          _ToggleClass(modes.map((function (name) {
+              return this._workAreaConfigButtons.drawing[name];
+            }).bind(self)), 'selected', false);
+          _ToggleClass(self._workAreaConfigButtons.drawing[modeName],
+            'selected', true);
+          return P.emit('tool.configure', {
+            'toolName': 'draw',
+            'attrName': 'mode',
+            'value': modeName
+          }).then(
+            P.next(e));
+        };
+      })(mode, this));
+    };
+  };
+
   Editor.prototype._bindToolButtons = function (P) {
     for (var i = 0; i < this.tools.length; i++) {
       var toolName = this.tools[i];
@@ -522,15 +542,29 @@ var Editor = (function () {
     // Add binding for changing class
     P.listen('tool.change', (function (tool) {
       this.selectedTool = tool.to;
-      var toolFrom = $('tool-' + tool.from);
-      var toolTo = $('tool-' + tool.to);
-      _ToggleClass(toolFrom, 'selected', false);
-      _ToggleClass(toolTo, 'selected', true);
+      var btnToolFrom = $('tool-' + tool.from);
+      var btnToolTo = $('tool-' + tool.to);
+      _ToggleClass(btnToolFrom, 'selected', false);
+      _ToggleClass(btnToolTo, 'selected', true);
+      // Show or hide the drawing toolbar
+      if (tool.to === 'draw') {
+        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar,
+          'hidden', false);
+      } else {
+        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar,
+          'hidden', true);
+      }
       return P.emit('trace.log','Change to tool ' + tool.to).then(
         P.next(tool));
     }).bind(this));
-    P.listen('tool.configure', (function () {
-
+    P.listen('tool.configure', (function (config) {
+      if (!(config.toolName in this._toolStates)) {
+        this._toolStates[config.toolName] = {};
+      }
+      var toolConfig = this._toolStates[config.toolName];
+      toolConfig[config.attrName] = config.value;
+      return P.emit('trace.log', config.toolName + '.' + config.attrName +
+        '=' + config.value).then(P.next(config));
     }).bind(this));
     P.listen('reset.editor.tools', (function () {
       for (var i = 0; i < this.tools.length; i++) {
@@ -710,6 +744,8 @@ var Editor = (function () {
     this._bindToolButtons(P);
     // Bind the config buttons
     this._bindConfigButtons(P);
+    // Bind the drawing buttons
+    this._bindDrawingButtons(P);
 
     P.listen('reset.editor', function () {
       return Promise.all([

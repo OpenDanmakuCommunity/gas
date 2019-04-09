@@ -102,7 +102,6 @@
         </div>
     </div>
   </div>
-
   <!-- Below is the main IDE -->
   <div id="left" class="container" draggable="false">
     <div id="toolbox" class="mini-window" style="height: 306px;">
@@ -164,12 +163,27 @@
         </div>
     </div>
     <div id="editor" draggable="false">
-      <div id="editor-tools" draggable="false">
-        <div id="editor-bg-black" class="micro-button button pull-left" title="Set black background">B</div>
-        <div id="editor-bg-white" class="micro-button button pull-left" title="Set white background">W</div>
-        <div id="editor-bg-checkered" class="micro-button button pull-left" title="Set checkerboard background">C</div>
-        <div class="micro-button-separator pull-left"></div>
-        <div id="editor-config-preview" class="micro-button button pull-left" title="Preview Mode (Image Borders Hidden)">P</div>
+      <div id="editor-toolbar" class="micro-toolbar" draggable="false">
+        <div id="editor-tools" class="btn-group pull-left">
+          <div id="editor-bg-black" class="button" title="Set black background">B</div>
+          <div id="editor-bg-white" class="button" title="Set white background">W</div>
+          <div id="editor-bg-checkered" class="button" title="Set checkerboard background">C</div>
+          <div class="button-separator"></div>
+          <div id="editor-config-preview" class="button" title="Preview Mode (Image Borders Hidden)">P</div>
+        </div>
+        <div id="drawing-toolbar" class="btn-group pull-left">
+          <div id="draw-select" class="button" title="Select">&nbsp;Select&nbsp;</div>
+          <div id="draw-path" class="button selected" title="Path">&nbsp;Path&nbsp;</div>
+          <div id="draw-rect" class="button" title="Rectangle">&nbsp;Rect&nbsp;</div>
+          <div id="draw-ellipse" class="button" title="Ellipse">&nbsp;Ellipse&nbsp;</div>
+          <div class="button-separator"></div>
+          <div id="draw-fill-color" class="button" title="Fill Color">
+            <div class="color-patch checkered"></div>
+          </div>
+          <div id="draw-stroke-color" class="button" title="Stroke Color">
+            <div class="color-patch checkered"></div>
+          </div>
+        </div>
         <div class="input-area pull-right">
           W:
           <input id="editor-config-width" type="number" value="640" min="1" max="2048"/>

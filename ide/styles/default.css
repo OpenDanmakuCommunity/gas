@@ -54,6 +54,10 @@ select:invalid {
   clear: both;
 }
 
+.hidden {
+  display: none;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -141,8 +145,55 @@ select:invalid {
   );
 }
 
+/** Toolbars **/
+.micro-toolbar {
+  height: 16px;
+  background-color: #323232;
+  padding: 2px;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.micro-toolbar .btn-group {
+  margin-right: 30px;
+}
+
+.micro-toolbar .btn-group .button,
+.micro-toolbar .btn-group .button-separator {
+  float: left;
+}
+
+.micro-toolbar .button-separator {
+  width: 10px;
+  height: 14px;
+}
+.micro-toolbar .button {
+  min-width: 14px;
+  height: 14px;
+  line-height: 14px;
+  border: 1px #636363 dotted;
+  text-align: center;
+}
+.micro-toolbar .button.selected {
+  color: #72DEC9;
+}
+
+.micro-toolbar .input-area {
+  padding: 0 5px 0 5px;
+  user-select: none;
+}
+
+.micro-toolbar .input-area input[type="number"] {
+  height: 14px;
+  width: 64px;
+  border: none;
+  padding: 0 2px 0 2px;
+  margin: 0;
+}
+
 /** Buttons **/
 .button {
+  position: relative;
   cursor: pointer;
   border: 1px #323232 solid;
   user-select: none;
@@ -163,7 +214,17 @@ select:invalid {
   padding: 10px;
 }
 
-.checkerboard, #canvas.checkered {
+/** Patches **/
+.color-patch {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  background-color: #000000;
+}
+
+.checkerboard, #canvas.checkered, .color-patch.checkered {
   background-image: url('checkerboard.png');
   background-repeat: repeat;
 }
@@ -426,15 +487,10 @@ div.progress div.bar {
   overflow: auto;
   user-select: none;
 }
-#editor-tools {
+#editor-toolbar {
   top: 0;
   left: 0;
   right: 0;
-  height: 16px;
-  background-color: #323232;
-  padding: 2px;
-  font-size: 10px;
-  line-height: 14px;
 }
 
 #canvas {
@@ -452,33 +508,7 @@ div.progress div.bar {
 #canvas.white {
   background-color: #fff;
 }
-#editor-tools .micro-button-separator {
-  width: 10px;
-  height: 14px;
-}
-#editor-tools .micro-button {
-  width: 14px;
-  height: 14px;
-  line-height: 14px;
-  border: 1px #636363 dotted;
-  text-align: center;
-}
-#editor-tools .micro-button.selected {
-  color: #72DEC9;
-}
 
-#editor-tools .input-area {
-  padding: 0 5px 0 5px;
-  user-select: none;
-}
-
-#editor-tools .input-area input[type="number"] {
-  height: 14px;
-  width: 64px;
-  border: none;
-  padding: 0 2px 0 2px;
-  margin: 0;
-}
 
 #work-area .selection {
   position: absolute;

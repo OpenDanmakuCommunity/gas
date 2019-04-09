@@ -64,7 +64,7 @@ interaction 的回退策略。
 - `outline`: 控制触控对象是否显示边框。适用值包括：`always`（总显示），`never`
     （总不显示）和`hover`（浮动时显示）。
 - `hover`: 控制在浮动时对象的状态。会覆盖interaction外的值（无渐变）
-- `touch-policy`: 可以选择平台提供的转化触屏的方案，默认为 `default`。
+- `touchPolicy`: 可以选择平台提供的转化触屏的方案，默认为 `default`。
 
 ## 交互标签类型 Type of Interaction Hints
 交互标签可以有各种平台定义的类型，以下是一些GAS内定义的常规类型。虽然说是常规类型，不同平台的
@@ -88,7 +88,7 @@ interaction 的回退策略。
                     "color": 0xc0ffee,
                     "background": 0xFFFF00
                 },
-                "touch-policy": "default"
+                "touchPolicy": "default"
             }
         }
     ]

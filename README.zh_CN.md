@@ -8,6 +8,8 @@
     - [静态语法](docs/static/)
     - [动态语法](docs/dynamic/)
     - [IDE设计](docs/ide/)
+- [Schema](schema/)
+    - [Gas-S Draft 01](schema/gas-static/schema.draft-01.json)
 - [参考实现](src/)
 - [IDE](ide/) ([在线](https://opendanmakucommunity.github.io/gas/ide/))
 
