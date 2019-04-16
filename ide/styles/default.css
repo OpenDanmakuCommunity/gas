@@ -299,51 +299,10 @@ div.progress div.bar {
 }
 
 /** LAYOUT **/
-#left, #center, #right {
+body > .layout-block {
   position: fixed;
   top: 1px;
   bottom: 1px;
-}
-
-#left {
-  left: 1px;
-  width: 199px;
-}
-#center {
-  left: 201px;
-  right: 401px;
-}
-#right {
-  right: 1px;
-  width: 399px;
-  overflow-y: auto;
-}
-
-#timeline {
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 198px;
-  background: #323232;
-  position: absolute;
-}
-
-#editor {
-  top: 200px;
-  left: 0;
-  right: 0;
-  bottom: 121px;
-  position: absolute;
-}
-
-#messages {
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  position: absolute;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
 /** Timeline Related **/

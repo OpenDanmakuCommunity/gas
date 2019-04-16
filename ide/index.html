@@ -7,6 +7,7 @@
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="styles/default.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
   <link rel="stylesheet" href="styles/sections.css" />
   <link rel="stylesheet" href="styles/icons.css" />
   <link rel="stylesheet" href="styles/canvas.css" />
@@ -48,7 +49,7 @@
   <script src="scripts/components/ide.layers.js"></script>
   <script src="scripts/ide.js"></script>
 </head>
-<body>
+<body class="layout-default">
   <noscript>
     <div id="noscript-notice" class="modal-group error">
       <div class="overlay"></div>
@@ -103,7 +104,7 @@
     </div>
   </div>
   <!-- Below is the main IDE -->
-  <div id="left" class="container" draggable="false">
+  <div id="left" class="container layout-block" draggable="false">
     <div id="toolbox" class="mini-window" style="height: 306px;">
       <h1>Toolbox</h1>
       <div class="body">
@@ -150,7 +151,7 @@
       </div>
     </div>
   </div>
-  <div id="center" class="container" draggable="false">
+  <div id="center" class="container layout-block" draggable="false">
     <div id="timeline" class="container" draggable="false">
         <div class="inner">
           <div id="ruler"></div>
@@ -198,7 +199,7 @@
     </div>
     <div id="messages" class="container" draggable="false"></div>
   </div>
-  <div id="right" class="container" draggable="false">
+  <div id="right" class="container layout-block" draggable="false">
     <div id="library" class="mini-window">
       <h1>Library</h1>
       <div class="body">
@@ -234,6 +235,9 @@
         </div>
       </div>
     </div>
+  </div>
+  <div id="right-placeholder" class="container layout-block" draggable="false">
+    Expand
   </div>
 </body>
 </html>

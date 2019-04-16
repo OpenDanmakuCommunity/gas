@@ -159,6 +159,15 @@
       return P.emit('global.keydown', key).then(P.next(e));
     });
 
+    // Bind the listener for global layout mode
+    var LAYOUTS = ['default', 'compact'];
+    P.listen('ui.layout.set', function (layout) {
+      if (LAYOUTS.indexOf(layout) >= 0) {
+        document.body.className = 'layout-' + layout;
+      }
+      return P.next(layout);
+    });
+
     // Bind the listener for global render and reset
     P.listen('reset', function () {
       return Promise.all(RESET_COMPONENTS.map(function (component) {

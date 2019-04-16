@@ -1,5 +1,5 @@
 var DrawingContext = (function () {
-  var AVAILABLE_TOOLS = ['select', 'rect', 'ellipse', 'circle'];
+  var AVAILABLE_TOOLS = ['select', 'rect', 'ellipse', 'circle' ,'path'];
   var SVG_ATTRIBUTES = {
     '': ['stroke', 'stroke-width', 'stroke-linecap', 'fill'],
     'path': [],
@@ -64,6 +64,14 @@ var DrawingContext = (function () {
   NamedGroup.prototype.unset = function (name, item) {
     delete this._children[name];
   };
+  NamedGroup.prototype.find = function(x, y) {
+    for (var name in this._children) {
+      if (this._children[name].contains(x, y)) {
+        return this._children[name];
+      }
+    }
+    return null;
+  };
   NamedGroup.prototype.clear = function () {
     this._children = {};
   };
@@ -96,6 +104,19 @@ var DrawingContext = (function () {
       'attrs': this.attrs
     };
   };
+  Ellipse.prototype.contains = function (x, y) {
+    var dx = (x - this.attrs['cx']) / this.attrs['rx'];
+    var dy = (y - this.attrs['cy']) / this.attrs['ry'];
+    return (dx * dx + dy * dy) <= 1;
+  };
+  Ellipse.prototype.getBoundingBox = function () {
+    return {
+      'x': this.attrs['cx'] - this.attrs['rx'],
+      'y': this.attrs['cy'] - this.attrs['ry'],
+      'width': 2 * this.attrs['rx'],
+      'height': 2 * this.attrs['ry']
+    };
+  };
 
   var Circle = function (name) {
     this.name = name;
@@ -115,6 +136,20 @@ var DrawingContext = (function () {
       'type': 'circle',
       'children': [],
       'attrs': this.attrs
+    };
+  };
+  Circle.prototype.contains = function(x, y) {
+    var dx = x - this.attrs['cx'];
+    var dy = y - this.attrs['cy'];
+    var r = this.attrs['r'];
+    return Math.sqrt(dx * dx + dy * dy) <= r;
+  };
+  Circle.prototype.getBoundingBox = function () {
+    return {
+      'x': this.attrs['cx'] - this.attrs['r'],
+      'y': this.attrs['cy'] - this.attrs['r'],
+      'width': 2 * this.attrs['r'],
+      'height': 2 * this.attrs['r']
     };
   };
 
@@ -142,6 +177,20 @@ var DrawingContext = (function () {
       'type': 'rect',
       'children': [],
       'attrs': this.attrs
+    };
+  };
+  Rect.prototype.contains = function (x, y) {
+    var dx = x - this.attrs['x'];
+    var dy = y - this.attrs['y'];
+    return dx >= 0 && dy >= 0 && dx <= this.attrs['width'] &&
+      dy <= this.attrs['height'];
+  };
+  Rect.prototype.getBoundingBox = function () {
+    return {
+      'x': this.attrs['x'],
+      'y': this.attrs['y'],
+      'width': this.attrs['width'],
+      'height': this.attrs['height']
     };
   };
 
@@ -186,6 +235,34 @@ var DrawingContext = (function () {
   Path.prototype.close = function () {
     this.control.push({'action':'Z'});
   };
+  Path.prototype.getBoundingBox = function () {
+    var box = this.control.reduce(function (acc, cur) {
+      if (!('x' in cur) || !('y' in cur)) {
+        return acc;
+      }
+      if (!('minX' in acc) || !('maxX' in acc) || !('minY' in acc) ||
+        !('maxY' in acc)) {
+        return {
+          'minX': cur.x,
+          'maxX': cur.x,
+          'minY': cur.y,
+          'maxY': cur.y
+        };
+      } 
+      return {
+        'minX': Math.min(acc.minX, cur.x),
+        'minY': Math.min(acc.minY, cur.y),
+        'maxX': Math.max(acc.maxX, cur.x),
+        'maxY': Math.max(acc.maxY, cur.y),
+      };
+    }, {});
+    return {
+      'x': box.minX,
+      'y': box.minY,
+      'width': box.maxX - box.minX,
+      'height': box.maxY - box.minY
+    };
+  };
   Path.prototype.build = function () {
     return {
       'type': 'path',
@@ -193,6 +270,9 @@ var DrawingContext = (function () {
       'attrs': this.attrs,
       'd': this.control.slice(0)
     };
+  };
+  Path.prototype.contains = function (x, y) {
+    return false;
   };
 
   var DrawingContext = function (parent, toolAttrs) {
@@ -254,7 +334,26 @@ var DrawingContext = (function () {
     }
   };
 
+  DrawingContext.prototype._drawBoundingBox = function (item) {
+    this._referenceNamedGroup.unset('bounding-box');
+    if (item instanceof Circle || item instanceof Rect ||
+      item instanceof Ellipse || item instanceof Path) {
+      var box = item.getBoundingBox();
+      var bbox = new Rect();
+      this._setupAttrs(bbox, REF_ATTRS);
+      bbox.set(box.x, box.y, box.width, box.height);
+      this._referenceNamedGroup.set('bounding-box', bbox);
+    } else {
+      // Nothing to draw
+      return;
+    }
+  };
+
   DrawingContext.prototype._drawPreview = function (x, y) {
+    this._referenceNamedGroup.unset('preview');
+    if (this._current === null) {
+      return;
+    }
     switch (this._current.type) {
       case 'path':
         var last = this._current.last();
@@ -266,6 +365,7 @@ var DrawingContext = (function () {
         preview.moveTo(last.x, last.y);
         preview.lineTo(x, y);
         this._referenceNamedGroup.set('preview', preview);
+        this._drawBoundingBox(preview);
         break;
       case 'circle':
         // Modify the circle
@@ -274,13 +374,7 @@ var DrawingContext = (function () {
         this._current.setAttr('cy', this._reference.y + 0.5 * dy);
         this._current.setAttr('r', 0.5 * Math.min(Math.abs(dx), Math.abs(dy)));
         // Draw a bounding box around it
-        var bbox = new Rect();
-        bbox.set(Math.min(this._reference.x, x),
-          Math.min(this._reference.y, y),
-          Math.abs(dx),
-          Math.abs(dy));
-        this._setupAttrs(bbox, REF_ATTRS);
-        this._referenceNamedGroup.set('preview', bbox);
+        this._drawBoundingBox(this._current);
         break;
       case 'rect':
         var dx = x - this._reference.x, dy = y - this._reference.y;
@@ -288,6 +382,8 @@ var DrawingContext = (function () {
           Math.min(this._reference.y, y),
           Math.abs(dx),
           Math.abs(dy));
+        // Draw a bounding box around it
+        this._drawBoundingBox(this._current);
         break;
       case 'ellipse':
         var dx = x - this._reference.x, dy = y - this._reference.y;
@@ -296,16 +392,12 @@ var DrawingContext = (function () {
         this._current.setAttr('rx', 0.5 * Math.abs(dx));
         this._current.setAttr('ry', 0.5 * Math.abs(dy));
         // Draw a bounding box around it
-        var bbox = new Rect();
-        bbox.set(Math.min(this._reference.x, x),
-          Math.min(this._reference.y, y),
-          Math.abs(dx),
-          Math.abs(dy));
-        this._setupAttrs(bbox, REF_ATTRS);
-        this._referenceNamedGroup.set('preview', bbox);
+        this._drawBoundingBox(this._current);
         break;
       default:
-        this._referenceNamedGroup.unset('preview');
+        if (this._current !== null) {
+          this._drawBoundingBox(this._current);
+        }
         break;
     }
   };
@@ -314,6 +406,7 @@ var DrawingContext = (function () {
     for (var key in attrs) {
       this._toolAttrs[key] = attrs[key];
     }
+    console.log(attrs);
   };
 
   DrawingContext.prototype.recoverTool = function (toolName) {
@@ -357,7 +450,8 @@ var DrawingContext = (function () {
         break;
       case 'select':
         // Find the 'current'
-        this._current = null;
+        this._current = this._baseNamedGroup.find(x, y);
+        this._drawBoundingBox(this._current);
         break;
       default:
         break; // Do nothing
@@ -401,6 +495,7 @@ var DrawingContext = (function () {
         } else {
           this._current.lineTo(x, y);
         }
+        this._drawBoundingBox(this._current);
         break;
       default:
         break;

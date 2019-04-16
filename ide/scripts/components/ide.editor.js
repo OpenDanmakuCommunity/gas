@@ -1,4 +1,5 @@
 var Editor = (function () {
+  var _COLOR_TEST = new RegExp('#[0-9a-fA-F]{6}');
   var DEFAULTS = {
     'text': {
       'type': 'Text',
@@ -56,7 +57,16 @@ var Editor = (function () {
       'opacity': 1,
       'visible': 'true',
     },
-  }
+  };
+  var TOOL_STATE_DEFAULTS = {
+    'draw': {
+      'mode': 'path',
+      'attrs.stroke': '#000000',
+      'attrs.stroke-width': 1,
+      'attrs.stroke-linecap': '',
+      'attrs.fill': 'none'
+    }
+  };
 
   /*** START EDITOR CLASS ***/
   var Editor = function (timer, workArea, canvas, workAreaConfigButtons) {
@@ -509,8 +519,8 @@ var Editor = (function () {
     for (var i = 0; i < modes.length; i++) {
       var mode = modes[i];
       P.bind(this._workAreaConfigButtons.drawing[mode], 'click',
-        'editor.drawing.mode.' + mode);
-      P.listen('editor.drawing.mode.' + mode, (function (modeName, self){
+        'editor.drawing.setMode.' + mode);
+      P.listen('editor.drawing.setMode.' + mode, (function (modeName, self){
         return function (e) {
           _ToggleClass(modes.map((function (name) {
               return this._workAreaConfigButtons.drawing[name];
@@ -525,7 +535,28 @@ var Editor = (function () {
             P.next(e));
         };
       })(mode, this));
-    };
+    }
+    // Bind the color selectors
+    P.bind(this._workAreaConfigButtons.drawing.fillColor, 'click',
+      'editor.drawing.promptFill');
+    P.bind(this._workAreaConfigButtons.drawing.strokeColor, 'click',
+      'editor.drawing.promptStroke');
+    P.listen('editor.drawing.promptFill', (function (e) {
+      var color = prompt('Please set fill color:', '')
+      return P.emit('tool.configure', {
+        'toolName': 'draw',
+        'attrName': 'attrs.fill',
+        'value': _COLOR_TEST.test(color) ? color : 'none'
+      }).then(P.next(e));
+    }).bind(this));
+    P.listen('editor.drawing.promptStroke', (function (e) {
+      var color = prompt('Please set stroke color:', '');
+      return P.emit('tool.configure', {
+        'toolName': 'draw',
+        'attrName': 'attrs.stroke',
+        'value': _COLOR_TEST.test(color) ? color : 'none'
+      }).then(P.next(e));
+    }).bind(this));
   };
 
   Editor.prototype._bindToolButtons = function (P) {
@@ -547,6 +578,12 @@ var Editor = (function () {
     }
     // Add binding for changing class
     P.listen('tool.change', (function (tool) {
+      if (this.tools.indexOf(tool.to) < 0) {
+        throw new Error('Tool "' + tool.to + '" not found!');
+      } else if (this.tools.indexOf(tool.from) < 0) {
+        // Populate automatically with selected tool
+        tool.from = this.selectedTool;
+      }
       this.selectedTool = tool.to;
       var btnToolFrom = $('tool-' + tool.from);
       var btnToolTo = $('tool-' + tool.to);
@@ -560,23 +597,69 @@ var Editor = (function () {
         _ToggleClass(this._workAreaConfigButtons.drawing.toolbar,
           'hidden', true);
       }
-      return P.emit('trace.log','Change to tool ' + tool.to).then(
+      return P.emit('trace.log','Changed to tool ' + tool.to).then(
         P.next(tool));
     }).bind(this));
     P.listen('tool.configure', (function (config) {
       if (!(config.toolName in this._toolStates)) {
         this._toolStates[config.toolName] = {};
       }
+      var attrTreeName = config.attrName.split('.');
       var toolConfig = this._toolStates[config.toolName];
-      toolConfig[config.attrName] = config.value;
-      return P.emit('trace.log', config.toolName + '.' + config.attrName +
-        '=' + config.value).then(P.next(config));
+      while (attrTreeName.length > 1) {
+        var layerName = attrTreeName.shift();
+        if (!(layerName in toolConfig)) {
+          toolConfig[layerName] = {};
+        }
+        toolConfig = toolConfig[layerName];
+      }
+      toolConfig[attrTreeName[0]] = config.value;
+
+      return P.emit('tool.configured', config).then(P.emit(
+          'trace.log', config.toolName + '.' + config.attrName + '=' + 
+            config.value)).then(P.next(config));
+    }).bind(this));
+    P.listen('tool.configured', (function (config) {
+      if (config.toolName === 'draw') {
+        if (config.attrName === 'attrs.fill') {
+          var patches = this._workAreaConfigButtons.drawing.fillColor.
+            getElementsByClassName('color-patch');
+          for (var i = 0; i < patches.length; i++) {
+            if (config.value !== 'none') {
+              patches[i].style.backgroundColor = config.value;
+              _ToggleClass(patches[i], 'checkered', false);
+            } else {
+              _ToggleClass(patches[i], 'checkered', true);
+            }
+          }
+        } else if (config.attrName === 'attrs.stroke') {
+          var patches = this._workAreaConfigButtons.drawing.strokeColor.
+            getElementsByClassName('color-patch');
+          for (var i = 0; i < patches.length; i++) {
+            if (config.value !== 'none') {
+              patches[i].style.backgroundColor = config.value;
+              _ToggleClass(patches[i], 'checkered', false);
+            } else {
+              _ToggleClass(patches[i], 'checkered', true);
+            }
+          }
+        }
+      }
+      return P.next(config);
     }).bind(this));
     P.listen('reset.editor.tools', (function () {
-      for (var i = 0; i < this.tools.length; i++) {
-        _ToggleClass($('tool-' + this.tools[i]), 'selected', false);
+      // Configure the tool state defaults
+      var promises = [];
+      for (var toolName in TOOL_STATE_DEFAULTS) {
+        for (var attrName in TOOL_STATE_DEFAULTS[toolName]) {
+          promises.push(P.emit('tool.configure', {
+            'toolName': toolName,
+            'attrName': attrName,
+            'value': TOOL_STATE_DEFAULTS[toolName][attrName]
+          }));
+        }
       }
-      return;
+      return Promise.all(promises);
     }).bind(this));
   };
 
@@ -753,12 +836,17 @@ var Editor = (function () {
     // Bind the drawing buttons
     this._bindDrawingButtons(P);
 
-    P.listen('reset.editor', function () {
+    P.listen('reset.editor', (function () {
       return Promise.all([
+        P.emit('tool.change', {
+          'from': this.selectedTool,
+          'to': this.selectedTool
+        }),
         P.emit('reset.editor.tools'),
         P.emit('reset.editor.canvas.background'),
+        P.emit('reset.editor.canvas.perspective'),
       ]);
-    });
+    }).bind(this));
 
     // Bind the work area
     P.bind(this._workArea, 'mousedown', 'editor.work-area.down');
@@ -780,12 +868,7 @@ var Editor = (function () {
 
   Editor.prototype._render = function (P) {
     return Promise.all([
-      P.emit('tool.change', {
-        'from': this.selectedTool,
-        'to': this.selectedTool
-      }),
-      P.emit('reset.editor.canvas.background'),
-      P.emit('reset.editor.canvas.perspective'),
+      P.emit('reset.editor')
     ]);
   };
 

@@ -1,0 +1,83 @@
+/** Layout: Default **/
+.layout-default #left {
+  left: 1px;
+  width: 199px;
+}
+.layout-default #center {
+  left: 201px;
+  right: 401px;
+}
+.layout-default #right {
+  right: 1px;
+  width: 399px;
+  overflow-y: auto;
+}
+.layout-default #right-placeholder {
+  display: none;
+}
+
+.layout-default #timeline {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 198px;
+  background: #323232;
+  position: absolute;
+}
+
+.layout-default #editor {
+  top: 200px;
+  left: 0;
+  right: 0;
+  bottom: 121px;
+  position: absolute;
+}
+
+.layout-default #messages {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  position: absolute;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+/** Layout: Compact **/
+.layout-compact #left {
+  left: 1px;
+  width: 77px;
+}
+.layout-compact #center {
+  left: 89px;
+  right: 31px;
+}
+.layout-compact #right {
+  display: none;
+}
+.layout-compact #right-placeholder {
+  right: 1px;
+  width: 29px;
+  overflow-y: auto;
+  writing-mode: vertical-rl;
+}
+
+.layout-compact #timeline {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 198px;
+  background: #323232;
+  position: absolute;
+}
+
+.layout-compact #editor {
+  top: 200px;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  position: absolute;
+}
+
+.layout-compact #messages {
+  display: none;
+}
