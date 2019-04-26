@@ -44,7 +44,8 @@ var CommandLine = (function () {
       case 'list': {
         var message = [];
         for(var name in P.bindings) {
-          message.push(' - ' + name);
+          message.push(' -' +
+            (name in P.nativeBindings ? ' [N] ' : ' ') + name);
         }
         if (params.length === 0) {
           this._logger.log('All commands: \n' + message.sort().join('\n'));

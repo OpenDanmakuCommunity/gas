@@ -15,6 +15,11 @@ var Logger = (function () {
     };
     return hist;
   };
+  
+  Logger.prototype.debug = function (message) {
+    // Debug messages don't go into the window
+    console.log(message);
+  };
 
   Logger.prototype.log = function (message) {
     var log = this._toElement(message);
@@ -35,6 +40,10 @@ var Logger = (function () {
   };
 
   Logger.prototype.bind = function (P) {
+    P.listen('trace.debug', (function (message) {
+      this.debug(message);
+      return message;
+    }).bind(this));
     P.listen('trace.log', (function (message) {
       this.log(message);
       return message;
