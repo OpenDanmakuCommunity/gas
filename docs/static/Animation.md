@@ -58,14 +58,20 @@ GAS-S 的动画定义语法非常简单。动画定义采取全局锚点模式�
 如果 easing 内定义的属性不支持 easing 补间（如值为 enum 或 string 等），平台可以自动转移
 参数到 `none` 补间中。当然有的平台也可拒绝播放这样的非合规弹幕定义。
 
-常规补间：
+通用补间：
 - `none`
+
+常规补间（适用于任何数字类型）：
 - `linear`
 - `quadriatic`,
 - `cubic`
 - `circular`
 - `sine`
 - `exponential`
+
+颜色补间（仅适用于颜色类型的属性）：
+- `rgb:linear` 颜色按照 `(r, g, b)` 属性各自单独线性补间
+- `hsv:linear` 颜色按照 `(h, s, v)` 属性各自单独线性补间
 
 ### `[object].none` 无补间补间
 当 `[easing] = none` 时，在起始锚点到目标锚点之间的时间，属性总保持起始锚点时的属性。到达

@@ -48,7 +48,8 @@ Example 示例:
       {"type": "svg", "children": []},
       {"type": "image/png", "data": "...", "encoding": ""}
     ]
-  }
+  },
+  "frame": 0
 }
 ````
 
