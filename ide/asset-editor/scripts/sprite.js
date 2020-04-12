@@ -33,13 +33,13 @@ var SVGP = (function () {
       });
     }
     if (notation.type === 'interpolate-linear') {
-      if (!Array.isArray(notation.src) || 
+      if (!Array.isArray(notation.src) ||
         !(typeof notation['on'] === 'string') ||
         !notation.on.startsWith('$')) {
 
         throw new Error('Interpolate expression error');
       }
-      var waypoints = notation.src.slice(0), 
+      var waypoints = notation.src.slice(0),
         t = variables[notation['on'].substring(1)];
       if (waypoints.length === 0) {
         return 0;
@@ -73,7 +73,6 @@ var SVGP = (function () {
         } else if (typeof item === 'string' && item.startsWith('$')) {
           // Resolve the item and put it back
           item = variables[item.substring(1)];
-          //console.log(variables);
           item = ((typeof item !== 'number') && !(item in _OPS)) ? 0 : item;
           env.push(item);
         } else {
@@ -88,7 +87,7 @@ var SVGP = (function () {
       throw new Error('Unsupported notation ' + notation.type);
     }
   }
-  
+
   function SVGP (src, extViewBox) {
     this._src = src;
     this._dim = extViewBox;
@@ -98,7 +97,7 @@ var SVGP = (function () {
   SVGP._eval = _eval;
 
   SVGP.prototype._recurse = function (callback) {
-    var stackSrc = [this._src], 
+    var stackSrc = [this._src],
       stackTree = [this._canvas.root()];
     while (stackSrc.length > 0) {
       var srcItem = stackSrc.pop(), treeItem = stackTree.pop();
@@ -116,7 +115,11 @@ var SVGP = (function () {
   SVGP.prototype._resolve = function (item, t) {
     var resolved = {};
     for (var attr in item) {
-      if (attr === 'type' || attr === 'name' || attr.startsWith('__')) {
+      if (attr === 'type' ||
+        attr === 'name' ||
+        attr === 'children' ||
+        attr.startsWith('__')) {
+
         continue;
       }
       // Resolve the variables
@@ -129,7 +132,7 @@ var SVGP = (function () {
       vars['t'] = t;
       resolved[attr] = SVGP._eval(item[attr], vars);
       // Do conversion if necessary
-      if (typeof item[attr] === 'object' && item[attr] !== null && 
+      if (typeof item[attr] === 'object' && item[attr] !== null &&
         ('convert' in item[attr])) {
         resolved[attr] = _CONV[item[attr].convert](resolved[attr]);
       }
@@ -147,7 +150,7 @@ var SVGP = (function () {
     this._recurse((function (srcItem, treeItem) {
       if ('children' in srcItem && Array.isArray(srcItem.children)) {
         for (var i = 0; i < srcItem.children.length; i++) {
-          var childSpec = this._resolve(srcItem.children[i], t), 
+          var childSpec = this._resolve(srcItem.children[i], t),
             type = srcItem.children[i].type;
           treeItem.appendUnnamedChild(context.raw(type, childSpec));
         }
@@ -165,6 +168,13 @@ var SVGP = (function () {
         }
       }
     }).bind(this));
+  }
+
+  SVGP.prototype.toString = function () {
+    return this._src.type + ' image: \n' +
+      (this._src.__author__ ?
+        (' Author: ' + this._src.__author__ + '\n') : '(No author info)\n') +
+      (this._src.__desc__ ? this._src.__desc__ : '(No description)');
   }
 
   return SVGP;

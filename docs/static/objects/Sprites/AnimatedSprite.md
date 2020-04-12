@@ -37,7 +37,7 @@ Example 示例:
     "type": "svg+p",
     "children": [
         {
-            
+
         }
     ]
 }

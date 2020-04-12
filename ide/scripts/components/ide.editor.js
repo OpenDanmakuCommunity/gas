@@ -615,7 +615,7 @@ var Editor = (function () {
       toolConfig[attrTreeName[0]] = config.value;
 
       return P.emit('tool.configured', config).then(P.emit(
-          'trace.debug', config.toolName + '.' + config.attrName + '=' + 
+          'trace.debug', config.toolName + '.' + config.attrName + '=' +
             config.value)).then(P.next(config));
     }).bind(this));
     P.listen('tool.configured', (function (config) {

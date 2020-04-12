@@ -219,7 +219,7 @@ var GSprite = (function () {
 
   /** Below are internal helper functions **/
   GSprite.prototype._drawElement = function (item) {
-    var dom = _Create(item.type);
+    var dom = _Create('svg:' + item.type);
     // Set common attributes
     for (var i = 0; i < DrawingContext.SVG_ATTRIBUTES[''].length; i++) {
       var attr = DrawingContext.SVG_ATTRIBUTES[''][i];
@@ -317,7 +317,7 @@ var GSprite = (function () {
         if (typeof this._pm !== 'undefined' && this._pm !== null) {
           this._pm._baseSpec['type'] = 'SVGSprite';
         }
-        this.SVGDOM = _Create('svg', {
+        this.SVGDOM = _Create('svg:svg', {
           'width': '100%',
           'height': '100%',
           'ide-object-name': this.name

@@ -63,10 +63,10 @@ select:invalid {
   height: 10px;
 }
 ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
-    background: #262626;
+  background: #262626;
 }
 ::-webkit-scrollbar-thumb {
-    background: #72DEC9;
+  background: #72DEC9;
 }
 
 /** Layout **/

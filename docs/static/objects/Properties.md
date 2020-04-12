@@ -129,20 +129,6 @@ Z 轴旋转。单位 `deg`。
 - `fill` 无视长宽比，充满整个 Sprite空间。对应 `background-size: 100% 100%`
 - `crop` 不缩放图片，超出部分剪裁。对应 `background-size: auto`
 
-### `svg.viewbox.x` &lt;number&lt; = `0`
-定义 SVG viewbox x 属性（内部图形坐标轴）
-
-### `svg.viewbox.y` &lt;number&lt; = `0`
-定义 SVG viewbox y 属性（内部图形坐标轴）
-
-### `svg.viewbox.width` &lt;number&lt; = `0`
-定义 SVG viewbox 宽度属性（内部图形坐标轴）
-
-### `svg.viewbox.height` &lt;number&lt; = `0`
-定义 SVG viewbox 高度属性（内部图形坐标轴）
-
-### `svg.aspectRatio` &lt;enum&lt; = `preserve`
-
 ## 容器 Frame
 容器相关。这些属性只适用于 `Frame`。
 

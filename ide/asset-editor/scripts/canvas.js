@@ -54,7 +54,7 @@ var SvgCanvas = (function () {
   function Context(context) {
     this._context = context;
   }
-  
+
   Context.prototype.applyProps = function (item, spec) {
     for (var key in spec) {
       item.setAttribute(key, spec[key]);
@@ -94,12 +94,20 @@ var SvgCanvas = (function () {
           attributes[attr] = spec[attr];
       }
     }
-    console.log(spec);
-    return _Create(type, attributes);
+    // Handle text
+    if (type === 'text') {
+      var text = attributes['content'];
+      delete attributes['content'];
+      return _Create('svg:text', attributes, [
+        _Create('text', text)
+      ]);
+    } else {
+      return _Create('svg:' + type, attributes);
+    }
   }
 
   Context.prototype.line = function(x1, y1, x2, y2) {
-    var line = _Create('line', {
+    var line = this.raw('line', {
       'x1': x1,
       'y1': y1,
       'x2': x2,
@@ -115,7 +123,7 @@ var SvgCanvas = (function () {
     this._width = dom.offsetWidth ? dom.offsetWidth : 640;
     this._height = dom.offsetHeight ? dom.offsetHeight: 480;
     this._initialContext = initialContext;
-    
+
     this.setViewBox(0, 0, this._width, this._height);
   }
 

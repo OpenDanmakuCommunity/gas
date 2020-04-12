@@ -31,12 +31,12 @@ var CommandLine = (function () {
         break;
       }
       case 'help': {
-        this._logger.log('Command line help: \n' + 
-          'help - displays this help message\n' + 
+        this._logger.log('Command line help: \n' +
+          'help - displays this help message\n' +
           'list - lists all available commands\n');
-        this._logger.warn('The command line allows you to send arbitrary ' + 
-          'messages to various end-points in the IDE.\nSending the wrong ' + 
-          'commands may leave the IDE in an inconsistent state and may ' + 
+        this._logger.warn('The command line allows you to send arbitrary ' +
+          'messages to various end-points in the IDE.\nSending the wrong ' +
+          'commands may leave the IDE in an inconsistent state and may ' +
           'result in loss of any unsaved work.');
         break;
       }

@@ -32,31 +32,33 @@ var _Create = function (type, props, children, callback) {
   var elem = null;
   if (type === 'text') {
     return document.createTextNode(props);
-  } else if (type === 'svg' ||
-    type === 'line' ||
-    type === 'rect' ||
-    type === 'circle' ||
-    type === 'ellipse' ||
-    type === 'path' ||
-    type === 'g') {
-    elem = document.createElementNS("http://www.w3.org/2000/svg", type);
+  } else if (type === 'svg:svg' ||
+    type === 'svg:text' ||
+    type === 'svg:line' ||
+    type === 'svg:rect' ||
+    type === 'svg:circle' ||
+    type === 'svg:ellipse' ||
+    type === 'svg:path' ||
+    type === 'svg:g') {
+    var tag = type.split(':').slice(1).join(':');
+    elem = document.createElementNS("http://www.w3.org/2000/svg", tag);
   } else {
     elem = document.createElement(type);
   }
-  for(var n in props){
-    if(n !== 'style' && n !== 'className'){
+  for (var n in props) {
+    if (n !== 'style' && n !== 'className') {
       elem.setAttribute(n, props[n]);
-    }else if(n === 'className'){
+    } else if(n === 'className') {
       elem.className = props[n];
-    }else{
-      for(var x in props.style){
+    } else {
+      for (var x in props.style) {
         elem.style[x] = props.style[x];
       }
     }
   }
   if (children) {
-    for(var i = 0; i < children.length; i++){
-      if(children[i] != null) {
+    for (var i = 0; i < children.length; i++) {
+      if (children[i] != null) {
         elem.appendChild(children[i]);
       }
     }
