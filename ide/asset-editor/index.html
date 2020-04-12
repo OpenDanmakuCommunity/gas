@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="X-UA-Compatible" value="IE=9">
+  <title>Asset Editor - GAS</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../styles/default.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <!-- 3rd party -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-promise/4.1.1/es6-promise.auto.min.js"></script>
+
+  <!-- Base -->
+  <script src="../scripts/pettan.js"></script>
+  <script src="../scripts/global.js"></script>
+  <script src="../scripts/timer.js"></script>
+  <script src="scripts/editor.js"></script>
+  <script src="scripts/canvas.js"></script>
+  <script src="scripts/sprite.js"></script>
+</head>
+<body class="layout-default">
+  <noscript>
+    <div id="noscript-notice" class="modal-group error">
+      <div class="overlay"></div>
+      <div class="modal">
+        <h2>Error</h2>
+        <p>
+          This IDE tool runs locally and requires JavaScript for the dynamic functionality.
+          Please enable JavaScript or switch to a browser that supports it.
+        </p>
+      </div>
+    </div>
+  </noscript>
+
+  <!-- Below is the main IDE -->
+  <div id="left" class="container layout-block" draggable="false">
+    <div id="tools" class="mini-window" style="height: 200px;">
+      <h1>Tools</h1>
+      <div class="body">
+        <div id="tool-select" class="button" tabindex="2" role="button">
+          <p>Select Tool</p>
+        </div>
+        <div id="tool-rect" class="button" tabindex="2" role="button">
+          <p>Rect Tool</p>
+        </div>
+        <div id="tool-ellipse" class="button" tabindex="2" role="button">
+          <p>Ellipse Tool</p>
+        </div>
+        <div id="tool-path" class="button" tabindex="2" role="button">
+          <p>Path Tool</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="right" class="container layout-block" draggable="false">
+    <svg id="underlay" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</body>
+</html>

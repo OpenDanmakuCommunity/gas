@@ -33,6 +33,7 @@ var _Create = function (type, props, children, callback) {
   if (type === 'text') {
     return document.createTextNode(props);
   } else if (type === 'svg' ||
+    type === 'line' ||
     type === 'rect' ||
     type === 'circle' ||
     type === 'ellipse' ||

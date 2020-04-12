@@ -135,6 +135,7 @@
     P.listen('body.keydown', function (e) {
       var key = {
         'key': e.event.key,
+        'metaKey': e.event.metaKey,
         'ctrlKey': e.event.ctrlKey,
         'altKey': e.event.altKey,
         'shiftKey': e.event.shiftKey

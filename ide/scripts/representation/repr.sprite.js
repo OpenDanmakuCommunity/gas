@@ -243,19 +243,23 @@ var GSprite = (function () {
     // Special things to handle
     switch(item.type) {
       case 'path':
-        dom.setAttribute('d', item.d.map(function (d) {
-          switch(d.action) {
-            case 'M':
-            case 'm':
-            case 'L':
-            case 'l':
-              return d.action + ' ' + d.x + ' ' + d.y;
-            case 'Z':
-            case 'z':
-            default:
-              return d.action;
-          }
-        }).join(' '));
+        if (typeof item.d === 'string') {
+          dom.setAttribute('d', item.d);
+        } else if (Array.isArray(item.d)) {
+          dom.setAttribute('d', item.d.map(function (d) {
+            switch(d.action) {
+              case 'M':
+              case 'm':
+              case 'L':
+              case 'l':
+                return d.action + ' ' + d.x + ' ' + d.y;
+              case 'Z':
+              case 'z':
+              default:
+                return d.action;
+            }
+          }).join(' '));
+        }
       default:
         break;
     }

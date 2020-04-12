@@ -1,0 +1,19 @@
+/** Layout: Default **/
+.layout-default #left {
+  left: 1px;
+  width: 199px;
+}
+.layout-default #right {
+  left: 201px;
+  right: 1px;
+}
+
+#canvas, #overlay {
+  position: absolute;
+  width:100%;
+  height:100%;
+  left:0;
+  right:0;
+  top:0;
+  bottom:0;
+}

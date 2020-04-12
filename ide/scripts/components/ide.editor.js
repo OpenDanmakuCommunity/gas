@@ -177,7 +177,7 @@ var Editor = (function () {
         return e;
       case 'select':
         if (targetName !== null) {
-          if (e.event.ctrlKey) {
+          if (e.event.ctrlKey || e.event.metaKey) {
             var newSelection = Selection.multiSelect(targetName, 'toggle');
             return this.P.emit('objects.select', newSelection).then(
               this.P.next(e));
@@ -802,7 +802,7 @@ var Editor = (function () {
             'This tool does not support the delete action.');
           return key;
         }
-      } else if (key.key === 'a' && key.ctrlKey) {
+      } else if (key.key === 'a' && (key.ctrlKey || key.metaKey)) {
         return P.emit('objects.select',
           ReprTools.allObjectNames()).then(P.next(key));
       } else if (key.key === 'ArrowUp' || key.key === 'ArrowDown' ||

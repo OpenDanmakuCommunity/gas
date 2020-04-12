@@ -11,8 +11,8 @@ interaction 的回退策略。
 {
     "type":"SomeObject",
     "interaction": {
-      "list": ["vid100_Button"],
-      "fallback": ""
+        "list": ["vid100_Button"],
+        "fallback": ""
     }
 }
 ````
@@ -34,26 +34,26 @@ interaction 的回退策略。
 以下为示例:
 ````JavaScript
 {
-  "interactions": {
-    "vid100_Button": {
-      "type": "hit-target",
-      "action": "open",
-      "parameters": {
-        "location": "video://vid100/0",
-        "window": "replace",
-        "pause": true,
-      },
-      "style": {
-        "accessible": true,
-        "outline": "always",
-        "hover": {
-          "color": 0xc0ffee,
-          "background": 0xffffff,
-        },
-        "touchPolicy": "default"
-      }
+    "interactions": {
+        "vid100_Button": {
+            "type": "hit-target",
+            "action": "open",
+            "parameters": {
+                "location": "video://vid100/0",
+                "window": "replace",
+                "pause": true,
+            },
+            "style": {
+                "accessible": true,
+                "outline": "always",
+                "hover": {
+                    "color": 0xc0ffee,
+                    "background": 0xffffff,
+                },
+                "touchPolicy": "default"
+            }
+        }
     }
-  }
 }
 ````
 
