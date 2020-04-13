@@ -31,7 +31,7 @@
       setInterval(function () {
         var t = (Date.now() - start) % dur / dur;
         sprite.update(t);
-      }, 100);
+      }, 300);
     });
   });
 })();
