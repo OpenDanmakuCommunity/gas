@@ -55,9 +55,27 @@ var SvgCanvas = (function () {
     this._context = context;
   }
 
+  Context.prototype._mapAttribute = function (key, value) {
+    if (key === 'd') {
+      if (Array.isArray(value)) {
+        return value.map(function (d) {
+            if (Array.isArray(d)) {
+              return d.join(' ');
+            } else {
+              return d;
+            }
+          }).join(' ');
+      } else {
+        return value;
+      }
+    } else {
+      return value;
+    }
+  }
+
   Context.prototype.applyProps = function (item, spec) {
     for (var key in spec) {
-      item.setAttribute(key, spec[key]);
+      item.setAttribute(key, this._mapAttribute(key, spec[key]));
     }
   }
 
@@ -77,22 +95,7 @@ var SvgCanvas = (function () {
     // Ignores the local style
     var attributes = {};
     for (var attr in spec) {
-      switch(attr) {
-        case 'd':
-          if (Array.isArray(spec[attr])) {
-            attributes[attr] = spec[attr].map(function (d) {
-                if (typeof d === 'string') {
-                  return d;
-                } else {
-                  return d.join(' ');
-                }
-              }).join(' ');
-          } else {
-            attributes[attr] = spec[attr];
-          }
-        default:
-          attributes[attr] = spec[attr];
-      }
+      attributes[attr] = this._mapAttribute(attr, spec[attr]);
     }
     // Handle text
     if (type === 'text') {

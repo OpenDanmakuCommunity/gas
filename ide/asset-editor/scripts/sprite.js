@@ -52,7 +52,7 @@ var SVGP = (function () {
             x = waypoints[i];
             t -= interval;
           } else {
-            return (waypoints[i] - x) * t + x;
+            return (waypoints[i] - x) * (t / interval) + x;
           }
         }
         return waypoints[waypoints.length - 1];

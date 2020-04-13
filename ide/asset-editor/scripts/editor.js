@@ -18,18 +18,20 @@
       .draw(oc.line('45%', '50%', '55%', '50%'))
       .draw(oc.line('50%', '45%', '50%', '55%'));
 
-    fetch('../../docs/static/examples/sprites/svg-azureus.json').then(function (resp) {
+    fetch('../../docs/static/examples/sprites/svgp-azureus-motions.json').then(function (resp) {
       return resp.json();
     }).then(function (svgp) {
       var sprite = new SVGP(svgp, [0, 0, 640, 480]);
       sprite.draw(canvas, 0);
       window.exampleSprite = sprite;
 
+      var dur = 2000;
+
       var start = Date.now();
       setInterval(function () {
-        var t = (Date.now() - start) % 1000 / 1000;
+        var t = (Date.now() - start) % dur / dur;
         sprite.update(t);
-      }, 25);
+      }, 100);
     });
   });
 })();
