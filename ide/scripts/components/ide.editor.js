@@ -58,15 +58,7 @@ var Editor = (function () {
       'visible': 'true',
     },
   };
-  var TOOL_STATE_DEFAULTS = {
-    'draw': {
-      'mode': 'path',
-      'attrs.stroke': '#000000',
-      'attrs.stroke-width': 1,
-      'attrs.stroke-linecap': '',
-      'attrs.fill': 'none'
-    }
-  };
+  var TOOL_STATE_DEFAULTS = {};
 
   /*** START EDITOR CLASS ***/
   var Editor = function (timer, workArea, canvas, workAreaConfigButtons) {
@@ -75,7 +67,7 @@ var Editor = (function () {
     }
     this.T = timer;
 
-    this.tools = ['select', 'draw', 'text', 'sprite', 'button', 'frame'];
+    this.tools = ['select', 'text', 'sprite', 'button', 'frame'];
     this.selectedTool = 'select';
 
     this._workArea = workArea;
@@ -95,15 +87,6 @@ var Editor = (function () {
         'box': null
       };
     }
-
-    // Default the drawing attributes
-    this._toolStates['draw']['attrs'] = {
-      'stroke': '#000000',
-      'stroke-width': 1,
-      'stroke-linecap': '',
-      'fill': 'none'
-    };
-    this._toolStates['draw']['mode'] = 'path';
   };
 
   Editor.prototype._translateOffsets = function (x, y) {
@@ -143,38 +126,6 @@ var Editor = (function () {
 
     // Tool specific items.
     switch (this.selectedTool) {
-      case 'draw':
-        if (targetName !== null) {
-          var type = ReprTools.getObjectType(targetName);
-          if (type !== 'Sprite' && type !== 'SVGSprite') {
-            // Can't draw on non-sprite
-            return this.P.emit('trace.error',
-              'Cannot use draw tool on non-SVG sprite!').then(this.P.next(e));
-          }
-          var sprite = ReprTools.getObject(targetName);
-          var drawContext = sprite.getContext();
-
-          if (drawContext !== null) {
-            // Pass the tool attrs into the context
-            drawContext.recoverTool(toolState.mode);
-            drawContext.recoverToolAttrs(toolState.attrs);
-            toolState.drawContext = drawContext;
-            toolState.taget = targetName;
-            var canvasPos =
-              this._canvasPosition(e.event.clientX, e.event.clientY);
-            toolState.dragging = canvasPos;
-            drawContext.initiate(
-              canvasPos.x - sprite._pm.getProp('position.x'),
-              canvasPos.y - sprite._pm.getProp('position.y'));
-            return this.P.emit('object.setProperty', {
-                'objectName': targetName,
-                'time': this.T.time(),
-                'propertyName': 'content',
-                'value': drawContext,
-              }).then(this.P.next(e));
-          }
-        }
-        return e;
       case 'select':
         if (targetName !== null) {
           if (e.event.ctrlKey || e.event.metaKey) {
@@ -286,42 +237,32 @@ var Editor = (function () {
       toolState.moving = null;
     }
     if (toolState.dragging !== null) {
-      if (this.selectedTool === 'draw') {
-        // Send the draw back into the context
-        var canvasPos =
-          this._canvasPosition(e.event.clientX, e.event.clientY);
-        toolState.drawContext.release(
-          canvasPos.x - toolState.dragging.x,
-          canvasPos.y - toolState.dragging.y);
-        toolState.drawContext.commit();
-      } else {
-        var time = this.T.time();
-        Promise.all(Selection.get().map((function (object) {
-          var width = ReprTools.getObject(object)._pm.getProp('size.width');
-          var height = ReprTools.getObject(object)._pm.getProp('size.height');
-          // Round
-          width = Math.round(width);
-          height = Math.round(height);
+      var time = this.T.time();
+      Promise.all(Selection.get().map((function (object) {
+        var width = ReprTools.getObject(object)._pm.getProp('size.width');
+        var height = ReprTools.getObject(object)._pm.getProp('size.height');
+        // Round
+        width = Math.round(width);
+        height = Math.round(height);
+        return this.P.emit('object.setProperty', {
+          'objectName': object,
+          'time': time,
+          'propertyName': 'size.width',
+          'value': width
+        }).then((function () {
           return this.P.emit('object.setProperty', {
             'objectName': object,
             'time': time,
-            'propertyName': 'size.width',
-            'value': width
-          }).then((function () {
-            return this.P.emit('object.setProperty', {
-              'objectName': object,
-              'time': time,
-              'propertyName': 'size.height',
-              'value': height
-            });
-          }).bind(this));
-        }).bind(this))).then((function () {
-          if (Selection.count() > 0) {
-            return this.P.emit('properties.load', Selection.get());
-          }
-          return;
+            'propertyName': 'size.height',
+            'value': height
+          });
         }).bind(this));
-      }
+      }).bind(this))).then((function () {
+        if (Selection.count() > 0) {
+          return this.P.emit('properties.load', Selection.get());
+        }
+        return;
+      }).bind(this));
       toolState.dragging = null;
     }
     if (toolState.box !== null && typeof toolState.box !== 'undefined') {
@@ -391,15 +332,6 @@ var Editor = (function () {
         return e;
       } else {
         return e;
-      }
-    } else if (this.selectedTool === 'draw') {
-      if (toolState.dragging) {
-        var canvasPos =
-          this._canvasPosition(e.event.clientX, e.event.clientY);
-        toolState.drawContext.drag(
-          canvasPos.x - toolState.dragging.x,
-          canvasPos.y - toolState.dragging.y);
-        toolState.drawContext.commit();
       }
     } else {
       if(toolState.dragging !== null) {
@@ -513,51 +445,6 @@ var Editor = (function () {
     }).bind(this));
   };
 
-  Editor.prototype._bindDrawingButtons = function (P) {
-    var modes = ['select', 'path', 'rect', 'ellipse'];
-    for (var i = 0; i < modes.length; i++) {
-      var mode = modes[i];
-      P.bind(this._workAreaConfigButtons.drawing[mode], 'click',
-        'editor.drawing.setMode.' + mode);
-      P.listen('editor.drawing.setMode.' + mode, (function (modeName, self){
-        return function (e) {
-          _ToggleClass(modes.map((function (name) {
-              return this._workAreaConfigButtons.drawing[name];
-            }).bind(self)), 'selected', false);
-          _ToggleClass(self._workAreaConfigButtons.drawing[modeName],
-            'selected', true);
-          return P.emit('tool.configure', {
-            'toolName': 'draw',
-            'attrName': 'mode',
-            'value': modeName
-          }).then(
-            P.next(e));
-        };
-      })(mode, this));
-    }
-    // Bind the color selectors
-    P.bind(this._workAreaConfigButtons.drawing.fillColor, 'click',
-      'editor.drawing.promptFill');
-    P.bind(this._workAreaConfigButtons.drawing.strokeColor, 'click',
-      'editor.drawing.promptStroke');
-    P.listen('editor.drawing.promptFill', (function (e) {
-      var color = prompt('Please set fill color:', '')
-      return P.emit('tool.configure', {
-        'toolName': 'draw',
-        'attrName': 'attrs.fill',
-        'value': _COLOR_TEST.test(color) ? color : 'none'
-      }).then(P.next(e));
-    }).bind(this));
-    P.listen('editor.drawing.promptStroke', (function (e) {
-      var color = prompt('Please set stroke color:', '');
-      return P.emit('tool.configure', {
-        'toolName': 'draw',
-        'attrName': 'attrs.stroke',
-        'value': _COLOR_TEST.test(color) ? color : 'none'
-      }).then(P.next(e));
-    }).bind(this));
-  };
-
   Editor.prototype._bindToolButtons = function (P) {
     for (var i = 0; i < this.tools.length; i++) {
       var toolName = this.tools[i];
@@ -588,14 +475,6 @@ var Editor = (function () {
       var btnToolTo = $('tool-' + tool.to);
       _ToggleClass(btnToolFrom, 'selected', false);
       _ToggleClass(btnToolTo, 'selected', true);
-      // Show or hide the drawing toolbar
-      if (tool.to === 'draw') {
-        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar,
-          'hidden', false);
-      } else {
-        _ToggleClass(this._workAreaConfigButtons.drawing.toolbar,
-          'hidden', true);
-      }
       return P.emit('trace.log','Changed to tool ' + tool.to).then(
         P.next(tool));
     }).bind(this));
@@ -619,31 +498,7 @@ var Editor = (function () {
             config.value)).then(P.next(config));
     }).bind(this));
     P.listen('tool.configured', (function (config) {
-      if (config.toolName === 'draw') {
-        if (config.attrName === 'attrs.fill') {
-          var patches = this._workAreaConfigButtons.drawing.fillColor.
-            getElementsByClassName('color-patch');
-          for (var i = 0; i < patches.length; i++) {
-            if (config.value !== 'none') {
-              patches[i].style.backgroundColor = config.value;
-              _ToggleClass(patches[i], 'checkered', false);
-            } else {
-              _ToggleClass(patches[i], 'checkered', true);
-            }
-          }
-        } else if (config.attrName === 'attrs.stroke') {
-          var patches = this._workAreaConfigButtons.drawing.strokeColor.
-            getElementsByClassName('color-patch');
-          for (var i = 0; i < patches.length; i++) {
-            if (config.value !== 'none') {
-              patches[i].style.backgroundColor = config.value;
-              _ToggleClass(patches[i], 'checkered', false);
-            } else {
-              _ToggleClass(patches[i], 'checkered', true);
-            }
-          }
-        }
-      }
+      // Nothing to do
       return P.next(config);
     }).bind(this));
     P.listen('reset.editor.tools', (function () {
@@ -832,8 +687,6 @@ var Editor = (function () {
     this._bindToolButtons(P);
     // Bind the config buttons
     this._bindConfigButtons(P);
-    // Bind the drawing buttons
-    this._bindDrawingButtons(P);
 
     P.listen('reset.editor', (function () {
       return Promise.all([

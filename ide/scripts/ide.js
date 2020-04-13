@@ -49,15 +49,6 @@
         'checkered': $('editor-bg-checkered'),
         'preview': $('editor-config-preview'),
       },
-      'drawing': {
-        'toolbar': $('drawing-toolbar'),
-        'select': $('draw-select'),
-        'path': $('draw-path'),
-        'rect': $('draw-rect'),
-        'ellipse': $('draw-ellipse'),
-        'fillColor': $('draw-fill-color'),
-        'strokeColor': $('draw-stroke-color'),
-      },
       'width': $('editor-config-width'),
       'height': $('editor-config-height'),
     });

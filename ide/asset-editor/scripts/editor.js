@@ -18,7 +18,14 @@
       .draw(oc.line('45%', '50%', '55%', '50%'))
       .draw(oc.line('50%', '45%', '50%', '55%'));
 
-    fetch('../../docs/static/examples/sprites/svgp-azureus-motions.json').then(function (resp) {
+    var examplesDir = '../../docs/static/examples/sprites/';
+    var demos = {
+      'svgp-azureus': 'svgp-azureus-motions.json',
+      'svgp-spinner': 'svgp-spinner.json',
+      'svg-azureus': 'svg-azureus.json'
+    };
+
+    fetch(examplesDir + demos['svgp-azureus']).then(function (resp) {
       return resp.json();
     }).then(function (svgp) {
       var sprite = new SVGP(svgp, [0, 0, 640, 480]);

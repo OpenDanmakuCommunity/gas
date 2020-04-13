@@ -26,12 +26,15 @@
 
   <script src="scripts/repr.js"></script>
   <script src="scripts/representation/propmanager.js"></script>
-  <script src="scripts/representation/data.drawingContext.js"></script>
   <script src="scripts/representation/repr.text.js"></script>
   <script src="scripts/representation/repr.sprite.js"></script>
   <script src="scripts/representation/repr.button.js"></script>
   <script src="scripts/representation/repr.frame.js"></script>
-  <script src="scripts/representatiosn/repr.objects.js"></script>
+  <script src="scripts/representation/repr.objects.js"></script>
+
+  <!-- use asset-editor versions for svg sprite handling -->
+  <script src="asset-editor/scripts/canvas.js"></script>
+  <script src="asset-editor/scripts/sprite.js"></script>
 
   <script src="scripts/components/common.primitives.js"></script>
   <script src="scripts/components/common.miniwindow.js"></script>
@@ -110,7 +113,6 @@
       <h1>Toolbox</h1>
       <div class="body">
         <div id='tool-select' class="tool-icon cursor button" tabindex="0" role="button" title="Select Tool"></div>
-        <div id='tool-draw' class="tool-icon pen button" tabindex="0" role="button" title="Drawing Tool"></div>
         <div class="tool-icon-sep"></div>
         <div id='tool-text' class="tool-icon textbox button" tabindex="0" role="button" title="Text Object Tool"></div>
         <div id='tool-sprite' class="tool-icon sprite button" tabindex="0" role="button" title="Sprite Tool"></div>
@@ -172,19 +174,6 @@
           <div id="editor-bg-checkered" class="button" title="Set checkerboard background">C</div>
           <div class="button-separator"></div>
           <div id="editor-config-preview" class="button" title="Preview Mode (Image Borders Hidden)">P</div>
-        </div>
-        <div id="drawing-toolbar" class="btn-group pull-left">
-          <div id="draw-select" class="button" title="Select">&nbsp;Select&nbsp;</div>
-          <div id="draw-path" class="button selected" title="Path">&nbsp;Path&nbsp;</div>
-          <div id="draw-rect" class="button" title="Rectangle">&nbsp;Rect&nbsp;</div>
-          <div id="draw-ellipse" class="button" title="Ellipse">&nbsp;Ellipse&nbsp;</div>
-          <div class="button-separator"></div>
-          <div id="draw-fill-color" class="button" title="Fill Color">
-            <div class="color-patch checkered"></div>
-          </div>
-          <div id="draw-stroke-color" class="button" title="Stroke Color">
-            <div class="color-patch checkered"></div>
-          </div>
         </div>
         <div class="input-area pull-right">
           W:

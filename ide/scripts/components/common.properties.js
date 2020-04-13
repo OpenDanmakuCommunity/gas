@@ -11,8 +11,7 @@ var Properties = (function () {
     'SVGSprite': [],
     'BinarySprite': ['image.position', 'image.repeat', 'image.stretchMode',
       'content'],
-    'AnimatedSprite': ['image.position', 'image.repeat', 'image.stretchMode',
-      'content'],
+    'AnimatedSprite': ['frame'],
     'Frame': ['children'],
     'Button': ['font.size', 'font.decoration', 'font.family',
       'font.orientation', 'font.color', 'content', 'interaction']
@@ -45,7 +44,8 @@ var Properties = (function () {
     'transform.rotZ': DEFAULT_EASING,
     'opacity': DEFAULT_EASING,
     'font.size': DEFAULT_EASING,
-    'font.color': ['rgb:linear', 'hsv:linear']
+    'font.color': ['rgb:linear', 'hsv:linear'],
+    'frame': DEFAULT_EASING
   };
 
   var SPECS = {
@@ -154,6 +154,13 @@ var Properties = (function () {
     'children': {
       'type': 'list',
       'default': [],
+    },
+    'frame': {
+      'type': 'number',
+      'default': 0,
+      'min': 0,
+      'max': 1,
+      'step': 0.01
     },
     'frame.overflow': {
       'type': 'select',

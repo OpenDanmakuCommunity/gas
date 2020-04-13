@@ -3,7 +3,7 @@
   overflow: hidden;
 }
 
-#canvas * {
+#canvas > * {
   margin: 0;
   border: 1px transparent solid;
   user-select: none;

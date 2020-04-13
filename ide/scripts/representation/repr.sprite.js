@@ -2,9 +2,11 @@ var GSprite = (function () {
 
   var GSprite = function (name, spec) {
     this.DOM = null;
-    this.SVGDOM = null;
     this.type = 'Sprite';
     this.name = name;
+
+    this._svgCanvas = null;
+    this._svgP = null;
 
     this.create();
 
@@ -141,6 +143,11 @@ var GSprite = (function () {
       case 'content':
         this._setImage(newValue);
         break;
+      case 'frame':
+        if (this._svgP !== null) {
+          this._svgP.update(newValue);
+        }
+        break;
       default:
         console.warn('Property ' + propertyName + ' changed to ' + newValue +
           ' but we have nothing to update!');
@@ -160,9 +167,6 @@ var GSprite = (function () {
     this.name = newName;
     if (this.DOM !== null) {
       this.DOM.setAttribute('ide-object-name', newName);
-    }
-    if (this.SVGDOM !== null) {
-      this.SVGDOM.setAttribute('ide-object-name', newName);
     }
   };
 
@@ -196,86 +200,15 @@ var GSprite = (function () {
   };
 
   /** Below are special functions **/
-  GSprite.prototype.getContext = function () {
-    if (this.type !== 'Sprite' && this.type !== 'SVGSprite') {
-      return null; // Can't get a context
-    }
-    this.type = 'SVGSprite';
-    if (typeof this._pm !== 'undefined' && this._pm !== null) {
-      this._pm._baseSpec['type'] = 'Sprite';
-    }
-    var content = this._pm.getProp('content');
-    if (content instanceof DrawingContext) {
-      return content; // Get the existing context
-    } else if (typeof content === 'object') {
-      // Transform it into a drawing context
-      var ctx = new DrawingContext(this);
-      ctx.load(content);
-      return ctx;
-    } else {
-      return new DrawingContext(this);
+  GSprite.prototype._clearSvgCanvas = function () {
+    // Destroy the SVG because we don't know what we'll get
+    if (this._svgCanvas !== null) {
+      this.DOM.removeChild(this._svgCanvas._dom);
+      this._svgCanvas = null;
+      this._svgP = null;
     }
   }
 
-  /** Below are internal helper functions **/
-  GSprite.prototype._drawElement = function (item) {
-    var dom = _Create('svg:' + item.type);
-    // Set common attributes
-    for (var i = 0; i < DrawingContext.SVG_ATTRIBUTES[''].length; i++) {
-      var attr = DrawingContext.SVG_ATTRIBUTES[''][i];
-      if ('attrs' in item && attr in item.attrs) {
-        dom.setAttribute(attr, item.attrs[attr]);
-      }
-    }
-    // Set the unique attributes
-    if (item.type in DrawingContext.SVG_ATTRIBUTES) {
-      for (var i = 0;
-          i < DrawingContext.SVG_ATTRIBUTES[item.type].length;
-          i++) {
-
-        var attr = DrawingContext.SVG_ATTRIBUTES[item.type][i];
-        if ('attrs' in item && attr in item.attrs) {
-          dom.setAttribute(attr, item.attrs[attr]);
-        }
-      }
-    }
-
-    // Special things to handle
-    switch(item.type) {
-      case 'path':
-        if (typeof item.d === 'string') {
-          dom.setAttribute('d', item.d);
-        } else if (Array.isArray(item.d)) {
-          dom.setAttribute('d', item.d.map(function (d) {
-            switch(d.action) {
-              case 'M':
-              case 'm':
-              case 'L':
-              case 'l':
-                return d.action + ' ' + d.x + ' ' + d.y;
-              case 'Z':
-              case 'z':
-              default:
-                return d.action;
-            }
-          }).join(' '));
-        }
-      default:
-        break;
-    }
-    for (var i = 0; 'children' in item && i < item.children.length; i++) {
-      dom.appendChild(this._drawElement(item.children[i]));
-    }
-    return dom;
-  };
-  GSprite.prototype._drawSVG = function (imageData) {
-    if (this.SVGDOM === null) {
-      throw new Error('Cannot invoke svg drawing with no svg canvas');
-    }
-    for (var i = 0; i < imageData.children.length; i++) {
-      this.SVGDOM.appendChild(this._drawElement(imageData.children[i]));
-    }
-  };
   GSprite.prototype._setImage = function (image) {
     if (typeof image != 'object' || image === null || !'type' in image) {
       _ToggleClass(this.DOM, 'no-image', true);
@@ -285,10 +218,7 @@ var GSprite = (function () {
       }
       this.DOM.style.backgroundImage = '';
       this.DOM.style.backgroundSize = '';
-      if (this.SVGDOM !== null) {
-        this.DOM.removeChild(this.SVGDOM);
-        this.SVGDOM = null;
-      }
+      this._clearSvgCanvas();
       return;
     }
     switch (image.type) {
@@ -296,34 +226,37 @@ var GSprite = (function () {
       case 'image/jpg':
       case 'image/jpeg':
       case 'image/gif':
+      case 'image/svg+xml':
         this.type = 'BinarySprite';
         if (typeof this._pm !== 'undefined' && this._pm !== null) {
           this._pm._baseSpec['type'] = 'BinarySprite';
         }
-        if (this.SVGDOM !== null) {
-          this.DOM.removeChild(this.SVGDOM);
-          this.SVGDOM = null;
-        }
+        this._clearSvgCanvas();
         this.DOM.style.backgroundImage = 'url(' + image.dataUri + ')';
         this.DOM.style.backgroundSize = 'contain';
         break;
+      case 'svg+p':
       case 'svg':
-        if (this.SVGDOM !== null) {
-          // Recreate the SVG DOM
-          // TODO: Support incremental changes
-          this.DOM.removeChild(this.SVGDOM);
-        }
-        this.type = 'SVGSprite';
-        if (typeof this._pm !== 'undefined' && this._pm !== null) {
-          this._pm._baseSpec['type'] = 'SVGSprite';
-        }
-        this.SVGDOM = _Create('svg:svg', {
+        this._clearSvgCanvas();
+        // Setup the DOM
+        var canvasDom = _Create('svg:svg', {
           'width': '100%',
           'height': '100%',
-          'ide-object-name': this.name
+          'style': {
+            'transform': 'initial'
+          }
         });
-        this.DOM.appendChild(this.SVGDOM);
-        this._drawSVG(image);
+        this.DOM.appendChild(canvasDom);
+        // Setup the stuff
+        this._svgCanvas = new SvgCanvas(canvasDom, {});
+        this._svgP = new SVGP(image, [0, 0, 640, 480]);
+        // Draw
+        this._svgP.draw(this._svgCanvas, 0);
+
+        this.type = image.type === 'svg' ? 'SVGSprite' : 'AnimatedSprite';
+        if (typeof this._pm !== 'undefined' && this._pm !== null) {
+          this._pm._baseSpec['type'] = this.type;
+        }
         break;
       default:
         throw new Error('Sprite does not support image type of ' + image.type);

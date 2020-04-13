@@ -139,12 +139,25 @@ var SvgCanvas = (function () {
   }
 
   SvgCanvas.prototype.makeGroup = function (name) {
-    this._tree.appendChild(new NamedItem(name, _Create('g')));
+    this._tree.appendChild(new NamedItem(name, _Create('svg:g')));
     return this._tree.getChild(name);
   }
 
   SvgCanvas.prototype.context = function () {
     return new Context(this._initialContext);
+  }
+
+  SvgCanvas.prototype.getBoundingBoxes = function () {
+    // Recursively gets the bounding boxes from children
+    var boxes = [];
+
+  }
+
+  SvgCanvas.prototype.toXmlString = function () {
+    var clone = this._dom.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="no"?>' +
+      clone.outerHTML;
   }
 
   return SvgCanvas;

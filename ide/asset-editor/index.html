@@ -37,21 +37,40 @@
 
   <!-- Below is the main IDE -->
   <div id="left" class="container layout-block" draggable="false">
-    <div id="tools" class="mini-window" style="height: 200px;">
+    <div id="tools" class="mini-window" style="height: 300px;">
       <h1>Tools</h1>
       <div class="body">
-        <div id="tool-select" class="button" tabindex="2" role="button">
-          <p>Select Tool</p>
+        <div id="tool-import" class="button" tabindex="2" role="button">
+          <p>Import SVG</p>
         </div>
-        <div id="tool-rect" class="button" tabindex="2" role="button">
-          <p>Rect Tool</p>
+        <div id="tool-merge" class="button" tabindex="2" role="button">
+          <p>Merge</p>
         </div>
-        <div id="tool-ellipse" class="button" tabindex="2" role="button">
-          <p>Ellipse Tool</p>
+        <div id="tool-editsrc" class="button" tabindex="2" role="button">
+          <p>Edit Source</p>
         </div>
-        <div id="tool-path" class="button" tabindex="2" role="button">
-          <p>Path Tool</p>
+        <div id="tool-set-t" class="button" tabindex="2" role="button">
+          <p>Set T</p>
         </div>
+        <div id="tool-snap" class="button" tabindex="2" role="button">
+          <p>Snapshot</p>
+        </div>
+        <div id="tool-export" class="button" tabindex="2" role="button">
+          <p>Export</p>
+        </div>
+      </div>
+    </div>
+    <div id="options" class="mini-window" style="height: 300px;">
+      <h1>Options</h1>
+      <div class="body">
+        <div id="toggle-bbox" class="button" tabindex="2" role="button">
+          <p>Bounding Boxes</p>
+        </div>
+      </div>
+    </div>
+    <div id="info" class="mini-window" style="position:absolute; height: 100px; bottom:0; left:0; right:0;">
+      <h1>Info</h1>
+      <div id="info-box" class="body" style="padding: 10px;">
       </div>
     </div>
   </div>

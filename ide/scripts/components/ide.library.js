@@ -36,13 +36,30 @@ var AssetsLibrary = (function () {
       promises.push(new Promise((function (file) {
         return function (resolve, reject) {
           var reader = new FileReader();
+          var fileType = 'binary';
+          // Detect special import
+          try {
+            var filenameParts = file.name.split('.');
+            if (filenameParts.length > 1) {
+              var fileExt = filenameParts.slice(-1)[0].toLowerCase();
+              if (fileExt === 'txt' || fileExt === 'json') {
+                fileType = 'json';
+              }
+            }
+          } catch (e) { }
           reader.onload = function (evt) {
             resolve({
               'file': file,
+              'type': fileType,
               'data': evt.target.result
             });
           };
-          reader.readAsDataURL(file);
+          // Read this differently depending on type
+          if (fileType === 'json') {
+            reader.readAsText(file, 'utf-8');
+          } else {
+            reader.readAsDataURL(file);
+          }
         }
       })(f)));
     }
@@ -68,19 +85,35 @@ var AssetsLibrary = (function () {
 
   AssetsLibrary.prototype.getAssetAsUri = function (assetName) {
     var asset = this._assets[assetName];
-    return 'data:' + asset.type +
-      (asset.encoding !== '' ? (';' + asset.encoding) : '') + ',' +
-      asset.data;
+    if (asset.type === 'svg' || asset.type === 'svg+p') {
+      // We need to render the svg asset
+      try {
+        var canvas = new SvgCanvas(_Create('svg:svg'), {});
+        var sprite = new SVGP(asset, [0, 0, 640, 480]);
+        sprite.draw(canvas, 0);
+        return 'data:image/svg+xml;base64,' + btoa(canvas.toXmlString());
+      } catch (e) {
+        return 'data:';
+      }
+    } else {
+      return 'data:' + asset.type +
+        (asset.encoding !== '' ? (';' + asset.encoding) : '') + ',' +
+        asset.data;
+    }
   };
 
   AssetsLibrary.prototype.getAssetAsContent = function (assetName) {
     var asset = this._assets[assetName];
-    return {
-      'type': asset.type,
-      'encoding': asset.encoding,
-      'data': asset.data,
-      'dataUri': this.getAssetAsUri(assetName)
-    };
+    if (asset.type === 'svg' || asset.type === 'svg+p') {
+      return asset;
+    } else {
+      return {
+        'type': asset.type,
+        'encoding': asset.encoding,
+        'data': asset.data,
+        'dataUri': this.getAssetAsUri(assetName)
+      };
+    }
   };
 
   AssetsLibrary.prototype.getAssetSummary = function (assetName) {
@@ -130,10 +163,18 @@ var AssetsLibrary = (function () {
           var promises = [];
           for (var i = 0, f; f = files[i]; i++) {
             var name = this._autoName(f.file.name);
-            promises.push(P.emit('library.add', {
-              'name': name,
-              'data': this._extractDataURI(f.data)
-            }));
+            // Do some checking before adding
+            if (f.type === 'json') {
+              promises.push(P.emit('library.add', {
+                'name': name,
+                'data': JSON.parse(f.data)
+              }));
+            } else {
+              promises.push(P.emit('library.add', {
+                'name': name,
+                'data': this._extractDataURI(f.data)
+              }));
+            }
           }
           return Promise.all(promises);
         }).bind(this)).catch(function (err) {
