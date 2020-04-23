@@ -143,8 +143,7 @@ var SVGP = (function () {
   SVGP.prototype.draw = function (canvas, t) {
     // Create the canvas item
     this._canvas = canvas;
-    this._canvas.setViewBox.apply(this._canvas,
-      'viewBox' in this._src ? this._src['viewBox'] : this._dim);
+    this._canvas.setViewBox.apply(this._canvas, this.viewBox());
     // Draw items recursively
     var context = this._canvas.context();
     this._recurse((function (srcItem, treeItem) {
@@ -170,11 +169,15 @@ var SVGP = (function () {
     }).bind(this));
   }
 
+  SVGP.prototype.viewBox = function () {
+    return 'viewBox' in this._src ? this._src['viewBox'] : this._dim;
+  }
+
   SVGP.prototype.toString = function () {
-    return this._src.type + ' image: \n' +
+    return this._src.type + ' image \n' +
       (this._src.__author__ ?
-        (' Author: ' + this._src.__author__ + '\n') : '(No author info)\n') +
-      (this._src.__desc__ ? this._src.__desc__ : '(No description)');
+        (' Author: ' + this._src.__author__) : '(No author info)') + '\n\n ' +
+        (this._src.__desc__ ? this._src.__desc__ : '(No description)');
   }
 
   return SVGP;

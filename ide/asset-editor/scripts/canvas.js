@@ -27,6 +27,15 @@ var SvgCanvas = (function () {
     }
   }
 
+  NamedItem.prototype.removeChild = function(name) {
+    if (!(name in this._children)) {
+      throw new Error('Cannot remove child unless it exists!');
+    }
+    this._item.removeChild(this._children[name]._item);
+    delete this._children[name];
+    this._order.splice(this._order.indexOf(name), 1);
+  }
+
   NamedItem.prototype.replaceChild = function(namedItem) {
     if (!(namedItem._name in this._children)) {
       throw new Error('Cannot replace child unless it exists!');
@@ -49,7 +58,15 @@ var SvgCanvas = (function () {
     // Unnamed items are not tracked
     this._item.appendChild(child);
     return this;
-  };
+  }
+
+  NamedItem.prototype.clear = function () {
+    for (var childName in this._children) {
+      this._item.removeChild(this._children[childName]._item);
+    }
+    this._children = {};
+    this._order = [];
+  }
 
   function Context(context) {
     this._context = context;
@@ -91,6 +108,11 @@ var SvgCanvas = (function () {
     this.applyProps(item, this._context);
   }
 
+  Context.prototype.setAttribute = function (attrName, value) {
+    this._context[attrName] = value;
+    return this;
+  }
+
   Context.prototype.raw = function (type, spec) {
     // Ignores the local style
     var attributes = {};
@@ -119,6 +141,16 @@ var SvgCanvas = (function () {
     this._applyDefaults(line);
     return line;
   }
+
+  Context.prototype.text = function(x, y, text, font) {
+    var text = this.raw('text', {
+      'x': x,
+      'y': y,
+      'content': text
+    })
+    this._applyDefaults(text);
+    return text;
+  };
 
   function SvgCanvas(dom, initialContext) {
     this._dom = dom;

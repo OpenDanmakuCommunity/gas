@@ -17,3 +17,12 @@
   top:0;
   bottom:0;
 }
+
+#info-box {
+  overflow-x: hidden;
+  overflow-y: auto;
+  word-break: break-all;
+}
+#info-box:hover {
+  color: #72DEC9;
+}

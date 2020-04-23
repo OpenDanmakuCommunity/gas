@@ -1,7 +1,7 @@
 {
   "type": "svg+p",
   "__author__": "Jim Chen <knh.jabbany@gmail.com> CC BY-NC-SA 4.0",
-  "__desc__": "Example Parameterized SVG asset for Azureus with basic interpolated movement",
+  "__desc__": "Example parameterized SVG asset for Azureus with basic interpolated movement",
   "viewBox": [0, 0, 105.83333, 211.66667],
   "variables": {
     "eyeXOffset": {

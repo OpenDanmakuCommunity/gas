@@ -1,7 +1,7 @@
 {
   "type": "svg",
   "__author__": "Jim Chen <knh.jabbany@gmail.com> CC BY-NC-SA 4.0",
-  "__desc__": "Example SVG asset for Azureus of Arknights used as GAS SVG demo. This is a static svg instance. There is also an parameterized instance that implements a walk cycle.",
+  "__desc__": "Example SVG asset for Azureus used as GAS SVG demo. This is a static svg instance. ",
   "viewBox": [0, 0, 105.83333, 211.66667],
   "children": [
     {

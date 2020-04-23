@@ -1,130 +1,130 @@
 {
-    "type": "svg+p",
-    "__author__": "GAS Example Assets",
-    "__desc__": "Example asset for a spinner.",
-    "viewBox": [0, 0, 100, 100],
-    "variables": {
-        "t1": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [1, 0.5, 0, 0, 0, 0, 0, 0.5, 1]
-        },
-        "t2": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [0.5, 1, 0.5, 0, 0, 0, 0, 0, 0.5]
-        },
-        "t3": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [0, 0.5, 1, 0.5, 0, 0, 0, 0, 0]
-        },
-        "t4": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [0, 0, 0.5, 1, 0.5, 0, 0, 0, 0]
-        },
-        "t5": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [0, 0, 0, 0.5, 1, 0.5, 0, 0, 0]
-        },
-        "t6": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [0, 0, 0, 0, 0.5, 1, 0.5, 0, 0]
-        },
-        "t7": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [0, 0, 0, 0, 0, 0.5, 1, 0.5, 0]
-        },
-        "t8": {
-            "type": "interpolate-linear",
-            "on": "$t",
-            "src": [0.5, 0, 0, 0, 0, 0, 0.5, 1, 0.5]
-        }
+  "type": "svg+p",
+  "__author__": "Example Assets <example@example.com> CC0",
+  "__desc__": "Example asset for a spinner",
+  "viewBox": [0, 0, 100, 100],
+  "variables": {
+    "t1": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [1, 0.5, 0, 0, 0, 0, 0, 0.5, 1]
     },
-    "children": [
-        {
-            "type": "path",
-            "name": "spine-1",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t1", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 45 30 l 10 0 l 0 -30 l -10 0 Z"
-        },
-        {
-            "type": "path",
-            "name": "spine-2",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t2", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 60.607 32.322 L 67.678 39.393 L 88.891 18.180 L 81.820 11.109 Z"
-        },
-        {
-            "type": "path",
-            "name": "spine-3",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t3", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 70 45 l 0 10 l 30 0 l 0 -10 Z"
-        },
-        {
-            "type": "path",
-            "name": "spine-4",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t4", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 60.607 67.678 L 81.820 88.891 L 88.891 81.820 L 67.678 60.607 Z"
-        },
-        {
-            "type": "path",
-            "name": "spine-5",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t5", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 45 70 l 0 30 l 10 0 l 0 -30 Z"
-        },
-        {
-            "type": "path",
-            "name": "spine-6",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t6", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 32.322 60.607 L 11.109 81.820 L 18.180 88.891 L 39.393 67.678 Z"
-        },
-        {
-            "type": "path",
-            "name": "spine-7",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t7", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 30 45 l 0 10 l -30 0 l 0 -10 Z"
-        },
-        {
-            "type": "path",
-            "name": "spine-8",
-            "fill": {
-                "type": "rpn",
-                "src": [65793, 255, "$t8", "*", "floor", "*"],
-                "convert": "#rgb"
-            },
-            "d": "M 32.322 39.393 L 11.109 18.180 L 18.180 11.109 L 39.393 32.322 Z"
-        }
-    ]
+    "t2": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [0.5, 1, 0.5, 0, 0, 0, 0, 0, 0.5]
+    },
+    "t3": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [0, 0.5, 1, 0.5, 0, 0, 0, 0, 0]
+    },
+    "t4": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [0, 0, 0.5, 1, 0.5, 0, 0, 0, 0]
+    },
+    "t5": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [0, 0, 0, 0.5, 1, 0.5, 0, 0, 0]
+    },
+    "t6": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [0, 0, 0, 0, 0.5, 1, 0.5, 0, 0]
+    },
+    "t7": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [0, 0, 0, 0, 0, 0.5, 1, 0.5, 0]
+    },
+    "t8": {
+      "type": "interpolate-linear",
+      "on": "$t",
+      "src": [0.5, 0, 0, 0, 0, 0, 0.5, 1, 0.5]
+    }
+  },
+  "children": [
+    {
+      "type": "path",
+      "name": "spine-1",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t1", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 45 30 l 10 0 l 0 -30 l -10 0 Z"
+    },
+    {
+      "type": "path",
+      "name": "spine-2",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t2", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 60.607 32.322 L 67.678 39.393 L 88.891 18.180 L 81.820 11.109 Z"
+    },
+    {
+      "type": "path",
+      "name": "spine-3",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t3", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 70 45 l 0 10 l 30 0 l 0 -10 Z"
+    },
+    {
+      "type": "path",
+      "name": "spine-4",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t4", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 60.607 67.678 L 81.820 88.891 L 88.891 81.820 L 67.678 60.607 Z"
+    },
+    {
+      "type": "path",
+      "name": "spine-5",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t5", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 45 70 l 0 30 l 10 0 l 0 -30 Z"
+    },
+    {
+      "type": "path",
+      "name": "spine-6",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t6", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 32.322 60.607 L 11.109 81.820 L 18.180 88.891 L 39.393 67.678 Z"
+    },
+    {
+      "type": "path",
+      "name": "spine-7",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t7", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 30 45 l 0 10 l -30 0 l 0 -10 Z"
+    },
+    {
+      "type": "path",
+      "name": "spine-8",
+      "fill": {
+        "type": "rpn",
+        "src": [65793, 255, "$t8", "*", "floor", "*"],
+        "convert": "#rgb"
+      },
+      "d": "M 32.322 39.393 L 11.109 18.180 L 18.180 11.109 L 39.393 32.322 Z"
+    }
+  ]
 }
