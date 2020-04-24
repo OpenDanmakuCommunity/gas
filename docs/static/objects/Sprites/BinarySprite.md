@@ -2,12 +2,12 @@
 Example 示例:
 ````JSON
 {
-    "type": "BinarySprite",
-    "content": {
-        "type": "image/png",
-        "data": "...",
-        "encoding": "base64"
-    }
+  "type": "BinarySprite",
+  "content": {
+    "type": "image/png",
+    "data": "...",
+    "encoding": "base64"
+  }
 }
 ````
 

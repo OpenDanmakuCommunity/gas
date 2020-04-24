@@ -9,11 +9,11 @@ interaction 的回退策略。
 以下为示例：
 ````JSON
 {
-    "type":"SomeObject",
-    "interaction": {
-        "list": ["vid100_Button"],
-        "fallback": ""
-    }
+  "type":"SomeObject",
+  "interaction": {
+    "list": ["vid100_Button"],
+    "fallback": ""
+  }
 }
 ````
 
@@ -34,26 +34,26 @@ interaction 的回退策略。
 以下为示例:
 ````JavaScript
 {
-    "interactions": {
-        "vid100_Button": {
-            "type": "hit-target",
-            "action": "open",
-            "parameters": {
-                "location": "video://vid100/0",
-                "window": "replace",
-                "pause": true,
-            },
-            "style": {
-                "accessible": true,
-                "outline": "always",
-                "hover": {
-                    "color": 0xc0ffee,
-                    "background": 0xffffff,
-                },
-                "touchPolicy": "default"
-            }
-        }
+  "interactions": {
+    "vid100_Button": {
+      "type": "hit-target",
+      "action": "open",
+      "parameters": {
+        "location": "video://vid100/0",
+        "window": "replace",
+        "pause": true,
+      },
+      "style": {
+        "accessible": true,
+        "outline": "always",
+        "hover": {
+          "color": 0xc0ffee,
+          "background": 0xffffff,
+        },
+        "touchPolicy": "default"
+      }
     }
+  }
 }
 ````
 
@@ -75,23 +75,23 @@ interaction 的回退策略。
 平台而不同，以下是一个例子：
 ````JavaScript
 {
-    //...
-    "interaction": [
-        {
-            "type": "hit-target",
-            "action": "some action",
-            "parameters": { /* ... */ },
-            "style": {
-                "accessible": true,
-                "outline": "always",
-                "hover": {
-                    "color": 0xc0ffee,
-                    "background": 0xFFFF00
-                },
-                "touchPolicy": "default"
-            }
-        }
-    ]
+  //...
+  "interaction": [
+    {
+      "type": "hit-target",
+      "action": "some action",
+      "parameters": { /* ... */ },
+      "style": {
+        "accessible": true,
+        "outline": "always",
+        "hover": {
+          "color": 0xc0ffee,
+          "background": 0xFFFF00
+        },
+        "touchPolicy": "default"
+      }
+    }
+  ]
 }
 ````
 
@@ -106,10 +106,10 @@ interaction 的回退策略。
 参数如下：
 ````JSON
 {
-    "parameters": {
-        "time": 10030,
-        "cancelable": false
-    }
+  "parameters": {
+    "time": 10030,
+    "cancelable": false
+  }
 }
 ````
 
@@ -121,11 +121,11 @@ interaction 的回退策略。
 参数如下：
 ````JSON
 {
-    "parameters": {
-        "location": "...",
-        "window": "replace",
-        "pause": true,
-    }
+  "parameters": {
+    "location": "...",
+    "window": "replace",
+    "pause": true,
+  }
 }
 ````
 
@@ -138,11 +138,11 @@ interaction 的回退策略。
 参数如下：
 ````JSON
 {
-    "parameters": {
-        "item": "ITEM_ID",
-        "value": 10,
-        "variable": [0, 10, 1]
-    }
+  "parameters": {
+    "item": "ITEM_ID",
+    "value": 10,
+    "variable": [0, 10, 1]
+  }
 }
 ````
 
@@ -158,15 +158,15 @@ interaction 的回退策略。
 ## Keyboard Target 键盘触发器
 ````JavaScript
 {
-    //...
-    "interaction": [
-        {
-            "type": "keydown",
-            "action": "",
-            "parameters": { /* ... */ },
-            "focus": true,
-        }
-    ]
+  //...
+  "interaction": [
+    {
+      "type": "keydown",
+      "action": "",
+      "parameters": { /* ... */ },
+      "focus": true,
+    }
+  ]
 }
 ````
 

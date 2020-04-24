@@ -5,6 +5,21 @@ var ReferenceLayerManager = (function () {
     this._logLines = 0;
     this._crosshair = this._overlay.makeGroup('crosshair');
     this._console = this._underlay.makeGroup('console');
+    this._groups = {};
+  }
+
+  ReferenceLayerManager.prototype.drawBoxes = function (group, items) {
+    if (!(group in this._groups)) {
+      this._groups[group] = this._overlay.makeGroup(group);
+    }
+    var g = this._groups[group];
+    g.clear();
+    var ctx = this._overlay.context().fork().setAttribute('fill', 'none'),
+      tctx = this._overlay.context().fork().setAttribute('stroke', 'none');
+    items.forEach(function(box) {
+      g.draw(ctx.rect(box.x, box.y, box.width, box.height))
+        .draw(tctx.text(box.x, box.y, box.name));
+    });
   }
 
   ReferenceLayerManager.prototype.toggleCrosshair = function (show) {
@@ -31,7 +46,6 @@ var ReferenceLayerManager = (function () {
   ReferenceLayerManager.prototype.clearLog = function () {
     this._console.clear();
   }
-
 
   return ReferenceLayerManager;
 })();

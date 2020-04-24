@@ -15,12 +15,15 @@
   <script src="../scripts/pettan.js"></script>
   <script src="../scripts/global.js"></script>
   <script src="../scripts/timer.js"></script>
+  <script src="../scripts/toggle.js"></script>
+  <script src="../scripts/treeview.js"></script>
   <script src="scripts/editor.js"></script>
   <script src="scripts/canvas.js"></script>
   <script src="scripts/overlay.js"></script>
   <script src="scripts/sprite.js"></script>
   <!-- utils -->
   <script src="scripts/util/pathtools.js"></script>
+  <script src="scripts/util/svgreader.js"></script>
 </head>
 <body class="layout-default">
   <noscript>
@@ -41,17 +44,19 @@
     <div id="tools" class="mini-window" style="height: 300px;">
       <h1>Tools</h1>
       <div class="body">
+        <div id="tool-open" class="button" tabindex="2" role="button">
+          <p>Open</p>
+          <input type="file" id="file-json" accept=".json" style="display: none;" />
+        </div>
         <div id="tool-import" class="button" tabindex="2" role="button">
           <p>Import SVG</p>
+          <input type="file" id="file-svg" accept=".svg" style="display: none;" />
         </div>
         <div id="tool-merge" class="button" tabindex="2" role="button">
           <p>Merge</p>
         </div>
         <div id="tool-editsrc" class="button" tabindex="2" role="button">
           <p>Edit Source</p>
-        </div>
-        <div id="tool-set-t" class="button" tabindex="2" role="button">
-          <p>Set T</p>
         </div>
         <div id="tool-snap" class="button" tabindex="2" role="button">
           <p>Snapshot</p>
@@ -64,8 +69,11 @@
     <div id="options" class="mini-window" style="height: 300px;">
       <h1>Options</h1>
       <div class="body">
-        <div id="toggle-bbox" class="button" tabindex="2" role="button">
-          <p>Bounding Boxes</p>
+        <div id="toggle-play" class="button toggle" tabindex="2" role="button">
+          <p>Play</p>
+        </div>
+        <div id="toggle-tree" class="button toggle" tabindex="2" role="button">
+          <p>Show Tree</p>
         </div>
       </div>
     </div>
@@ -79,6 +87,9 @@
     <svg id="underlay" xmlns="http://www.w3.org/2000/svg"></svg>
     <svg id="canvas" xmlns="http://www.w3.org/2000/svg"></svg>
     <svg id="overlay" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="tree-view-box" style="display: none;">
+      <ul id="tree-view" class="tree"></ul>
+    </div>
   </div>
 </body>
 </html>

@@ -8,7 +8,8 @@
   right: 1px;
 }
 
-#canvas, #overlay {
+
+#canvas, #overlay, #underlay {
   position: absolute;
   width:100%;
   height:100%;
@@ -16,6 +17,7 @@
   right:0;
   top:0;
   bottom:0;
+  user-select: none;
 }
 
 #info-box {
@@ -25,4 +27,18 @@
 }
 #info-box:hover {
   color: #72DEC9;
+}
+
+#tree-view-box {
+  position: absolute;
+  opacity: 0.95;
+  top: 20px;
+  right: 20px;
+  width: 300px;
+  height: 50%;
+  padding: 10px;
+  background-color: #262626;
+  color: #939393;
+  font-size: 20px;
+  overflow: auto;
 }

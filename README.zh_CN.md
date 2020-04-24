@@ -14,7 +14,7 @@
 - [IDE](ide/) ([在线](https://opendanmakucommunity.github.io/gas/ide/))
 
 ## 许可
-所有本库内文档均按照 署名-相同方式共享 4.0 国际 许可协议提供
+所有本库内文档（除非另行在文档中标明）均按照 署名-相同方式共享 4.0 国际 许可协议提供
 [(CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
 
 所有本库内的代码均按照 [MIT license](https://opensource.org/licenses/MIT) 提供

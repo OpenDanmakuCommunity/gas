@@ -214,6 +214,14 @@ select:invalid {
   padding: 10px;
 }
 
+.button.toggle {
+  border-left: 10px #323232 solid;
+}
+.button.toggle.active {
+  border-color: #72DEC9;
+  color: #72DEC9;
+}
+
 /** Patches **/
 .color-patch {
   position: absolute;
@@ -274,6 +282,42 @@ div.progress div.bar {
 }
 .mini-window.collapse > .body {
   display: none;
+}
+
+/** Tree view **/
+ul.tree {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.tree span.leaf, ul.tree span.branch {
+  cursor: pointer;
+  user-select: none;
+}
+ul.tree span.leaf:hover, ul.tree span.branch:hover {
+  color: #72DEC9;
+}
+ul.tree span.leaf::before {
+  content: "\25A1";
+  display: inline-block;
+  margin-right: 6px;
+}
+ul.tree span.branch::before {
+  content: "\25B6";
+  display: inline-block;
+  margin-right: 6px;
+}
+ul.tree span.branch.down::before {
+  transform: rotate(90deg);
+}
+ul.tree ul.nested {
+  list-style-type: none;
+  display: none;
+}
+ul.tree ul.active {
+  list-style-type: none;
+  display: block;
 }
 
 /** LAYOUT **/

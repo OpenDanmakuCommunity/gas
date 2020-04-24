@@ -6,6 +6,18 @@ var SvgCanvas = (function () {
     this._order = [];
   }
 
+  NamedItem.prototype.isLeaf = function () {
+    return this._order.length === 0;
+  }
+
+  NamedItem.prototype.item = function () {
+    return this._item;
+  }
+
+  NamedItem.prototype.name = function () {
+    return this._name;
+  }
+
   NamedItem.prototype.getChildAt = function (index) {
     return this._children[this._order[index]];
   }
@@ -44,14 +56,15 @@ var SvgCanvas = (function () {
     this._children[namedItem._name] = namedItem;
   }
 
+  NamedItem.prototype.appendNamedChild = function (name, child) {
+    var newNode = new NamedItem(name, child);
+    this.appendChild(newNode);
+  }
+
   NamedItem.prototype.appendUnnamedChild = function (child) {
     // Create an un-named svg thing
     var newNode = new NamedItem('child-' + this._order.length, child);
     this.appendChild(newNode);
-  }
-
-  NamedItem.prototype.item = function () {
-    return this._item;
   }
 
   NamedItem.prototype.draw = function (child) {
@@ -61,13 +74,24 @@ var SvgCanvas = (function () {
   }
 
   NamedItem.prototype.clear = function () {
-    for (var childName in this._children) {
-      this._item.removeChild(this._children[childName]._item);
-    }
     this._children = {};
     this._order = [];
+    this._item.innerHTML = '';
   }
 
+  NamedItem.prototype.children = function () {
+    return this._order.map((function (childName) {
+      return this._children[childName];
+    }).bind(this));
+  }
+
+  NamedItem.prototype.toString = function () {
+    return '<' + this.item().nodeName + '> ' + this.name();
+  }
+
+  /**
+   * Context
+   **/
   function Context(context) {
     this._context = context;
   }
@@ -142,6 +166,17 @@ var SvgCanvas = (function () {
     return line;
   }
 
+  Context.prototype.rect = function(x, y, width, height) {
+    var rect = this.raw('rect', {
+      'x': x,
+      'y': y,
+      'width': width,
+      'height': height
+    });
+    this._applyDefaults(rect);
+    return rect;
+  }
+
   Context.prototype.text = function(x, y, text, font) {
     var text = this.raw('text', {
       'x': x,
@@ -153,10 +188,11 @@ var SvgCanvas = (function () {
   };
 
   function SvgCanvas(dom, initialContext) {
+    var bbox = dom.getBoundingClientRect();
     this._dom = dom;
     this._tree = new NamedItem('_root', this._dom);
-    this._width = dom.offsetWidth ? dom.offsetWidth : 640;
-    this._height = dom.offsetHeight ? dom.offsetHeight: 480;
+    this._width = bbox.width;
+    this._height = bbox.height;
     this._initialContext = initialContext;
 
     this.setViewBox(0, 0, this._width, this._height);
@@ -179,10 +215,15 @@ var SvgCanvas = (function () {
     return new Context(this._initialContext);
   }
 
-  SvgCanvas.prototype.getBoundingBoxes = function () {
+  SvgCanvas.prototype.asInternalBox = function (boundingBox) {
     // Recursively gets the bounding boxes from children
-    var boxes = [];
-
+    var bb = this._dom.getBoundingClientRect();
+    return {
+      'x': boundingBox.x - bb.x,
+      'y': boundingBox.y - bb.y,
+      'width': boundingBox.width,
+      'height': boundingBox.height
+    };
   }
 
   SvgCanvas.prototype.toXmlString = function () {

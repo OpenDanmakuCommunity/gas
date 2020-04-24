@@ -52,7 +52,7 @@ Objects 区由 JSON POJO（标准Object）表示，用来存储这条弹幕会�
     - `Reference` 公共锚点
 
 GAS-S弹幕至少应该有一个对象定义在此，否则视为空弹幕，解析器可以无视其余内容。有关 Objects
-特点可以参考 [Objects](Objects.md) 章节。
+特点可以参考 [Objects](objects/README.md) 章节。
 
 ### `layers` 弹幕层
 Layers 区由 JSON Array 表示。每一个元素都是一个“图像层”定义，依次从 **最低到最高层**。

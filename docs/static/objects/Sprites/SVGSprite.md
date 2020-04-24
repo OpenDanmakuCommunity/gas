@@ -2,13 +2,13 @@
 Example 示例:
 ````JSON
 {
-    "type": "SVGSprite",
-    "content": {
-        "type": "svg",
-        "viewBox": [0, 0, 100, 100],
-        "defs": [],
-        "children": []
-    }
+  "type": "SVGSprite",
+  "content": {
+    "type": "svg",
+    "viewBox": [0, 0, 100, 100],
+    "defs": [],
+    "children": []
+  }
 }
 ````
 ## `content` SVG内容
@@ -33,21 +33,32 @@ Example 示例:
 情况下外部渲染平台未必支持所有 SVG 功能，建议可能的情况下讲各种 SVG 专有对象类型转化为
 path 路径对象。
 
-#### Rect, Circle, Ellipse, Line, Polyline, Polygon
+#### 基础图形 Rect, Circle, Ellipse, Line, Polyline, Polygon
 ````JSON
 {
-    "type":"rect"
+  "type":"rect"
 }
 ````
 
-#### Path
+#### 路径 Path
 ````JSON
 {
-    "type":"rect"
+  "type":"path",
+  "d": [
+    ["M", 100, 100]
+  ]
 }
 ````
 
-#### Use
+#### 文字 Text
+````
+{
+  "type": "text",
+  "content": "This is some SVG text content"
+}
+````
+
+#### 引用 Use
 ````JSON
 {
   "type":"use",

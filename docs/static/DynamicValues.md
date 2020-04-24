@@ -17,12 +17,12 @@
 
 ````JSON
 {
-    "metadata": {
-        "variables": {
-            "scalingFactor": 0.1,
-            "defaultScreenWidth": 0.12
-        }
+  "metadata": {
+    "variables": {
+      "scalingFactor": 0.1,
+      "defaultScreenWidth": 0.12
     }
+  }
 }
 ````
 
@@ -36,20 +36,20 @@
 
 ````JSON
 {
-    "oldWidth": 640,
-    "oldHeight": 480,
-    "scalingFactor": {
-        "op":"max",
-        "params": [
-            {
-                "op": "/",
-                "params": ["$stageWidth", "$oldWidth"]
-            },
-            {
-                "op": "/",
-                "params": ["$stageHeight", "$oldHeight"]
-            },
-        ]
-    }
+  "oldWidth": 640,
+  "oldHeight": 480,
+  "scalingFactor": {
+    "op":"max",
+    "params": [
+      {
+        "op": "/",
+        "params": ["$stageWidth", "$oldWidth"]
+      },
+      {
+        "op": "/",
+        "params": ["$stageHeight", "$oldHeight"]
+      },
+    ]
+  }
 }
 ````

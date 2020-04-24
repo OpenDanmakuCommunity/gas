@@ -1,5 +1,5 @@
 var SVGP = (function () {
-  var _OPS = {
+  const _OPS = {
     '+': [2, function (a, b) { return a + b; }],
     '-': [2, function (a, b) { return a - b; }],
     '*': [2, function (a, b) { return a * b; }],
@@ -13,7 +13,7 @@ var SVGP = (function () {
     'round': [1, function (a) { return Math.round(a); }],
     'if': [3, function (a, b, c) { return a > 0 ? b : c; }]
   };
-  var _CONV = {
+  const _CONV = {
     '#rgb': function (number) {
       var color = number.toString(16);
       while (color.length < 6) {
@@ -22,6 +22,7 @@ var SVGP = (function () {
       return '#' + color;
     }
   };
+
   function _eval(notation, variables) {
     if (typeof notation === 'string' || typeof notation === 'number') {
       return notation; // Primitives are resolved directly
@@ -88,9 +89,10 @@ var SVGP = (function () {
     }
   }
 
-  function SVGP (src, extViewBox) {
+  function SVGP (src, extViewBox, respectNames) {
     this._src = src;
     this._dim = extViewBox;
+    this._respectNames = respectNames === true;
     this._canvas = null;
   }
 
@@ -103,7 +105,7 @@ var SVGP = (function () {
       var srcItem = stackSrc.pop(), treeItem = stackTree.pop();
       callback(srcItem, treeItem);
       // Continue exploration
-      if ('children' in stackSrc && Array.isArray(stackSrc.children)) {
+      if ('children' in srcItem && Array.isArray(srcItem.children)) {
         for (var i = srcItem.children.length - 1; i >= 0; i--) {
           stackSrc.push(srcItem.children[i]);
           stackTree.push(treeItem.getChildAt(i));
@@ -119,8 +121,11 @@ var SVGP = (function () {
         attr === 'name' ||
         attr === 'children' ||
         attr.startsWith('__')) {
-
         continue;
+      }
+      // Some hardening
+      if (attr === 'id' || attr.startsWith('on')) {
+        continue; // banned keys
       }
       // Resolve the variables
       var vars = {};
@@ -149,9 +154,14 @@ var SVGP = (function () {
     this._recurse((function (srcItem, treeItem) {
       if ('children' in srcItem && Array.isArray(srcItem.children)) {
         for (var i = 0; i < srcItem.children.length; i++) {
-          var childSpec = this._resolve(srcItem.children[i], t),
+          const childSpec = this._resolve(srcItem.children[i], t),
             type = srcItem.children[i].type;
-          treeItem.appendUnnamedChild(context.raw(type, childSpec));
+          if (this._respectNames && 'name' in srcItem.children[i]) {
+            treeItem.appendNamedChild(
+              srcItem.children[i].name, context.raw(type, childSpec));
+          } else {
+            treeItem.appendUnnamedChild(context.raw(type, childSpec));
+          }
         }
       }
     }).bind(this));
@@ -162,7 +172,7 @@ var SVGP = (function () {
     this._recurse((function (srcItem, treeItem) {
       if ('children' in srcItem && Array.isArray(srcItem.children)) {
         for (var i = 0; i < srcItem.children.length; i++) {
-          var childSpec = this._resolve(srcItem.children[i], t);
+          const childSpec = this._resolve(srcItem.children[i], t);
           context.applyProps(treeItem.getChildAt(i).item(), childSpec);
         }
       }
@@ -171,6 +181,10 @@ var SVGP = (function () {
 
   SVGP.prototype.viewBox = function () {
     return 'viewBox' in this._src ? this._src['viewBox'] : this._dim;
+  }
+
+  SVGP.prototype.toJSON = function () {
+    return JSON.stringify(this._src);
   }
 
   SVGP.prototype.toString = function () {

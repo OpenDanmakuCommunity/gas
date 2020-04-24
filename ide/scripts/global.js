@@ -39,6 +39,8 @@ var _Create = function (type, props, children, callback) {
     type === 'svg:circle' ||
     type === 'svg:ellipse' ||
     type === 'svg:path' ||
+    type === 'svg:polygon' ||
+    type === 'svg:polyline' ||
     type === 'svg:g') {
     var tag = type.split(':').slice(1).join(':');
     elem = document.createElementNS("http://www.w3.org/2000/svg", tag);

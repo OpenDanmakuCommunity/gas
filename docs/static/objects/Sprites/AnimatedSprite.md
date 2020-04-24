@@ -2,9 +2,9 @@
 Example 示例:
 ````JSON
 {
-    "type": "AnimatedSprite",
-    "content": {},
-    "frame": 0
+  "type": "AnimatedSprite",
+  "content": {},
+  "frame": 0
 }
 ````
 
@@ -20,11 +20,11 @@ Example 示例:
 ### 帧列表 Frame List
 ````JSON
 {
-    "type": "frames",
-    "frames": [
-        {"type": "svg", "children": []},
-        {"type": "image/png", "data": "...", "encoding": ""}
-    ]
+  "type": "frames",
+  "frames": [
+    {"type": "svg", "children": []},
+    {"type": "image/png", "data": "...", "encoding": ""}
+  ]
 }
 ````
 
@@ -34,11 +34,7 @@ Example 示例:
 ### 参量SVG Parameterized SVG
 ````JSON
 {
-    "type": "svg+p",
-    "children": [
-        {
-
-        }
-    ]
+  "type": "svg+p",
+  "children": []
 }
 ````

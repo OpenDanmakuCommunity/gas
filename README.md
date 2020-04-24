@@ -15,7 +15,7 @@ The project contains the following main parts:
 - [IDE](ide/) ([Live](https://opendanmakucommunity.github.io/gas/ide/))
 
 ## License
-All documentation in this project is licensed under the
+All documentation in this project (unless otherwise noted) is licensed under the
 Creative Commons Attribution-ShareAlike 4.0 International License
 [(CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
 

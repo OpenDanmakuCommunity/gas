@@ -90,45 +90,45 @@ GAS-S 的动画定义语法非常简单。动画定义采取全局锚点模式�
 ### 示例时间轴 Anchor Example
 ````JavaScript
 [
-    // X
-    {
-        "time": 100,
-        "objects": {
-            "A": { /** Stuff **/ },
-            "C": { /** Stuff **/ },
-        }
-    },
-    // Y
-    {
-        "time": 200,
-        "objects": {
-            "B": { /** Stuff **/ },
-            "C": { /** Stuff **/ },
-        }
-    },
-    // Z
-    {
-        "time": 300,
-        "objects": {
-            "A": { /** Stuff **/ },
-            "B": { /** Stuff **/ },
-            "C": { /** Stuff **/ },
-        }
-    },
-    // P
-    {
-        "time": 400,
-        "objects": {
-            "B": { /** Stuff **/ },
-        }
-    },
-    // Q
-    {
-        "time": 500,
-        "objects": {
-            "C": { /** Stuff **/ },
-        }
+  // X
+  {
+    "time": 100,
+    "objects": {
+      "A": { /** Stuff **/ },
+      "C": { /** Stuff **/ },
     }
+  },
+  // Y
+  {
+    "time": 200,
+    "objects": {
+      "B": { /** Stuff **/ },
+      "C": { /** Stuff **/ },
+    }
+  },
+  // Z
+  {
+    "time": 300,
+    "objects": {
+      "A": { /** Stuff **/ },
+      "B": { /** Stuff **/ },
+      "C": { /** Stuff **/ },
+    }
+  },
+  // P
+  {
+    "time": 400,
+    "objects": {
+      "B": { /** Stuff **/ },
+    }
+  },
+  // Q
+  {
+    "time": 500,
+    "objects": {
+      "C": { /** Stuff **/ },
+    }
+  }
 ]
 ````
 
