@@ -117,6 +117,7 @@
       });
 
     window.addEventListener('resize', function () {
+      rlm.resize();
       if (currentSprite !== null) {
         // Do something
       }

@@ -7,8 +7,15 @@ var SVGReader = (function () {
   function SVGReader (text) {
     this._svg = (new DOMParser()).parseFromString(text, "image/svg+xml");
     this._cssRules = {};
+    this._defs = [];
+    this._resolveMaps = {}; // Map of "#" names
 
     this._css();
+  }
+
+  SVGReader.prototype._defs = function () {
+    const defBlocks = this._svg.getElementsByTagName('defs');
+
   }
 
   SVGReader.prototype._css = function () {
@@ -66,6 +73,12 @@ var SVGReader = (function () {
         } else {
           rootNode[attr.name] = attr.value;
         }
+      }
+    }
+    // Handle local stylesheet
+    if (root.style && root.style.length && root.style.length > 0) {
+      for (var i = 0; i < root.style.length; i++) {
+        rootNode[root.style[i]] = root.style[root.style[i]];
       }
     }
     for (var i = 0; i < root.childNodes.length; i++) {

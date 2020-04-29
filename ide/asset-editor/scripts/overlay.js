@@ -8,6 +8,14 @@ var ReferenceLayerManager = (function () {
     this._groups = {};
   }
 
+  ReferenceLayerManager.prototype.resize = function () {
+    // Auto-resize the layers
+    const olcb = this._overlay._dom.getBoundingClientRect(),
+      ulcb = this._underlay._dom.getBoundingClientRect();
+    this._overlay.setViewBox(0, 0, olcb.width, olcb.height);
+    this._underlay.setViewBox(0, 0, ulcb.width, ulcb.height);
+  }
+
   ReferenceLayerManager.prototype.drawBoxes = function (group, items) {
     if (!(group in this._groups)) {
       this._groups[group] = this._overlay.makeGroup(group);

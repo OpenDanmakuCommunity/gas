@@ -30,27 +30,6 @@ Objects 区由 JSON POJO（标准Object）表示，用来存储这条弹幕会�
 对象的名字，键值（Value）为对象的定义。对象名大小写视为不同的对象，推荐使用 `camelCase` 命名
 对象。
 
-注意：原则对象名上只支持 `[a-zA-Z0-9-_@]` 这些符号。如使用之外的符号（如 `.,:|` 或汉字）
-可能在一些系统上产生非预期的结果。有些系统会自动转换不合规的对象名到合规的对象名，另一些则可
-能报错拒绝播放。
-
-目前有如下几种类型对象：
-
-- [TextObject](objects/TextObject.md) 文字对象
-    - `Text` 普通文字
-    - `RichText` 格式文字
-    - `Button` 按钮 （注：按钮和文字对象没有本质区别，只有定义了
-        [交互](InteractionHints.md) 才有实际按钮意义。同样，别的东西定义了交互也会变成按钮
-        类似的东西。
-- [SpriteObject](objects/SpriteObject.md) 图像对象
-    - `Sprite` 空图像
-    - `SVGSprite` SVG图像
-    - `BinarySprite` 二进制位图
-    - `AnimatedSprite` 动画图像
-- [FrameObject](objects/FrameObject.md) 子舞台对象
-    - `Frame` 子舞台
-    - `Reference` 公共锚点
-
 GAS-S弹幕至少应该有一个对象定义在此，否则视为空弹幕，解析器可以无视其余内容。有关 Objects
 特点可以参考 [Objects](objects/README.md) 章节。
 
