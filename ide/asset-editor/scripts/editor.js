@@ -102,8 +102,20 @@
         const reader = new FileReader();
         reader.onload = function (e) {
           var svgReader = new SVGReader(e.target.result);
-          load(svgReader.import(), canvas, rlm, infoBox ,tv);
+          load(svgReader.import(), canvas, rlm, infoBox, tv);
         };
+        reader.readAsText(file);
+      }
+    });
+
+    fileOpen.addEventListener('change', function (e) {
+      const fileList = this.files;
+      if (fileList.length > 0) {
+        const file = fileList[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          load(JSON.parse(e.target.result), canvas, rlm, infoBox, tv);
+        }
         reader.readAsText(file);
       }
     });
